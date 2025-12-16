@@ -514,41 +514,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step-4-get-the-channel-id" class="md-nav__link">
+  <a href="#step-4-configure-the-channel" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 4: Get the Channel ID
+        Step 4: Configure the Channel
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Step 4: Get the Channel ID">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#method-1-via-slack-app" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Method 1: Via Slack App
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#method-2-via-slack-url" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Method 2: Via Slack URL
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1113,22 +1085,16 @@
 <p class="admonition-title">Keep Your Bot Token Secret</p>
 <p>This token allows anyone to post messages as your bot. Never commit it to version control or share it publicly.</p>
 </div>
-<h2 id="step-4-get-the-channel-id">Step 4: Get the Channel ID<a class="headerlink" href="#step-4-get-the-channel-id" title="Permanent link">&para;</a></h2>
-<p>You need the channel ID (not the channel name) for configuration.</p>
-<h3 id="method-1-via-slack-app">Method 1: Via Slack App<a class="headerlink" href="#method-1-via-slack-app" title="Permanent link">&para;</a></h3>
+<h2 id="step-4-configure-the-channel">Step 4: Configure the Channel<a class="headerlink" href="#step-4-configure-the-channel" title="Permanent link">&para;</a></h2>
+<p>For most cases, you can simply use the channel name (e.g., <code>general</code>, <code>pipelines</code>) in your configuration.</p>
+<p>If you prefer to use a Channel ID (which remains stable even if the channel is renamed), you can find it as follows:</p>
 <ol>
-<li>Open Slack and navigate to the channel where you want notifications</li>
+<li>Open Slack and navigate to the channel</li>
 <li>Click the channel name at the top</li>
 <li>Scroll down in the "About" tab</li>
-<li>At the bottom, you'll see the <strong>Channel ID</strong> (e.g., <code>C1234567890</code>)</li>
-<li>Copy this ID</li>
+<li>Copy the <strong>Channel ID</strong> from the bottom (e.g., <code>C1234567890</code>)</li>
 </ol>
-<h3 id="method-2-via-slack-url">Method 2: Via Slack URL<a class="headerlink" href="#method-2-via-slack-url" title="Permanent link">&para;</a></h3>
-<ol>
-<li>Open the channel in your web browser</li>
-<li>Look at the URL: <code>https://app.slack.com/client/T.../C1234567890</code></li>
-<li>The part starting with <code>C</code> is your channel ID</li>
-</ol>
+<p>Alternatively, look at the channel URL in your browser: <code>https://app.slack.com/client/T.../C1234567890</code> (the part starting with <code>C</code>).</p>
 <h2 id="step-5-store-your-bot-token-securely">Step 5: Store Your Bot Token Securely<a class="headerlink" href="#step-5-store-your-bot-token-securely" title="Permanent link">&para;</a></h2>
 <p>You have several options for managing the bot token and channel ID securely:</p>
 <h3 id="option-1-environment-variables">Option 1: Environment Variables<a class="headerlink" href="#option-1-environment-variables" title="Permanent link">&para;</a></h3>
@@ -1141,7 +1107,7 @@
 <div class="language-groovy highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="n">bot</span><span class="w"> </span><span class="o">{</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">        </span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">System</span><span class="o">.</span><span class="na">getenv</span><span class="o">(</span><span class="s1">&#39;SLACK_BOT_TOKEN&#39;</span><span class="o">)</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">        </span><span class="n">channel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">System</span><span class="o">.</span><span class="na">getenv</span><span class="o">(</span><span class="s1">&#39;SLACK_CHANNEL_ID&#39;</span><span class="o">)</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">        </span><span class="n">channel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;general&#39;</span>
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="o">}</span>
 </span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="o">}</span>
 </span></code></pre></div>
@@ -1155,7 +1121,7 @@
 <div class="language-groovy highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="n">bot</span><span class="w"> </span><span class="o">{</span>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">        </span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">secrets</span><span class="o">.</span><span class="na">SLACK_BOT_TOKEN</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">        </span><span class="n">channel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">secrets</span><span class="o">.</span><span class="na">SLACK_CHANNEL_ID</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">        </span><span class="n">channel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;general&#39;</span>
 </span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="o">}</span>
 </span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="o">}</span>
 </span></code></pre></div>
@@ -1164,7 +1130,7 @@
 <div class="language-groovy highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="n">bot</span><span class="w"> </span><span class="o">{</span>
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">        </span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;xoxb-your-bot-token-here&#39;</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">        </span><span class="n">channel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;C1234567890&#39;</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">        </span><span class="n">channel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;general&#39;</span>
 </span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="o">}</span>
 </span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="o">}</span>
 </span></code></pre></div>
