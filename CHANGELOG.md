@@ -130,7 +130,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Documentation Site**: GitHub Pages site with MkDocs Material theme
-  - Live documentation at https://adamrtalbot.github.io/nf-slack/
+  - Live documentation at https://seqeralabs.github.io/nf-slack/
   - Search, dark mode, mobile-responsive design
   - Automated deployment from `gh-pages` branch
   - Restructured docs with Getting Started, Usage, and API sections
@@ -139,13 +139,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **CI/CD**: Prevent docs deployment race conditions ([#15](https://github.com/adamrtalbot/nf-slack/pull/15))
+- **CI/CD**: Prevent docs deployment race conditions ([#15](https://github.com/seqeralabs/nf-slack/pull/15))
   - Fixed race condition in GitHub Actions workflow when deploying documentation
   - Ensures stable and reliable documentation deployments to GitHub Pages
 
 ### Changed
 
-- **Build System**: Add run target to Makefile ([#14](https://github.com/adamrtalbot/nf-slack/pull/14))
+- **Build System**: Add run target to Makefile ([#14](https://github.com/seqeralabs/nf-slack/pull/14))
   - New `make run` target for easier local testing of example workflows
   - Simplifies development workflow for contributors
 
@@ -168,7 +168,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **[0.1.1]** - Release automation and documentation improvements
 - **[0.1.0]** - Initial release with automatic notifications, custom messages, and progressive configuration examples
 
-[0.2.1]: https://github.com/adamrtalbot/nf-slack/releases/tag/v0.2.1
-[0.2.0]: https://github.com/adamrtalbot/nf-slack/releases/tag/v0.2.0
-[0.1.1]: https://github.com/adamrtalbot/nf-slack/releases/tag/v0.1.1
-[0.1.0]: https://github.com/adamrtalbot/nf-slack/releases/tag/v0.1.0
+[0.2.1]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.2.1
+[0.2.0]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.2.0
+[0.1.1]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.1.1
+[0.1.0]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.1.0

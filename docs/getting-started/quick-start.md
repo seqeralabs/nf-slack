@@ -94,4 +94,4 @@ Now that you have basic notifications working, learn how to:
 ## Need Help?
 
 - Review the [API Reference](../reference/api.md)
-- [Open an issue](https://github.com/adamrtalbot/nf-slack/issues) on GitHub
+- [Open an issue](https://github.com/seqeralabs/nf-slack/issues) on GitHub

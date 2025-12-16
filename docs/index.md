@@ -125,9 +125,9 @@ workflow {
 
 ## Support
 
-- 🐛 [Report bugs](https://github.com/adamrtalbot/nf-slack/issues)
-- 💡 [Request features](https://github.com/adamrtalbot/nf-slack/issues)
-- 📖 [Read the docs](https://adamrtalbot.github.io/nf-slack/)
+- 🐛 [Report bugs](https://github.com/seqeralabs/nf-slack/issues)
+- 💡 [Request features](https://github.com/seqeralabs/nf-slack/issues)
+- 📖 [Read the docs](https://seqeralabs.github.io/nf-slack/)
 
 ## License
 

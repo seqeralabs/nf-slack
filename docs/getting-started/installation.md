@@ -63,7 +63,7 @@ If you want to install a local development version of the plugin:
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/adamrtalbot/nf-slack.git
+   git clone https://github.com/seqeralabs/nf-slack.git
    cd nf-slack
    ```
 

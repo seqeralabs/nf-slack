@@ -2,7 +2,10 @@
 
 Get Slack notifications for your Nextflow workflows - automatically notified when pipelines start, complete, or fail.
 
-:book: Full documentation: <https://adamrtalbot.github.io/nf-slack/>
+:book: Full documentation: <https://seqeralabs.github.io/nf-slack/>
+
+> [!IMPORTANT]
+> This is an open-source project for community benefit. It is provided as-is and is not part of Seqera's officially supported toolset.
 
 ## Features
 
@@ -201,8 +204,8 @@ We provide 6 progressive configuration examples from basic to advanced:
 
 ## Support
 
-- 🐛 [Report bugs](https://github.com/adamrtalbot/nf-slack/issues)
-- 💡 [Request features](https://github.com/adamrtalbot/nf-slack/issues)
+- 🐛 [Report bugs](https://github.com/seqeralabs/nf-slack/issues)
+- 💡 [Request features](https://github.com/seqeralabs/nf-slack/issues)
 - 📖 [Read the docs](docs/)
 
 ## License
