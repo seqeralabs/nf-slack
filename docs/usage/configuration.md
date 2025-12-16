@@ -13,7 +13,7 @@ slack {
     enabled = true
     bot {
         token = System.getenv('SLACK_BOT_TOKEN')
-        channel = 'C123456'
+        channel = 'general'
     }
     onStart { /* ... */ }
     onComplete { /* ... */ }
@@ -45,10 +45,13 @@ When `enabled = false`:
 slack {
     bot {
         token = 'xoxb-your-bot-token'
-        channel = 'C123456'
+        channel = 'general'
     }
 }
 ```
+
+!!! note "Using Channel Names vs IDs"
+You can use either a channel name (e.g., `'general'`) or a Channel ID (e.g., `'C123456'`). Channel IDs are recommended for critical pipelines as they remain stable even if the channel is renamed.
 
 ### Using Environment Variables
 
@@ -56,7 +59,7 @@ slack {
 slack {
     bot {
         token = System.getenv('SLACK_BOT_TOKEN')
-        channel = 'C123456'
+        channel = 'general'
     }
 }
 ```
@@ -67,7 +70,7 @@ slack {
 slack {
     bot {
         token = secrets.SLACK_BOT_TOKEN
-        channel = 'C123456'
+        channel = 'general'
     }
 }
 ```

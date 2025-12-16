@@ -49,7 +49,7 @@ slack {
     // Option A: Bot User
     bot {
         token = 'xoxb-your-bot-token'
-        channel = 'C123456' // Channel ID
+        channel = 'general'
     }
 
     // Option B: Webhook

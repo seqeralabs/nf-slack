@@ -41,23 +41,18 @@ xoxb-1234567890-1234567890123-xxxxxxxxxxxxxxxxxxxx
 
     This token allows anyone to post messages as your bot. Never commit it to version control or share it publicly.
 
-## Step 4: Get the Channel ID
+## Step 4: Configure the Channel
 
-You need the channel ID (not the channel name) for configuration.
+For most cases, you can simply use the channel name (e.g., `general`, `pipelines`) in your configuration.
 
-### Method 1: Via Slack App
+If you prefer to use a Channel ID (which remains stable even if the channel is renamed), you can find it as follows:
 
-1. Open Slack and navigate to the channel where you want notifications
+1. Open Slack and navigate to the channel
 2. Click the channel name at the top
 3. Scroll down in the "About" tab
-4. At the bottom, you'll see the **Channel ID** (e.g., `C1234567890`)
-5. Copy this ID
+4. Copy the **Channel ID** from the bottom (e.g., `C1234567890`)
 
-### Method 2: Via Slack URL
-
-1. Open the channel in your web browser
-2. Look at the URL: `https://app.slack.com/client/T.../C1234567890`
-3. The part starting with `C` is your channel ID
+Alternatively, look at the channel URL in your browser: `https://app.slack.com/client/T.../C1234567890` (the part starting with `C`).
 
 ## Step 5: Store Your Bot Token Securely
 
@@ -80,7 +75,7 @@ Then reference them in your `nextflow.config`:
 slack {
     bot {
         token = System.getenv('SLACK_BOT_TOKEN')
-        channel = System.getenv('SLACK_CHANNEL_ID')
+        channel = 'general'
     }
 }
 ```
@@ -102,7 +97,7 @@ Then reference it in your config:
 slack {
     bot {
         token = secrets.SLACK_BOT_TOKEN
-        channel = secrets.SLACK_CHANNEL_ID
+        channel = 'general'
     }
 }
 ```
@@ -115,7 +110,7 @@ For testing only, you can put it directly in `nextflow.config`:
 slack {
     bot {
         token = 'xoxb-your-bot-token-here'
-        channel = 'C1234567890'
+        channel = 'general'
     }
 }
 ```

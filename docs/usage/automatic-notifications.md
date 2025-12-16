@@ -56,7 +56,7 @@ slack {
     enabled = true  // Set to false to disable all notifications
     bot {
         token = System.getenv('SLACK_BOT_TOKEN')
-        channel = 'C123456'
+        channel = 'general'
     }
 }
 ```
@@ -69,7 +69,7 @@ Control which events trigger notifications:
 slack {
     bot {
         token = System.getenv('SLACK_BOT_TOKEN')
-        channel = 'C123456'
+        channel = 'general'
     }
 
     onStart.enabled = false     // Don't notify on start
@@ -90,7 +90,7 @@ Only get notified when something goes wrong:
 slack {
     bot {
         token = System.getenv('SLACK_BOT_TOKEN')
-        channel = 'C123456'
+        channel = 'general'
     }
 
     onStart.enabled = false
@@ -107,7 +107,7 @@ Get notified when pipelines start and if they fail:
 slack {
     bot {
         token = System.getenv('SLACK_BOT_TOKEN')
-        channel = 'C123456'
+        channel = 'general'
     }
 
     onStart.enabled = true
@@ -124,7 +124,7 @@ Disable all automatic notifications during development:
 slack {
     bot {
         token = System.getenv('SLACK_BOT_TOKEN')
-        channel = 'C123456'
+        channel = 'general'
     }
 
     onStart.enabled = false

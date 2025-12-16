@@ -42,7 +42,7 @@ slack {
     // Option A: Bot User
     bot {
         token = 'xoxb-your-token'
-        channel = 'C123456'
+        channel = 'general'
     }
 
     // Option B: Webhook
@@ -61,7 +61,7 @@ slack {
         enabled = true
         bot {
             token = System.getenv("SLACK_BOT_TOKEN") // or secrets.SLACK_BOT_TOKEN
-            channel = 'C123456'
+            channel = 'general'
         }
     }
     ```

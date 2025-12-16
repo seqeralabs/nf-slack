@@ -45,7 +45,7 @@ slack {
     enabled = true
     bot {
         token = 'xoxb-your-bot-token'
-        channel = 'C123456'
+        channel = 'general'
     }
 }
 ```
@@ -61,7 +61,7 @@ slack {
     enabled = true
     bot {
         token = 'xoxb-your-bot-token'
-        channel = 'C123456'
+        channel = 'general'
     }
 
     onStart.enabled = false     // Do not notify when pipeline starts
@@ -78,7 +78,7 @@ slack {
 slack {
     bot {
         token = 'xoxb-your-bot-token'
-        channel = 'C123456'
+        channel = 'general'
     }
 
     onStart {
