@@ -149,6 +149,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - New `make run` target for easier local testing of example workflows
   - Simplifies development workflow for contributors
 
+## [0.3.0] - 2025-12-16
+
+### Added
+
+- **Slack Bot Integration**: New bot-based integration using OAuth tokens ([#17](https://github.com/seqeralabs/nf-slack/pull/17))
+
+  - More secure and flexible than webhook-only approach
+  - Supports posting to multiple channels dynamically
+  - Better control over bot identity and permissions
+  - Enables future features like message threading and reactions
+
+- **Message Threading Support**: Thread workflow messages together ([#22](https://github.com/seqeralabs/nf-slack/pull/22))
+  - Groups related messages (start, updates, completion) into threads
+  - Reduces channel clutter for multi-workflow runs
+  - Makes it easier to track individual workflow progress
+
+### Changed
+
+- **Organization Migration**: Updated all references from `adamrtalbot` to `seqeralabs` organization ([#25](https://github.com/seqeralabs/nf-slack/pull/25))
+
+  - Repository URLs updated throughout documentation
+  - Plugin registry updated to reflect new organization ownership
+  - No breaking changes - old plugin versions continue to work
+
+- **Documentation Improvements**: Standardized channel configuration examples ([#21](https://github.com/seqeralabs/nf-slack/pull/21))
+  - Consistent use of channel names vs IDs across examples
+  - Clearer explanations of bot vs webhook configuration
+  - Updated README with project status information ([#24](https://github.com/seqeralabs/nf-slack/pull/24))
+
+### Internal
+
+- **CI/CD**: Updated Claude Code review workflow for improved PR automation ([#20](https://github.com/seqeralabs/nf-slack/pull/20), [#19](https://github.com/seqeralabs/nf-slack/pull/19))
+
 ## [Unreleased]
 
 ### Planned
@@ -156,18 +189,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Asynchronous message sending with ExecutorService
 - Retry logic with exponential backoff (429, 5xx errors)
 - Rate limiting (1 message/second with burst capacity)
-- Channel override support per message
 - Webhook URL validation (HTTPS enforcement, format checking)
 
 ---
 
 ## Version History
 
+- **[0.3.0]** - Slack Bot integration, message threading, and organization migration
 - **[0.2.1]** - CI/CD fixes and build improvements
 - **[0.2.0]** - Documentation site with GitHub Pages
 - **[0.1.1]** - Release automation and documentation improvements
 - **[0.1.0]** - Initial release with automatic notifications, custom messages, and progressive configuration examples
 
+[0.3.0]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.3.0
 [0.2.1]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.2.1
 [0.2.0]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.2.0
 [0.1.1]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.1.1
