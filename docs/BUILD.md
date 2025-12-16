@@ -105,6 +105,6 @@ Custom styles are in `stylesheets/extra.css`. The theme uses:
 
 ## Links
 
-- [Live Documentation](https://adamrtalbot.github.io/nf-slack/)
+- [Live Documentation](https://seqeralabs.github.io/nf-slack/)
 - [MkDocs Material Documentation](https://squidfunk.github.io/mkdocs-material/)
 - [Mike Versioning Documentation](https://github.com/jimporter/mike)

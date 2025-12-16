@@ -53,7 +53,7 @@ Configuration examples are run by applying them to any workflow:
 
 ```bash
 # Clone the repository
-git clone https://github.com/adamrtalbot/nf-slack.git
+git clone https://github.com/seqeralabs/nf-slack.git
 cd nf-slack
 
 # Run with a configuration example
@@ -669,7 +669,7 @@ workflow {
 
 ## All Example Files
 
-All example files are available in the [nf-slack repository](https://github.com/adamrtalbot/nf-slack/tree/main/example):
+All example files are available in the [nf-slack repository](https://github.com/seqeralabs/nf-slack/tree/main/example):
 
 - Configuration examples: `example/configs/`
 - Script examples: `example/scripts/`
