@@ -4,6 +4,9 @@ Get Slack notifications for your Nextflow workflows - automatically notified whe
 
 :book: Full documentation: <https://adamrtalbot.github.io/nf-slack/>
 
+> [!IMPORTANT]
+> This is an open-source project for community benefit. It is provided as-is and is not part of Seqera's officially supported toolset.
+
 ## Features
 
 - 🚀 **Automatic Notifications**: Get notified when workflows start, complete, or fail
