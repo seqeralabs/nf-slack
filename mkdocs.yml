@@ -1,7 +1,7 @@
 site_name: nf-slack
-repo_name: adamrtalbot/nf-slack
-repo_url: https://github.com/adamrtalbot/nf-slack
-site_url: https://adamrtalbot.github.io/nf-slack/latest/
+repo_name: seqeralabs/nf-slack
+repo_url: https://github.com/seqeralabs/nf-slack
+site_url: https://seqeralabs.github.io/nf-slack/latest/
 edit_uri: edit/main/docs/
 
 nav:
@@ -95,6 +95,6 @@ extra:
     provider: mike
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/adamrtalbot/nf-slack
+      link: https://github.com/seqeralabs/nf-slack
     - icon: fontawesome/brands/slack
       link: https://www.nextflow.io/slack.html
