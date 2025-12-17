@@ -680,6 +680,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#threading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Threading
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#common-notification-patterns" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1001,33 +1012,6 @@
   
 
     
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../changelog/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Changelog
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
   </ul>
 </nav>
                   </div>
@@ -1117,6 +1101,18 @@
 </span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="o">}</span>
 </span></code></pre></div>
 <p><img alt="Selective notifications" src="../../images/nf-slack-01.png" /></p>
+<h3 id="threading">Threading<a class="headerlink" href="#threading" title="Permanent link">&para;</a></h3>
+<p>When using a Bot User, you can enable <strong>Threading</strong> to keep your Slack channels organized.</p>
+<p>With threading enabled:</p>
+<ol>
+<li>The <strong>Workflow Start</strong> notification creates a new parent message.</li>
+<li><strong>Workflow Complete</strong> and <strong>Workflow Error</strong> notifications are posted as replies to that thread.</li>
+<li>Any <strong>Custom Messages</strong> sent from the workflow are also threaded.</li>
+</ol>
+<p>This significantly reduces noise in your channels, especially when running multiple pipelines simultaneously.</p>
+<blockquote>
+<p><strong>Note</strong>: Threading requires a Bot Token and must be enabled in your configuration. See <a href="../configuration/#threading">Configuration</a> for details.</p>
+</blockquote>
 <h3 id="common-notification-patterns">Common Notification Patterns<a class="headerlink" href="#common-notification-patterns" title="Permanent link">&para;</a></h3>
 <h4 id="errors-only">Errors Only<a class="headerlink" href="#errors-only" title="Permanent link">&para;</a></h4>
 <p>Only get notified when something goes wrong:</p>
@@ -1158,7 +1154,7 @@
 </span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="o">}</span>
 </span></code></pre></div>
 <div class="admonition note">
-<p class="admonition-title">Note</p>
+<p class="admonition-title">Custom Messages</p>
 <p>Even with automatic notifications disabled, you can still send <a href="../custom-messages/">custom messages</a> from your workflow.</p>
 </div>
 <h2 id="notification-format">Notification Format<a class="headerlink" href="#notification-format" title="Permanent link">&para;</a></h2>
