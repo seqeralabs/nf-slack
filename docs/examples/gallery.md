@@ -398,6 +398,8 @@ slack {
 
 **Use when**: You want to reduce visual clutter by hiding timestamps on routine notifications.
 
+![Footer Control Example](../images/nf-slack-examples-07.png)
+
 ---
 
 ### Example 8: Specific Channel ID
@@ -452,6 +454,8 @@ slack {
     }
 }
 ```
+
+![Threaded Messages Example](../images/nf-slack-examples-08.png)
 
 **How it works**:
 
@@ -545,7 +549,7 @@ workflow {
 
 **Output**:
 
-![Message in Workflow Example](../images/nf-slack-examples-07.png)
+![Message in Workflow Example](../images/nf-slack-examples-08.png)
 
 ---
 
@@ -603,7 +607,7 @@ workflow {
 
 **Output**:
 
-![Message on Complete Example](../images/nf-slack-examples-08.png)
+![Message on Complete Example](../images/nf-slack-examples-09.png)
 
 ---
 
@@ -657,7 +661,7 @@ workflow {
 
 **Output**:
 
-![Message within Channel Example](../images/nf-slack-examples-09.png)
+![Message within Channel Example](../images/nf-slack-examples-10.png)
 
 ---
 
