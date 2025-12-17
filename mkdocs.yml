@@ -20,7 +20,6 @@ nav:
   - Reference:
       - API Reference: reference/api.md
   - Contributing: CONTRIBUTING.md
-  - Changelog: changelog.md
 
 theme:
   name: material

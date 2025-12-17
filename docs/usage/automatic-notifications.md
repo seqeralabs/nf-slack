@@ -80,6 +80,20 @@ slack {
 
 ![Selective notifications](../images/nf-slack-01.png)
 
+### Threading
+
+When using a Bot User, you can enable **Threading** to keep your Slack channels organized.
+
+With threading enabled:
+
+1. The **Workflow Start** notification creates a new parent message.
+2. **Workflow Complete** and **Workflow Error** notifications are posted as replies to that thread.
+3. Any **Custom Messages** sent from the workflow are also threaded.
+
+This significantly reduces noise in your channels, especially when running multiple pipelines simultaneously.
+
+> **Note**: Threading requires a Bot Token and must be enabled in your configuration. See [Configuration](configuration.md#threading) for details.
+
 ### Common Notification Patterns
 
 #### Errors Only
@@ -133,7 +147,7 @@ slack {
 }
 ```
 
-!!! note
+!!! note "Custom Messages"
 
     Even with automatic notifications disabled, you can still send [custom messages](custom-messages.md) from your workflow.
 
