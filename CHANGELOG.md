@@ -149,6 +149,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - New `make run` target for easier local testing of example workflows
   - Simplifies development workflow for contributors
 
+## [0.3.1] - 2026-01-05
+
+### Changed
+
+- **Documentation**: Updated bot support and threading documentation ([#27](https://github.com/seqeralabs/nf-slack/pull/27))
+
+  - Added comprehensive guides for Bot User setup and message threading
+  - Improved configuration examples and explanations
+
+- **Documentation**: Updated example gallery images and Slack bot configuration examples ([#28](https://github.com/seqeralabs/nf-slack/pull/28))
+  - Refreshed example screenshots with latest message formats
+  - Adjusted example workflow messaging for clarity
+
 ## [0.3.0] - 2025-12-16
 
 ### Added
@@ -195,12 +208,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
+- **[0.3.1]** - Documentation updates for bot support and threading features
 - **[0.3.0]** - Slack Bot integration, message threading, and organization migration
 - **[0.2.1]** - CI/CD fixes and build improvements
 - **[0.2.0]** - Documentation site with GitHub Pages
 - **[0.1.1]** - Release automation and documentation improvements
 - **[0.1.0]** - Initial release with automatic notifications, custom messages, and progressive configuration examples
 
+[0.3.1]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.3.1
 [0.3.0]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.3.0
 [0.2.1]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.2.1
 [0.2.0]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.2.0

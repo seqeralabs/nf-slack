@@ -16,7 +16,7 @@ Add the nf-slack plugin to your `nextflow.config`:
 
 ```groovy
 plugins {
-    id 'nf-slack@0.3.0'
+    id 'nf-slack@0.3.1'
 }
 ```
 
@@ -27,7 +27,7 @@ plugins {
     ```groovy
     plugins {
         id 'nf-validation'
-        id 'nf-slack@0.3.0'  // Add this line
+        id 'nf-slack@0.3.1'  // Add this line
     }
     ```
 
