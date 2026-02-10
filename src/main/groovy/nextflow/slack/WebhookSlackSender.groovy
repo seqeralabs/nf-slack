@@ -16,6 +16,7 @@
 
 package nextflow.slack
 
+import java.nio.file.Path
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
@@ -77,5 +78,17 @@ class WebhookSlackSender implements SlackSender {
                 log.error errorMsg
             }
         }
+    }
+
+    /**
+     * File upload is not supported via webhooks.
+     * Logs a warning and returns without uploading.
+     *
+     * @param filePath Path to the file
+     * @param options Upload options (ignored)
+     */
+    @Override
+    void uploadFile(Path filePath, Map options) {
+        log.warn "Slack plugin: File upload is not supported with webhooks. Please configure a bot token to upload files."
     }
 }

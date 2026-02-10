@@ -16,6 +16,9 @@
 
 package nextflow.slack
 
+import java.nio.file.Path
+import java.nio.file.Paths
+
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import nextflow.Session
@@ -29,6 +32,8 @@ import nextflow.plugin.extension.PluginExtensionPoint
  * Available functions:
  * - slackMessage(String): Send a simple text message
  * - slackMessage(Map): Send a rich formatted message
+ * - slackFileUpload(String): Upload a file to Slack
+ * - slackFileUpload(Map): Upload a file with options (title, comment, etc.)
  *
  * @author Adam Talbot <adam.talbot@seqera.io>
  */
@@ -135,6 +140,90 @@ class SlackExtension extends PluginExtensionPoint {
 
         } catch (Exception e) {
             log.error "Slack plugin: Error sending rich message: ${e.message}", e
+            // Don't propagate exception - never fail the workflow
+        }
+    }
+
+    /**
+     * Upload a file to Slack
+     *
+     * Example:
+     * slackFileUpload("results/report.html")
+     *
+     * @param filePath Path to the file to upload (String or Path)
+     */
+    @Function
+    void slackFileUpload(String filePath) {
+        slackFileUpload([file: filePath])
+    }
+
+    /**
+     * Upload a file to Slack with options
+     *
+     * Example:
+     * slackFileUpload([
+     *     file: "results/report.html",
+     *     title: "Analysis Report",
+     *     comment: "Here is the final report for sample ${sample_id}",
+     *     filename: "report.html"
+     * ])
+     *
+     * @param options Map with keys:
+     *   - file (required): Path to the file to upload (String or Path)
+     *   - title (optional): Title of the file in Slack
+     *   - comment (optional): Initial comment to add with the file
+     *   - filename (optional): Override the filename shown in Slack
+     */
+    @Function
+    void slackFileUpload(Map options) {
+        try {
+            // Validate required parameters
+            if (!options.file) {
+                log.error "Slack plugin: 'file' parameter is required for file upload"
+                return
+            }
+
+            // Get the observer instance from factory
+            def observer = SlackFactory.observerInstance
+
+            if (!observer) {
+                log.debug "Slack plugin: Observer not initialized, skipping file upload"
+                return
+            }
+
+            if (!observer.sender) {
+                log.debug "Slack plugin: Not configured, skipping file upload"
+                return
+            }
+
+            // Resolve file path
+            def file = options.file
+            Path path
+            if (file instanceof Path) {
+                path = file
+            } else {
+                path = Paths.get(file.toString())
+            }
+
+            // Build options map for sender
+            def uploadOptions = [:] as Map<String, Object>
+            if (options.title) uploadOptions.title = options.title as String
+            if (options.comment) uploadOptions.comment = options.comment as String
+            if (options.filename) uploadOptions.filename = options.filename as String
+
+            // Add thread timestamp if threading is enabled
+            if (observer.config?.useThreads && observer.sender instanceof BotSlackSender) {
+                def threadTs = (observer.sender as BotSlackSender).getThreadTs()
+                if (threadTs) uploadOptions.threadTs = threadTs
+            }
+
+            // Upload the file
+            observer.sender.uploadFile(path, uploadOptions)
+
+            log.debug "Slack plugin: Uploaded file ${path.fileName}"
+
+        } catch (Exception e) {
+            log.error "Slack plugin: Error uploading file: ${e.message}", e
             // Don't propagate exception - never fail the workflow
         }
     }

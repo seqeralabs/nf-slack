@@ -16,15 +16,20 @@
 
 package nextflow.slack
 
+import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+
+import java.nio.file.Files
+import java.nio.file.Path
 
 /**
  * Slack sender implementation using Bot User OAuth Token.
  *
  * Features:
  * - Sends messages via chat.postMessage API
+ * - Uploads files via files.getUploadURLExternal + files.completeUploadExternal API
  * - Handles rate limiting
  * - Supports Block Kit (future)
  *
@@ -34,7 +39,12 @@ import groovy.util.logging.Slf4j
 @CompileStatic
 class BotSlackSender implements SlackSender {
 
-    private static final String API_URL = "https://slack.com/api/chat.postMessage"
+    private static final String CHAT_POST_MESSAGE_URL = "https://slack.com/api/chat.postMessage"
+    private static final String FILES_GET_UPLOAD_URL = "https://slack.com/api/files.getUploadURLExternal"
+    private static final String FILES_COMPLETE_UPLOAD_URL = "https://slack.com/api/files.completeUploadExternal"
+
+    /** Maximum file size for Slack uploads (free plan: 1GB, but we limit to 100MB for safety) */
+    private static final long MAX_FILE_SIZE = 100 * 1024 * 1024
 
     private final String botToken
     private final String channelId
@@ -71,10 +81,219 @@ class BotSlackSender implements SlackSender {
         }
     }
 
+    /**
+     * Upload a file to Slack using the files.uploadV2 flow:
+     * 1. Call files.getUploadURLExternal to get an upload URL
+     * 2. Upload the file content to that URL
+     * 3. Call files.completeUploadExternal to finalize and share
+     *
+     * @param filePath Path to the file to upload
+     * @param options Map with optional keys: title, comment, filename, threadTs
+     */
+    @Override
+    void uploadFile(Path filePath, Map options) {
+        try {
+            if (filePath == null) {
+                log.error "Slack plugin: File path is required for file upload"
+                return
+            }
+
+            if (!Files.exists(filePath)) {
+                log.error "Slack plugin: File not found: ${filePath}"
+                return
+            }
+
+            if (!Files.isReadable(filePath)) {
+                log.error "Slack plugin: File is not readable: ${filePath}"
+                return
+            }
+
+            def fileSize = Files.size(filePath)
+            if (fileSize == 0) {
+                log.error "Slack plugin: Cannot upload empty file: ${filePath}"
+                return
+            }
+
+            if (fileSize > MAX_FILE_SIZE) {
+                log.error "Slack plugin: File exceeds maximum size of ${MAX_FILE_SIZE / (1024 * 1024)}MB: ${filePath}"
+                return
+            }
+
+            def filename = (options?.filename as String) ?: filePath.getFileName().toString()
+            def title = (options?.title as String) ?: filename
+            def comment = options?.comment as String
+            def threadTs = options?.threadTs as String
+
+            // Step 1: Get upload URL
+            def uploadInfo = getUploadUrl(filename, fileSize)
+            if (!uploadInfo) {
+                return
+            }
+
+            def uploadUrl = uploadInfo.upload_url as String
+            def fileId = uploadInfo.file_id as String
+
+            // Step 2: Upload file content
+            if (!uploadFileContent(uploadUrl, filePath)) {
+                return
+            }
+
+            // Step 3: Complete the upload
+            completeUpload(fileId, title, channelId, comment, threadTs)
+
+            log.debug "Slack plugin: Successfully uploaded file: ${filename}"
+
+        } catch (Exception e) {
+            def errorMsg = "Slack plugin: Error uploading file: ${e.message}".toString()
+            if (loggedErrors.add(errorMsg)) {
+                log.error errorMsg
+            }
+        }
+    }
+
+    /**
+     * Step 1: Get an external upload URL from Slack
+     *
+     * @param filename The filename to upload
+     * @param length The file size in bytes
+     * @return Map with upload_url and file_id, or null on failure
+     */
+    private Map getUploadUrl(String filename, long length) {
+        HttpURLConnection connection = null
+        try {
+            def encodedFilename = URLEncoder.encode(filename, "UTF-8")
+            def url = new URL("${FILES_GET_UPLOAD_URL}?filename=${encodedFilename}&length=${length}")
+            connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = 'GET'
+            connection.setRequestProperty('Authorization', "Bearer ${botToken}")
+
+            def responseCode = connection.responseCode
+            if (responseCode != 200) {
+                def errorBody = connection.errorStream?.text ?: ""
+                log.error "Slack plugin: Failed to get upload URL - HTTP ${responseCode}: ${errorBody}"
+                return null
+            }
+
+            def responseText = connection.inputStream.text
+            def response = new JsonSlurper().parseText(responseText) as Map
+
+            if (!response.ok) {
+                def error = response.error
+                log.error "Slack plugin: Failed to get upload URL - API error: ${error}"
+                return null
+            }
+
+            return response
+
+        } catch (Exception e) {
+            log.error "Slack plugin: Error getting upload URL: ${e.message}"
+            return null
+        } finally {
+            connection?.disconnect()
+        }
+    }
+
+    /**
+     * Step 2: Upload file content to the external URL
+     *
+     * @param uploadUrl The URL to upload to (from Step 1)
+     * @param filePath The file to upload
+     * @return true if successful
+     */
+    private boolean uploadFileContent(String uploadUrl, Path filePath) {
+        HttpURLConnection connection = null
+        try {
+            def url = new URL(uploadUrl)
+            connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = 'POST'
+            connection.doOutput = true
+            connection.setRequestProperty('Content-Type', 'application/octet-stream')
+
+            // Stream file content to the upload URL
+            connection.outputStream.withCloseable { OutputStream out ->
+                Files.copy(filePath, out)
+            }
+
+            def responseCode = connection.responseCode
+            if (responseCode != 200) {
+                def errorBody = connection.errorStream?.text ?: ""
+                log.error "Slack plugin: Failed to upload file content - HTTP ${responseCode}: ${errorBody}"
+                return false
+            }
+
+            return true
+
+        } catch (Exception e) {
+            log.error "Slack plugin: Error uploading file content: ${e.message}"
+            return false
+        } finally {
+            connection?.disconnect()
+        }
+    }
+
+    /**
+     * Step 3: Complete the file upload and share to channel
+     *
+     * @param fileId The file ID from Step 1
+     * @param title The title to display for the file
+     * @param channelId The channel to share the file in
+     * @param comment Optional initial comment
+     * @param threadTs Optional thread timestamp for threading
+     */
+    private void completeUpload(String fileId, String title, String channelId, String comment, String threadTs) {
+        HttpURLConnection connection = null
+        try {
+            def url = new URL(FILES_COMPLETE_UPLOAD_URL)
+            connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = 'POST'
+            connection.doOutput = true
+            connection.setRequestProperty('Content-Type', 'application/json; charset=utf-8')
+            connection.setRequestProperty('Authorization', "Bearer ${botToken}")
+
+            def payload = [
+                files: [[id: fileId, title: title]],
+                channel_id: channelId
+            ] as Map
+
+            if (comment) {
+                payload.initial_comment = comment
+            }
+            if (threadTs) {
+                payload.thread_ts = threadTs
+            }
+
+            def jsonPayload = new JsonBuilder(payload).toString()
+
+            connection.outputStream.withCloseable { out ->
+                out.write(jsonPayload.getBytes("UTF-8"))
+            }
+
+            def responseCode = connection.responseCode
+            if (responseCode != 200) {
+                def errorBody = connection.errorStream?.text ?: ""
+                log.error "Slack plugin: Failed to complete file upload - HTTP ${responseCode}: ${errorBody}"
+                return
+            }
+
+            def responseText = connection.inputStream.text
+            def response = new JsonSlurper().parseText(responseText) as Map
+
+            if (!response.ok) {
+                def error = response.error
+                log.error "Slack plugin: Failed to complete file upload - API error: ${error}"
+            }
+
+        } catch (Exception e) {
+            log.error "Slack plugin: Error completing file upload: ${e.message}"
+        } finally {
+            connection?.disconnect()
+        }
+    }
+
     private void postToSlack(String jsonPayload) {
         HttpURLConnection connection = null
         try {
-            def url = new URL(API_URL)
+            def url = new URL(CHAT_POST_MESSAGE_URL)
             connection = url.openConnection() as HttpURLConnection
             connection.requestMethod = 'POST'
             connection.doOutput = true

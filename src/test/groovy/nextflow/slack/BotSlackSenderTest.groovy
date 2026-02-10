@@ -68,6 +68,107 @@ class BotSlackSenderTest extends Specification {
         threadTs == null || threadTs instanceof String
     }
 
+    def 'should handle file upload gracefully when API is unreachable'() {
+        given:
+        def sender = new BotSlackSender('xoxb-token', 'C123456')
+        def tempFile = File.createTempFile('test', '.txt')
+        tempFile.text = 'Hello World'
+
+        when:
+        sender.uploadFile(tempFile.toPath(), [:])
+
+        then:
+        noExceptionThrown()
+
+        cleanup:
+        tempFile.delete()
+    }
+
+    def 'should handle file upload for non-existent file gracefully'() {
+        given:
+        def sender = new BotSlackSender('xoxb-token', 'C123456')
+        def nonExistentPath = java.nio.file.Paths.get('/tmp/non-existent-file-' + System.nanoTime() + '.txt')
+
+        when:
+        sender.uploadFile(nonExistentPath, [:])
+
+        then:
+        noExceptionThrown()
+    }
+
+    def 'should handle file upload for empty file gracefully'() {
+        given:
+        def sender = new BotSlackSender('xoxb-token', 'C123456')
+        def emptyFile = File.createTempFile('test-empty', '.txt')
+        // File is empty by default
+
+        when:
+        sender.uploadFile(emptyFile.toPath(), [:])
+
+        then:
+        noExceptionThrown()
+
+        cleanup:
+        emptyFile.delete()
+    }
+
+    def 'should handle file upload for unreadable file gracefully'() {
+        given:
+        def sender = new BotSlackSender('xoxb-token', 'C123456')
+        def unreadableFile = File.createTempFile('test-unreadable', '.txt')
+        unreadableFile.text = 'content'
+        unreadableFile.setReadable(false)
+
+        when:
+        sender.uploadFile(unreadableFile.toPath(), [:])
+
+        then:
+        noExceptionThrown()
+
+        cleanup:
+        unreadableFile.setReadable(true)
+        unreadableFile.delete()
+    }
+
+    def 'should accept file upload with custom options'() {
+        given:
+        def sender = new BotSlackSender('xoxb-token', 'C123456')
+        def tempFile = File.createTempFile('test-options', '.png')
+        tempFile.text = 'fake image data'
+
+        when:
+        sender.uploadFile(tempFile.toPath(), [
+            filename: 'custom-name.png',
+            title: 'My Plot',
+            comment: 'Here is the result',
+            threadTs: '1234567890.123456'
+        ])
+
+        then:
+        // API call will fail but should not throw (graceful handling)
+        noExceptionThrown()
+
+        cleanup:
+        tempFile.delete()
+    }
+
+    def 'should use filename from path when not specified in options'() {
+        given:
+        def sender = new BotSlackSender('xoxb-token', 'C123456')
+        def tempFile = File.createTempFile('test-default-name', '.txt')
+        tempFile.text = 'some content'
+
+        when:
+        sender.uploadFile(tempFile.toPath(), [:])
+
+        then:
+        // Graceful handling - API unreachable but no exception
+        noExceptionThrown()
+
+        cleanup:
+        tempFile.delete()
+    }
+
     // Note: We cannot easily test the actual HTTP call without mocking HttpURLConnection
     // or using a mock server. The thread timestamp capture happens in the postToSlack method
     // after a successful API response. Full testing would require:

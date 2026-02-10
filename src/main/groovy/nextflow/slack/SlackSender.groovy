@@ -16,6 +16,8 @@
 
 package nextflow.slack
 
+import java.nio.file.Path
+
 /**
  * Interface for sending messages to Slack.
  *
@@ -33,4 +35,16 @@ interface SlackSender {
      * @param message JSON message payload
      */
     void sendMessage(String message)
+
+    /**
+     * Upload a file to Slack
+     *
+     * @param filePath Path to the file to upload
+     * @param options Map with optional keys:
+     *   - title (String): Title for the file in Slack
+     *   - comment (String): Initial comment to accompany the file
+     *   - filename (String): Override filename displayed in Slack
+     *   - threadTs (String): Thread timestamp for threading
+     */
+    void uploadFile(Path filePath, Map options)
 }
