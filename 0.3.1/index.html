@@ -419,6 +419,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#upload-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upload Files
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1012,6 +1023,7 @@
 <ul>
 <li>🚀 <strong>Automatic Notifications</strong>: Get notified when workflows start, complete, or fail</li>
 <li>💬 <strong>Custom Messages</strong>: Send custom messages from within your workflow scripts</li>
+<li>📎 <strong>File Uploads</strong> — Share plots, reports, and files directly to Slack</li>
 <li>🤖 <strong>Bot &amp; Webhook Support</strong>: Supports both bot and webhook authentication</li>
 <li>🧵 <strong>Threading</strong>: Keep channels clean by threading workflow notifications (Bot only)</li>
 <li>🎨 <strong>Rich Formatting</strong>: Beautiful Slack messages with colors and custom fields</li>
@@ -1098,6 +1110,18 @@
 </span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="o">}</span>
 </span></code></pre></div>
 <p><img alt="Custom workflow messages" src="images/nf-slack-04.png" /></p>
+<h3 id="upload-files">Upload Files<a class="headerlink" href="#upload-files" title="Permanent link">&para;</a></h3>
+<div class="language-groovy highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="n">bot</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">        </span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;xoxb-your-bot-token&#39;</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">        </span><span class="n">channel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;pipeline-results&#39;</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="o">}</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="n">onComplete</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">        </span><span class="n">files</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span><span class="s1">&#39;results/multiqc_report.html&#39;</span><span class="o">]</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">    </span><span class="o">}</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="o">}</span>
+</span></code></pre></div>
 <h2 id="learn-more">Learn More<a class="headerlink" href="#learn-more" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong><a href="getting-started/installation/">Installation Guide</a></strong> - Set up Bot User or Webhook</li>

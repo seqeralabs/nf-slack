@@ -964,6 +964,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#slackfileupload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        slackFileUpload
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1082,6 +1093,13 @@
 <td>Webhook configuration block (see <a href="#slackwebhook"><code>slack.webhook</code></a>)</td>
 </tr>
 <tr>
+<td><code>useThreads</code></td>
+<td>Boolean</td>
+<td><code>false</code></td>
+<td>No</td>
+<td>Group all notifications in a single thread (Bot only)</td>
+</tr>
+<tr>
 <td><code>onStart</code></td>
 <td>Closure</td>
 <td>See <a href="#slackonstart"><code>slack.onStart</code></a></td>
@@ -1140,13 +1158,6 @@
 <td>-</td>
 <td>Yes</td>
 <td>Channel ID (e.g., <code>C12345678</code>) or Name (e.g., <code>general</code>) to send messages to</td>
-</tr>
-<tr>
-<td><code>useThreads</code></td>
-<td>Boolean</td>
-<td><code>false</code></td>
-<td>No</td>
-<td>Group all workflow messages (including custom <code>slackMessage()</code> calls) in threads (bot tokens only)</td>
 </tr>
 </tbody>
 </table>
@@ -1288,10 +1299,16 @@
 <td><code>true</code></td>
 <td>Show timestamp footer in message</td>
 </tr>
+<tr>
+<td><code>files</code></td>
+<td><code>List&lt;String&gt;</code></td>
+<td><code>[]</code></td>
+<td>File paths to upload after completion notification (Bot only)</td>
+</tr>
 </tbody>
 </table>
 <blockquote>
-<p><strong>Note</strong>: <code>includeResourceUsage</code> is <strong>only available</strong> in the <code>onComplete</code> scope.</p>
+<p>[!NOTE] &gt; <code>includeResourceUsage</code> is <strong>only available</strong> in the <code>onComplete</code> scope.</p>
 </blockquote>
 <h4 id="message-available-fields_1">Message Available Fields<a class="headerlink" href="#message-available-fields_1" title="Permanent link">&para;</a></h4>
 <ul>
@@ -1352,6 +1369,12 @@
 <td>Boolean</td>
 <td><code>true</code></td>
 <td>Show timestamp footer in message</td>
+</tr>
+<tr>
+<td><code>files</code></td>
+<td><code>List&lt;String&gt;</code></td>
+<td><code>[]</code></td>
+<td>File paths to upload after error notification (Bot only)</td>
 </tr>
 </tbody>
 </table>
@@ -1625,6 +1648,72 @@
 </span></code></pre></div>
 <h4 id="return-value">Return Value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h4>
 <p>The function does not return anything.</p>
+<hr />
+<h3 id="slackfileupload"><code>slackFileUpload</code><a class="headerlink" href="#slackfileupload" title="Permanent link">&para;</a></h3>
+<p>Upload a file to Slack. Requires Bot User with <code>files:write</code> scope.</p>
+<h4 id="simple-form">Simple form<a class="headerlink" href="#simple-form" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>filePath</code></td>
+<td>String</td>
+<td>Path to the file to upload</td>
+</tr>
+</tbody>
+</table>
+<div class="language-groovy highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">slackFileUpload</span><span class="o">(</span><span class="s1">&#39;/path/to/report.html&#39;</span><span class="o">)</span>
+</span></code></pre></div>
+<h4 id="map-form">Map form<a class="headerlink" href="#map-form" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>file</code></td>
+<td>String</td>
+<td>Yes</td>
+<td>Path to the file (local or remote URI)</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td>String</td>
+<td>No</td>
+<td>Title displayed in Slack</td>
+</tr>
+<tr>
+<td><code>comment</code></td>
+<td>String</td>
+<td>No</td>
+<td>Comment posted with the file</td>
+</tr>
+<tr>
+<td><code>filename</code></td>
+<td>String</td>
+<td>No</td>
+<td>Custom filename</td>
+</tr>
+</tbody>
+</table>
+<div class="language-groovy highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">slackFileUpload</span><span class="o">(</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">    </span><span class="nl">file:</span><span class="w"> </span><span class="s1">&#39;results/qc_plot.png&#39;</span><span class="o">,</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="nl">title:</span><span class="w"> </span><span class="s1">&#39;QC Results&#39;</span><span class="o">,</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span><span class="nl">comment:</span><span class="w"> </span><span class="s1">&#39;Analysis complete&#39;</span><span class="o">,</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">    </span><span class="nl">filename:</span><span class="w"> </span><span class="s1">&#39;qc-results.png&#39;</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="o">)</span>
+</span></code></pre></div>
 <hr />
 
 
