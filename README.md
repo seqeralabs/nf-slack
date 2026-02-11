@@ -11,6 +11,7 @@ Get Slack notifications for your Nextflow workflows - automatically notified whe
 
 - 🚀 **Automatic Notifications**: Get notified when workflows start, complete, or fail
 - 💬 **Custom Messages**: Send custom messages from within your workflow scripts
+- 📎 **File Uploads**: Share plots, reports, and other files directly to Slack (Bot only)
 - 🤖 **Bot & Webhook Support**: Supports both bot and webhook authentication
 - 🧵 **Threading**: Keep channels clean by threading workflow notifications (Bot only)
 - 🎨 **Rich Formatting**: Beautiful Slack messages with colors and custom fields
@@ -26,6 +27,7 @@ You can use either a **Webhook** or a **Bot User**.
 
 1. Create a Slack App at [api.slack.com/apps](https://api.slack.com/apps)
 2. Add `chat:write` scope to **Bot Token Scopes**
+   - `files:write` is required for file uploads
 3. Install App to Workspace and copy **Bot User OAuth Token** (`xoxb-...`)
 4. Invite the bot to your channel
 
@@ -178,11 +180,28 @@ Will post these short messages to Slack within the workflow:
 
 ![Workflow Slack message](./docs/images/nf-slack-04.png)
 
+### Upload Files to Slack
+
+Share plots, reports, and other files directly to Slack from your pipeline. Upload automatically on completion, or call `slackFileUpload()` from within your workflow.
+
+```groovy
+slack {
+    bot {
+        token = 'xoxb-your-bot-token'
+        channel = 'pipeline-results'
+    }
+
+    onComplete {
+        files = ['results/multiqc_report.html']
+    }
+}
+```
+
+**[File upload guide →](docs/usage/custom-messages.md#file-uploads)** for all upload methods and options.
+
 **Want more control?** See the [API Reference](docs/REFERENCE.md) and [detailed examples](docs/EXAMPLES.md) for all available options.
 
 ## Examples
-
-We provide 6 progressive configuration examples from basic to advanced:
 
 | Example                                                                          | Description                               |
 | -------------------------------------------------------------------------------- | ----------------------------------------- |
@@ -192,6 +211,7 @@ We provide 6 progressive configuration examples from basic to advanced:
 | [04-message-colors.config](example/configs/04-message-colors.config)             | Customize colors                          |
 | [05-custom-fields.config](example/configs/05-custom-fields.config)               | Add your own information                  |
 | [06-selective-fields.config](example/configs/06-selective-fields.config)         | Select which workflow info to show        |
+| [10-file-upload.config](example/configs/10-file-upload.config)                   | Auto-upload files on completion           |
 
 **[View all examples with explanations →](docs/EXAMPLES.md)**
 

@@ -22,6 +22,8 @@ import nextflow.Session
 import nextflow.processor.TaskHandler
 import nextflow.trace.TraceObserver
 import nextflow.trace.TraceRecord
+import java.nio.file.Path
+import nextflow.file.FileHelper
 
 /**
  * Implements a trace observer that sends Slack notifications
@@ -86,6 +88,9 @@ class SlackObserver implements TraceObserver {
             def message = messageBuilder.buildWorkflowCompleteMessage(threadTs)
             sender.sendMessage(message)
             log.debug "Slack plugin: Sent workflow complete notification"
+
+            // Upload configured files
+            uploadConfiguredFiles(config.onComplete.files, threadTs)
         }
     }
 
@@ -102,6 +107,31 @@ class SlackObserver implements TraceObserver {
             def message = messageBuilder.buildWorkflowErrorMessage(trace, threadTs)
             sender.sendMessage(message)
             log.debug "Slack plugin: Sent workflow error notification"
+
+            // Upload configured files
+            uploadConfiguredFiles(config.onError.files, threadTs)
+        }
+    }
+
+    /**
+     * Upload files configured in the notification config
+     */
+    private void uploadConfiguredFiles(List<String> files, String threadTs) {
+        if (!files) return
+
+        for (String filePath : files) {
+            try {
+                Path path = FileHelper.asPath(filePath)
+                Map<String, String> options = [:]
+                if (threadTs) {
+                    options.put('threadTs', threadTs)
+                }
+                sender.uploadFile(path, options)
+                log.debug "Slack plugin: Uploaded file ${filePath}"
+            }
+            catch (Exception e) {
+                log.warn "Slack plugin: Failed to upload file ${filePath}: ${e.message}"
+            }
         }
     }
 

@@ -18,6 +18,7 @@ Complete API reference for nf-slack plugin configuration options and functions.
 | `enabled`    | Boolean | `true`                                     | No       | Master switch to enable/disable the plugin                         |
 | `bot`        | Closure | -                                          | No\*     | Bot configuration block (see [`slack.bot`](#slackbot))             |
 | `webhook`    | Closure | -                                          | No\*     | Webhook configuration block (see [`slack.webhook`](#slackwebhook)) |
+| `useThreads` | Boolean | `false`                                    | No       | Group all notifications in a single thread (Bot only)              |
 | `onStart`    | Closure | See [`slack.onStart`](#slackonstart)       | No       | Configuration for workflow start notifications                     |
 | `onComplete` | Closure | See [`slack.onComplete`](#slackoncomplete) | No       | Configuration for workflow completion notifications                |
 | `onError`    | Closure | See [`slack.onError`](#slackonerror)       | No       | Configuration for workflow error notifications                     |
@@ -40,11 +41,10 @@ slack {
 
 ### `slack.bot`
 
-| Property     | Type    | Default | Required | Description                                                                                        |
-| ------------ | ------- | ------- | -------- | -------------------------------------------------------------------------------------------------- |
-| `token`      | String  | -       | Yes      | Bot User OAuth Token (starts with `xoxb-`)                                                         |
-| `channel`    | String  | -       | Yes      | Channel ID (e.g., `C12345678`) or Name (e.g., `general`) to send messages to                       |
-| `useThreads` | Boolean | `false` | No       | Group all workflow messages (including custom `slackMessage()` calls) in threads (bot tokens only) |
+| Property  | Type   | Default | Required | Description                                                                  |
+| --------- | ------ | ------- | -------- | ---------------------------------------------------------------------------- |
+| `token`   | String | -       | Yes      | Bot User OAuth Token (starts with `xoxb-`)                                   |
+| `channel` | String | -       | Yes      | Channel ID (e.g., `C12345678`) or Name (e.g., `general`) to send messages to |
 
 #### Example
 
@@ -118,15 +118,16 @@ Configuration for workflow completion notifications.
 
 #### Properties
 
-| Property               | Type          | Default                                  | Description                                |
-| ---------------------- | ------------- | ---------------------------------------- | ------------------------------------------ |
-| `enabled`              | Boolean       | `true`                                   | Send notification when workflow completes  |
-| `message`              | String or Map | `'✅ *Pipeline completed successfully*'` | Completion notification message            |
-| `includeCommandLine`   | Boolean       | `true`                                   | Include command line in message            |
-| `includeResourceUsage` | Boolean       | `true`                                   | Include task statistics and resource usage |
-| `showFooter`           | Boolean       | `true`                                   | Show timestamp footer in message           |
+| Property               | Type           | Default                                  | Description                                                   |
+| ---------------------- | -------------- | ---------------------------------------- | ------------------------------------------------------------- |
+| `enabled`              | Boolean        | `true`                                   | Send notification when workflow completes                     |
+| `message`              | String or Map  | `'✅ *Pipeline completed successfully*'` | Completion notification message                               |
+| `includeCommandLine`   | Boolean        | `true`                                   | Include command line in message                               |
+| `includeResourceUsage` | Boolean        | `true`                                   | Include task statistics and resource usage                    |
+| `showFooter`           | Boolean        | `true`                                   | Show timestamp footer in message                              |
+| `files`                | `List<String>` | `[]`                                     | File paths to upload after completion notification (Bot only) |
 
-> **Note**: `includeResourceUsage` is **only available** in the `onComplete` scope.
+> [!NOTE] > `includeResourceUsage` is **only available** in the `onComplete` scope.
 
 #### Message Available Fields
 
@@ -161,12 +162,13 @@ Configuration for workflow error notifications.
 
 #### Properties
 
-| Property             | Type          | Default                  | Description                           |
-| -------------------- | ------------- | ------------------------ | ------------------------------------- |
-| `enabled`            | Boolean       | `true`                   | Send notification when workflow fails |
-| `message`            | String or Map | `'❌ *Pipeline failed*'` | Error notification message            |
-| `includeCommandLine` | Boolean       | `true`                   | Include command line in message       |
-| `showFooter`         | Boolean       | `true`                   | Show timestamp footer in message      |
+| Property             | Type           | Default                  | Description                                              |
+| -------------------- | -------------- | ------------------------ | -------------------------------------------------------- |
+| `enabled`            | Boolean        | `true`                   | Send notification when workflow fails                    |
+| `message`            | String or Map  | `'❌ *Pipeline failed*'` | Error notification message                               |
+| `includeCommandLine` | Boolean        | `true`                   | Include command line in message                          |
+| `showFooter`         | Boolean        | `true`                   | Show timestamp footer in message                         |
+| `files`              | `List<String>` | `[]`                     | File paths to upload after error notification (Bot only) |
 
 #### Message Available Fields
 
@@ -345,5 +347,39 @@ workflow {
 #### Return Value
 
 The function does not return anything.
+
+---
+
+### `slackFileUpload`
+
+Upload a file to Slack. Requires Bot User with `files:write` scope.
+
+#### Simple form
+
+| Parameter  | Type   | Description                |
+| ---------- | ------ | -------------------------- |
+| `filePath` | String | Path to the file to upload |
+
+```groovy
+slackFileUpload('/path/to/report.html')
+```
+
+#### Map form
+
+| Parameter  | Type   | Required | Description                            |
+| ---------- | ------ | -------- | -------------------------------------- |
+| `file`     | String | Yes      | Path to the file (local or remote URI) |
+| `title`    | String | No       | Title displayed in Slack               |
+| `comment`  | String | No       | Comment posted with the file           |
+| `filename` | String | No       | Custom filename                        |
+
+```groovy
+slackFileUpload(
+    file: 'results/qc_plot.png',
+    title: 'QC Results',
+    comment: 'Analysis complete',
+    filename: 'qc-results.png'
+)
+```
 
 ---

@@ -51,4 +51,20 @@ class SlackClientTest extends Specification {
         then:
         noExceptionThrown()
     }
+
+    def 'should handle file upload gracefully with warning'() {
+        given:
+        def sender = new WebhookSlackSender('https://hooks.slack.com/services/TEST/TEST/TEST')
+        def tempFile = File.createTempFile('test', '.txt')
+        tempFile.text = 'Hello World'
+
+        when:
+        sender.uploadFile(tempFile.toPath(), [:])
+
+        then:
+        noExceptionThrown()
+
+        cleanup:
+        tempFile.delete()
+    }
 }

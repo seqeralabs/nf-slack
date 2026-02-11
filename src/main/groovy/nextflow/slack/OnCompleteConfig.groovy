@@ -28,6 +28,7 @@ import groovy.transform.CompileStatic
  *         message = '✅ *Pipeline completed successfully*'
  *         includeCommandLine = true
  *         includeResourceUsage = true
+ *         files = ['results/multiqc_report.html']
  *     }
  * }
  *
@@ -62,6 +63,11 @@ class OnCompleteConfig {
     final boolean showFooter
 
     /**
+     * List of file paths to upload on workflow completion
+     */
+    final List<String> files
+
+    /**
      * Create OnCompleteConfig from configuration map
      *
      * @param config Configuration map from slack.onComplete scope
@@ -72,10 +78,11 @@ class OnCompleteConfig {
         this.includeCommandLine = config?.includeCommandLine != null ? config.includeCommandLine as boolean : true
         this.includeResourceUsage = config?.includeResourceUsage != null ? config.includeResourceUsage as boolean : true
         this.showFooter = config?.showFooter != null ? config.showFooter as boolean : true
+        this.files = config?.files != null ? (config.files as List<String>) : []
     }
 
     @Override
     String toString() {
-        return "OnCompleteConfig[enabled=${enabled}, includeCommandLine=${includeCommandLine}, includeResourceUsage=${includeResourceUsage}]"
+        return "OnCompleteConfig[enabled=${enabled}, includeCommandLine=${includeCommandLine}, includeResourceUsage=${includeResourceUsage}, files=${files.size()}]"
     }
 }

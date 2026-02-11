@@ -256,8 +256,6 @@ Or publish locally (requires `npr.apiKey` in `~/.gradle/gradle.properties`):
 make release
 ```
 
-> **Note**: The Nextflow Plugin Registry is currently available as preview technology. Contact info@nextflow.io to learn how to get access.
-
 ### Versioning
 
 This project follows [Semantic Versioning](https://semver.org/):

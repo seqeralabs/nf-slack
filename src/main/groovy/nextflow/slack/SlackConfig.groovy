@@ -135,7 +135,7 @@ class SlackConfig {
         // Get bot config from nested structure
         def botToken = session.config?.navigate('slack.bot.token') as String
         def botChannel = session.config?.navigate('slack.bot.channel') as String
-        def useThreads = session.config?.navigate('slack.bot.useThreads') as Boolean
+        def useThreads = session.config?.navigate('slack.useThreads') as Boolean
 
         if (!webhook && !botToken) {
             log.debug "Slack plugin: No webhook URL or Bot Token configured, plugin will be disabled"

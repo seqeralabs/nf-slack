@@ -196,6 +196,68 @@ workflow {
 }
 ```
 
+## File Uploads
+
+Upload files to Slack using `slackFileUpload()`. This is the file equivalent of `slackMessage()`.
+
+> [!NOTE]
+> File uploads requires a Bot User with `files:write` scope. See [Bot Setup](../getting-started/bot-setup.md) for details.
+
+### Basic Usage
+
+```groovy
+include { slackFileUpload } from 'plugin/nf-slack'
+
+workflow {
+    // Simple — just a file path
+    slackFileUpload('/path/to/results/report.html')
+
+    // With metadata
+    slackFileUpload(
+        file: '/path/to/results/qc_plot.png',
+        title: 'Quality Control Plot',
+        comment: 'QC results look good!',
+        filename: 'qc-results.png'
+    )
+}
+```
+
+### Options
+
+| Option     | Type     | Required | Description                                                                        |
+| ---------- | -------- | -------- | ---------------------------------------------------------------------------------- |
+| `file`     | `String` | Yes      | Path to the file. Supports local paths and remote URIs (`s3://`, `az://`, `gs://`) |
+| `title`    | `String` | No       | Title displayed in Slack (defaults to filename)                                    |
+| `comment`  | `String` | No       | Comment posted alongside the file                                                  |
+| `filename` | `String` | No       | Custom filename in Slack (defaults to original filename)                           |
+
+### Upload in a Completion Handler
+
+Use Nextflow's `workflow.onComplete` handler for conditional uploads based on workflow status:
+
+```groovy
+include { slackFileUpload } from 'plugin/nf-slack'
+
+workflow.onComplete {
+    slackFileUpload(
+        file: "${workflow.launchDir}/results/pipeline_report.html",
+        title: 'Pipeline Report',
+        comment: workflow.success ? '✅ Pipeline completed!' : '❌ Pipeline failed'
+    )
+
+    if (workflow.success) {
+        slackFileUpload(
+            file: "${workflow.launchDir}/results/multiqc_report.html",
+            title: 'MultiQC Report'
+        )
+    }
+}
+
+workflow {
+    // ... your pipeline processes
+}
+```
+
 ## Next Steps
 
 - Learn about [automatic notifications](automatic-notifications.md)
