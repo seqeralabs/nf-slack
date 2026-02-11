@@ -1,0 +1,91 @@
+/* Custom styles for nf-slack documentation */
+
+:root {
+  /* Custom primary color - Slack purple */
+  --md-primary-fg-color: #611f69;
+  --md-primary-fg-color--light: #822e81;
+  --md-primary-fg-color--dark: #4a154b;
+
+  /* Custom accent color - Slack green */
+  --md-accent-fg-color: #2EB887;
+  --md-accent-fg-color--transparent: rgba(46, 184, 135, 0.1);
+}
+
+/* Slate theme (dark mode) customization */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #822e81;
+  --md-primary-fg-color--light: #9c4ea2;
+  --md-primary-fg-color--dark: #611f69;
+
+  --md-accent-fg-color: #2EB887;
+}
+
+/* Enhance code blocks */
+.highlight {
+  border-radius: 0.25rem;
+}
+
+/* Improve admonition styling */
+.md-typeset .admonition,
+.md-typeset details {
+  border-left: 0.2rem solid var(--md-accent-fg-color);
+}
+
+/* Style for buttons */
+.md-button {
+  border-radius: 0.25rem;
+}
+
+.md-button--primary {
+  background-color: var(--md-primary-fg-color);
+  border-color: var(--md-primary-fg-color);
+  color: var(--md-primary-bg-color);
+}
+
+.md-button--primary:hover,
+.md-button--primary:focus {
+  background-color: var(--md-primary-fg-color--light);
+  border-color: var(--md-primary-fg-color--light);
+}
+
+/* Improve table styling */
+.md-typeset table:not([class]) {
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.md-typeset table:not([class]) th {
+  background-color: var(--md-accent-fg-color--transparent);
+  font-weight: 700;
+}
+
+/* Code title styling */
+.md-typeset code {
+  border-radius: 0.2rem;
+}
+
+/* Enhance images */
+.md-typeset img {
+  border-radius: 0.5rem;
+  box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.1);
+}
+
+/* Footer styling */
+.md-footer-meta {
+  background-color: var(--md-primary-fg-color--dark);
+}
+
+/* Search highlighting */
+.md-search-result__article--document {
+  border-left: 0.2rem solid var(--md-accent-fg-color);
+}
+
+/* Navigation enhancements */
+.md-nav__item--active > .md-nav__link {
+  color: var(--md-accent-fg-color);
+}
+
+/* Header logo adjustments */
+.md-header__button.md-logo {
+  padding: 0;
+}
