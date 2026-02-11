@@ -277,4 +277,40 @@ class BotSlackSenderTest extends Specification {
          cleanup:
          tempFile?.delete()
      }
+
+    def 'should add reaction gracefully when API unreachable' () {
+        given:
+        def sender = new BotSlackSender('xoxb-test-token', 'C123456') {
+            @Override
+            protected void postReaction(String emoji, String messageTs) {
+                throw new ConnectException('Connection refused')
+            }
+        }
+
+        when:
+        sender.addReaction('white_check_mark', '1234567890.123456')
+
+        then:
+        noExceptionThrown()
+    }
+
+    def 'should call postReaction with correct parameters' () {
+        given:
+        def capturedEmoji = null
+        def capturedTs = null
+        def sender = new BotSlackSender('xoxb-test-token', 'C123456') {
+            @Override
+            protected void postReaction(String emoji, String messageTs) {
+                capturedEmoji = emoji
+                capturedTs = messageTs
+            }
+        }
+
+         when:
+         sender.addReaction('rocket', '1234567890.123456')
+
+        then:
+        capturedEmoji == 'rocket'
+        capturedTs == '1234567890.123456'
+     }
 }

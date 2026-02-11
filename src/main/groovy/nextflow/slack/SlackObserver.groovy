@@ -53,7 +53,10 @@ class SlackObserver implements TraceObserver {
         this.session = session
 
         // Parse configuration - throws IllegalArgumentException if invalid
-        this.config = SlackConfig.from(session)
+        // Allow pre-set config for testing
+        if (this.config == null) {
+            this.config = SlackConfig.from(session)
+        }
 
         // If not configured or disabled, skip initialization
         if (!config?.isConfigured()) {
@@ -61,9 +64,13 @@ class SlackObserver implements TraceObserver {
             return
         }
 
-        // Initialize sender and message builder
-        this.sender = config.createSender()
-        this.messageBuilder = new SlackMessageBuilder(config, session)
+        // Initialize sender and message builder (allow pre-set for testing)
+        if (this.sender == null) {
+            this.sender = config.createSender()
+        }
+        if (this.messageBuilder == null) {
+            this.messageBuilder = new SlackMessageBuilder(config, session)
+        }
 
         log.debug "Slack plugin: Initialized successfully"
 
@@ -72,6 +79,9 @@ class SlackObserver implements TraceObserver {
             def message = messageBuilder.buildWorkflowStartMessage()
             sender.sendMessage(message)
             log.debug "Slack plugin: Sent workflow start notification"
+
+            // Add start reaction to the message
+            addReactionIfEnabled(config.reactions?.onStart)
         }
     }
 
@@ -88,6 +98,8 @@ class SlackObserver implements TraceObserver {
             def message = messageBuilder.buildWorkflowCompleteMessage(threadTs)
             sender.sendMessage(message)
             log.debug "Slack plugin: Sent workflow complete notification"
+
+            addReactionIfEnabled(config.reactions?.onSuccess)
 
             // Upload configured files
             uploadConfiguredFiles(config.onComplete.files, threadTs)
@@ -107,6 +119,8 @@ class SlackObserver implements TraceObserver {
             def message = messageBuilder.buildWorkflowErrorMessage(trace, threadTs)
             sender.sendMessage(message)
             log.debug "Slack plugin: Sent workflow error notification"
+
+            addReactionIfEnabled(config.reactions?.onError)
 
             // Upload configured files
             uploadConfiguredFiles(config.onError.files, threadTs)
@@ -132,6 +146,25 @@ class SlackObserver implements TraceObserver {
             catch (Exception e) {
                 log.warn "Slack plugin: Failed to upload file ${filePath}: ${e.message}"
             }
+        }
+    }
+
+    /**
+     * Add an emoji reaction to the start message if reactions are enabled
+     */
+    private void addReactionIfEnabled(String emoji) {
+        if (!emoji) return
+        if (!config.reactions?.enabled) return
+        if (!(sender instanceof BotSlackSender)) return
+
+        try {
+            def messageTs = (sender as BotSlackSender).getThreadTs()
+            if (messageTs) {
+                sender.addReaction(emoji, messageTs)
+            }
+        }
+        catch (Exception e) {
+            log.debug "Slack plugin: Failed to add reaction: ${e.message}"
         }
     }
 
@@ -178,5 +211,13 @@ class SlackObserver implements TraceObserver {
      */
     SlackConfig getConfig() {
         return config
+    }
+
+    void setConfig(SlackConfig config) {
+        this.config = config
+    }
+
+    void setMessageBuilder(SlackMessageBuilder messageBuilder) {
+        this.messageBuilder = messageBuilder
     }
 }

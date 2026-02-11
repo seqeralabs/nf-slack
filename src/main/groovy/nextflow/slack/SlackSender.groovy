@@ -47,4 +47,14 @@ interface SlackSender {
      *   - threadTs (String): Thread timestamp for threading
      */
     void uploadFile(Path filePath, Map options)
+
+    /**
+     * Add an emoji reaction to a message. Default no-op for senders that don't support reactions.
+     *
+     * @param emoji Emoji name without colons (e.g., 'white_check_mark')
+     * @param messageTs Timestamp of the message to react to
+     */
+    default void addReaction(String emoji, String messageTs) {
+        // No-op by default - only BotSlackSender supports reactions
+    }
 }

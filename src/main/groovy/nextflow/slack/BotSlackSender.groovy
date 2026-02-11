@@ -40,6 +40,7 @@ import java.nio.file.Path
 class BotSlackSender implements SlackSender {
 
     private static final String CHAT_POST_MESSAGE_URL = "https://slack.com/api/chat.postMessage"
+    private static final String REACTIONS_ADD_URL = "https://slack.com/api/reactions.add"
     private static final String FILES_GET_UPLOAD_URL = "https://slack.com/api/files.getUploadURLExternal"
     private static final String FILES_COMPLETE_UPLOAD_URL = "https://slack.com/api/files.completeUploadExternal"
 
@@ -351,5 +352,49 @@ class BotSlackSender implements SlackSender {
      */
     String getThreadTs() {
         return threadTs
+    }
+
+    @Override
+    void addReaction(String emoji, String messageTs) {
+        try {
+            postReaction(emoji, messageTs)
+        } catch (Exception e) {
+            log.debug "Slack plugin: Failed to add reaction '${emoji}': ${e.message}"
+        }
+    }
+
+    protected void postReaction(String emoji, String messageTs) {
+        HttpURLConnection connection = null
+        try {
+            def url = new URL(REACTIONS_ADD_URL)
+            connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = 'POST'
+            connection.doOutput = true
+            connection.setRequestProperty('Content-Type', 'application/json; charset=utf-8')
+            connection.setRequestProperty('Authorization', "Bearer ${botToken}")
+
+            def payload = new JsonBuilder([
+                channel: channelId,
+                name: emoji,
+                timestamp: messageTs
+            ]).toString()
+
+            connection.outputStream.withCloseable { out ->
+                out.write(payload.getBytes("UTF-8"))
+            }
+
+            def responseCode = connection.responseCode
+            if (responseCode == 200) {
+                def responseText = connection.inputStream.text
+                def response = new JsonSlurper().parseText(responseText) as Map
+                if (!response.ok) {
+                    log.debug "Slack plugin: Failed to add reaction '${emoji}': ${response.error}"
+                }
+            } else {
+                log.debug "Slack plugin: Failed to add reaction - HTTP ${responseCode}"
+            }
+        } finally {
+            connection?.disconnect()
+        }
     }
 }
