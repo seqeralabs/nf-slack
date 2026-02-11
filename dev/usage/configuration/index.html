@@ -886,6 +886,28 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#oncomplete-properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        onComplete Properties
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#onerror-properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        onError Properties
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#footer-display" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1235,10 +1257,10 @@
 <h2 id="threading">Threading<a class="headerlink" href="#threading" title="Permanent link">&para;</a></h2>
 <p>Group all workflow notifications (start, complete, error) into a single thread to reduce channel clutter. This is particularly useful for high-volume pipelines.</p>
 <div class="language-groovy highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="n">bot</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">        </span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">System</span><span class="o">.</span><span class="na">getenv</span><span class="o">(</span><span class="s1">&#39;SLACK_BOT_TOKEN&#39;</span><span class="o">)</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">        </span><span class="n">channel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;general&#39;</span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">        </span><span class="n">useThreads</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">  </span><span class="c1">// Enable threading</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="n">useThreads</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">  </span><span class="c1">// Enable threading</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="n">bot</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">        </span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">System</span><span class="o">.</span><span class="na">getenv</span><span class="o">(</span><span class="s1">&#39;SLACK_BOT_TOKEN&#39;</span><span class="o">)</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">        </span><span class="n">channel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;general&#39;</span>
 </span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="o">}</span>
 </span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="o">}</span>
 </span></code></pre></div>
@@ -1376,6 +1398,98 @@
 </span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span><span class="o">}</span>
 </span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="o">}</span>
 </span></code></pre></div>
+<h3 id="oncomplete-properties">onComplete Properties<a class="headerlink" href="#oncomplete-properties" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enabled</code></td>
+<td>Boolean</td>
+<td><code>true</code></td>
+<td>Enable/disable completion notifications</td>
+</tr>
+<tr>
+<td><code>message</code></td>
+<td>String or Map</td>
+<td>Default message</td>
+<td>Custom notification text or message object</td>
+</tr>
+<tr>
+<td><code>includeCommandLine</code></td>
+<td>Boolean</td>
+<td><code>true</code></td>
+<td>Include the Nextflow command line in the message</td>
+</tr>
+<tr>
+<td><code>includeResourceUsage</code></td>
+<td>Boolean</td>
+<td><code>true</code></td>
+<td>Include task statistics and resource usage</td>
+</tr>
+<tr>
+<td><code>showFooter</code></td>
+<td>Boolean</td>
+<td><code>true</code></td>
+<td>Display timestamp footer</td>
+</tr>
+<tr>
+<td><code>files</code></td>
+<td><code>List&lt;String&gt;</code></td>
+<td><code>[]</code></td>
+<td>List of file paths to upload on completion (Bot only)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="onerror-properties">onError Properties<a class="headerlink" href="#onerror-properties" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enabled</code></td>
+<td>Boolean</td>
+<td><code>true</code></td>
+<td>Enable/disable error notifications</td>
+</tr>
+<tr>
+<td><code>message</code></td>
+<td>String or Map</td>
+<td>Default message</td>
+<td>Custom notification text or message object</td>
+</tr>
+<tr>
+<td><code>includeCommandLine</code></td>
+<td>Boolean</td>
+<td><code>true</code></td>
+<td>Include the Nextflow command line in the message</td>
+</tr>
+<tr>
+<td><code>showFooter</code></td>
+<td>Boolean</td>
+<td><code>true</code></td>
+<td>Display timestamp footer</td>
+</tr>
+<tr>
+<td><code>files</code></td>
+<td><code>List&lt;String&gt;</code></td>
+<td><code>[]</code></td>
+<td>List of file paths to upload on error (Bot only)</td>
+</tr>
+</tbody>
+</table>
 <h3 id="footer-display">Footer Display<a class="headerlink" href="#footer-display" title="Permanent link">&para;</a></h3>
 <p>Control whether a timestamp footer is shown at the bottom of messages:</p>
 <div class="language-groovy highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
