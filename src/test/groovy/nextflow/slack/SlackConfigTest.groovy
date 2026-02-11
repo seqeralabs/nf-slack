@@ -398,4 +398,30 @@ class SlackConfigTest extends Specification {
         config != null
         config.useThreads == false
     }
+
+    def 'should parse per-event channel from onStart config'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [slack: [bot: [token: 'xoxb-token', channel: 'C123456'], onStart: [channel: '#alerts']]]
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config.onStart.channel == '#alerts'
+    }
+
+    def 'should have null per-event channel by default'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [slack: [bot: [token: 'xoxb-token', channel: 'C123456']]]
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config.onStart.channel == null
+        config.onComplete.channel == null
+        config.onError.channel == null
+    }
 }

@@ -69,7 +69,7 @@ class SlackObserver implements TraceObserver {
 
         // Send workflow started notification if enabled
         if (config.onStart.enabled) {
-            def message = messageBuilder.buildWorkflowStartMessage()
+            def message = messageBuilder.buildWorkflowStartMessage(null, config.onStart.channel)
             sender.sendMessage(message)
             log.debug "Slack plugin: Sent workflow start notification"
         }
@@ -84,8 +84,9 @@ class SlackObserver implements TraceObserver {
 
         if (config.onComplete.enabled) {
             // Get thread timestamp if threading is enabled and we're using bot sender
-            def threadTs = getThreadTsIfEnabled()
-            def message = messageBuilder.buildWorkflowCompleteMessage(threadTs)
+            // Only use threading if the complete message goes to the same channel as the start message
+            def threadTs = shouldUseThread(config.onComplete.channel) ? getThreadTsIfEnabled() : null
+            def message = messageBuilder.buildWorkflowCompleteMessage(threadTs, config.onComplete.channel)
             sender.sendMessage(message)
             log.debug "Slack plugin: Sent workflow complete notification"
 
@@ -102,9 +103,8 @@ class SlackObserver implements TraceObserver {
         if (!isConfigured()) return
 
         if (config.onError.enabled) {
-            // Get thread timestamp if threading is enabled and we're using bot sender
-            def threadTs = getThreadTsIfEnabled()
-            def message = messageBuilder.buildWorkflowErrorMessage(trace, threadTs)
+            def threadTs = shouldUseThread(config.onError.channel) ? getThreadTsIfEnabled() : null
+            def message = messageBuilder.buildWorkflowErrorMessage(trace, threadTs, config.onError.channel)
             sender.sendMessage(message)
             log.debug "Slack plugin: Sent workflow error notification"
 
@@ -138,6 +138,11 @@ class SlackObserver implements TraceObserver {
     /**
      * Get thread timestamp if threading is enabled
      */
+    private boolean shouldUseThread(String eventChannel) {
+        if (!eventChannel) return true
+        return eventChannel == config.botChannel
+    }
+
     private String getThreadTsIfEnabled() {
         if (config.useThreads && sender instanceof BotSlackSender) {
             return (sender as BotSlackSender).getThreadTs()

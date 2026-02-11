@@ -175,6 +175,20 @@ class SlackConfig {
             }
         }
 
+        // Validate per-event channel formats if specified
+        def onStartConfig = config.onStart as Map
+        def onCompleteConfig = config.onComplete as Map
+        def onErrorConfig = config.onError as Map
+        [onStart: onStartConfig, onComplete: onCompleteConfig, onError: onErrorConfig].each { name, cfg ->
+            def ch = cfg?.channel as String
+            if (ch && !ch.matches(/^[#a-zA-Z0-9\-_]+$/)) {
+                throw new IllegalArgumentException("Slack plugin: Invalid channel format in ${name}: ${ch}")
+            }
+            if (ch && !botToken) {
+                log.warn "Slack plugin: Per-event channel in '${name}' requires bot token - will be ignored with webhook"
+            }
+        }
+
         def slackConfig = new SlackConfig(config)
         log.info "Slack plugin: Enabled with ${botToken ? 'Bot' : 'Webhook'} notifications"
         return slackConfig
