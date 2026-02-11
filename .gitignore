@@ -10,6 +10,7 @@ work
 # Don't save LLM stuff
 .claude/.local
 .claude/settings.local.json
+.sisyphus
 
 .envrc
 

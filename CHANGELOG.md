@@ -5,6 +5,25 @@ All notable changes to the nf-slack plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-02-11
+
+### Added
+
+- **File Upload Support**: Upload files to Slack channels using bot tokens ([#32](https://github.com/seqeralabs/nf-slack/pull/32))
+  - New `slackFileUpload()` function for uploading files from within workflow scripts
+  - Config-based file uploads via `onComplete.files` and `onError.files` for automatic uploads on pipeline completion or error
+  - Support for remote files (S3, Azure Blob, GCS) via Nextflow's FileHelper
+  - Files are uploaded to the same channel and thread as workflow messages
+  - Three-step Slack API upload flow (get URL → upload → complete) with proper error handling
+
+### Fixed
+
+- **Threading Configuration**: Fixed `useThreads` config being read from wrong path (`slack.bot.useThreads` → `slack.useThreads`) ([#32](https://github.com/seqeralabs/nf-slack/pull/32))
+
+### Changed
+
+- **Examples Consolidation**: Simplified example configs from 6 separate files to 2 focused examples (1 config + 1 script) ([#32](https://github.com/seqeralabs/nf-slack/pull/32))
+
 ## [0.1.1] - 2025-11-03
 
 ### Changed
@@ -208,6 +227,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
+- **[0.4.0]** - File upload support, config-based uploads, remote file support
 - **[0.3.1]** - Documentation updates for bot support and threading features
 - **[0.3.0]** - Slack Bot integration, message threading, and organization migration
 - **[0.2.1]** - CI/CD fixes and build improvements
@@ -215,6 +235,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **[0.1.1]** - Release automation and documentation improvements
 - **[0.1.0]** - Initial release with automatic notifications, custom messages, and progressive configuration examples
 
+[0.4.0]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.4.0
 [0.3.1]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.3.1
 [0.3.0]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.3.0
 [0.2.1]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.2.1

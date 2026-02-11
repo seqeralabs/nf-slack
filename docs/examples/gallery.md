@@ -492,7 +492,7 @@ slack {
 
 ```groovy title="10-file-upload.config"
 plugins {
-    id 'nf-slack@0.3.1'
+    id 'nf-slack@0.4.0'
 }
 
 slack {
