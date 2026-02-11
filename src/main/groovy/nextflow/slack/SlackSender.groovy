@@ -47,4 +47,11 @@ interface SlackSender {
      *   - threadTs (String): Thread timestamp for threading
      */
     void uploadFile(Path filePath, Map options)
+
+    /**
+     * Update an existing message in Slack (default: no-op for implementations that don't support it)
+     */
+    default void updateMessage(String message, String messageTs) {
+        // No-op by default - only BotSlackSender supports message updates
+    }
 }

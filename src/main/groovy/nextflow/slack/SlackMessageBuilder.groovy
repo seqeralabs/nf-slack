@@ -487,4 +487,49 @@ class SlackMessageBuilder {
         }
         return new JsonBuilder(message).toPrettyString()
     }
+
+    /**
+     * Build a progress update message showing workflow execution status.
+     */
+    String buildProgressUpdateMessage(int completed, int cached, int failed, long elapsedMs, String threadTs = null) {
+        def blocks = []
+
+        // Header
+        blocks.add(createHeaderSection('📊 Pipeline Progress'))
+        blocks.add(createDivider())
+
+        // Progress stats
+        def elapsed = formatDuration(elapsedMs)
+        def total = completed + cached + failed
+        List<Map> fields = []
+        fields.add(createMarkdownField('Tasks Completed', "${completed}"))
+        fields.add(createMarkdownField('Tasks Cached', "${cached}"))
+        if (failed > 0) {
+            fields.add(createMarkdownField('Tasks Failed', "${failed}"))
+        }
+        fields.add(createMarkdownField('Total', "${total}"))
+        fields.add(createMarkdownField('Elapsed', elapsed))
+        blocks.add(createFieldsSection(fields))
+
+        return createMessagePayload(blocks, threadTs)
+    }
+
+    /**
+     * Format a duration in milliseconds to a human-readable string.
+     */
+    private static String formatDuration(long millis) {
+        long seconds = (long)(millis / 1000)
+        long minutes = (long)(seconds / 60)
+        long hours = (long)(minutes / 60)
+        seconds = seconds % 60
+        minutes = minutes % 60
+
+        if (hours > 0) {
+            return "${hours}h ${minutes}m ${seconds}s"
+        } else if (minutes > 0) {
+            return "${minutes}m ${seconds}s"
+        } else {
+            return "${seconds}s"
+        }
+    }
 }

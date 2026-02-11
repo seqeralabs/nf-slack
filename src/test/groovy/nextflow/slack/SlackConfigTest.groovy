@@ -398,4 +398,41 @@ class SlackConfigTest extends Specification {
         config != null
         config.useThreads == false
     }
+
+    def 'should parse onProgress config'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [
+            slack: [
+                webhook: [url: 'https://hooks.slack.com/services/T00/B00/XXX'],
+                onProgress: [enabled: true, interval: '10m']
+            ]
+        ]
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config != null
+        config.onProgress.enabled == true
+        config.onProgress.interval == '10m'
+    }
+
+    def 'should have onProgress defaults'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [
+            slack: [
+                webhook: [url: 'https://hooks.slack.com/services/T00/B00/XXX']
+            ]
+        ]
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config != null
+        config.onProgress.enabled == false
+        config.onProgress.interval == '5m'
+    }
 }

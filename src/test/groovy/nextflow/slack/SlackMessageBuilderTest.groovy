@@ -598,4 +598,27 @@ class SlackMessageBuilderTest extends Specification {
         then:
         !json.containsKey('thread_ts')
     }
+
+    def 'should build progress update message'() {
+        when:
+        def message = messageBuilder.buildProgressUpdateMessage(10, 3, 1, 300000L, '1234567890.123456')
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        json.blocks != null
+        json.blocks.size() > 0
+        json.thread_ts == '1234567890.123456'
+        json.blocks[0].type == 'section'
+    }
+
+    def 'should format elapsed time in progress message'() {
+        when:
+        def message = messageBuilder.buildProgressUpdateMessage(5, 2, 0, 3661000L, null)
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        json.blocks != null
+        def text = json.blocks.collect { it.toString() }.join(' ')
+        text.contains('5')
+    }
 }
