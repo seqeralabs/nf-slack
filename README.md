@@ -43,7 +43,7 @@ Add to your `nextflow.config`:
 
 ```groovy
 plugins {
-    id 'nf-slack@0.3.1'
+    id 'nf-slack@0.4.0'
 }
 
 slack {
