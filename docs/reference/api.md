@@ -127,7 +127,7 @@ Configuration for workflow completion notifications.
 | `showFooter`           | Boolean        | `true`                                   | Show timestamp footer in message                              |
 | `files`                | `List<String>` | `[]`                                     | File paths to upload after completion notification (Bot only) |
 
-> **Note**: `includeResourceUsage` is **only available** in the `onComplete` scope.
+> [!NOTE] > `includeResourceUsage` is **only available** in the `onComplete` scope.
 
 #### Message Available Fields
 

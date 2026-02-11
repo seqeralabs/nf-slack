@@ -92,11 +92,14 @@ With threading enabled:
 
 This significantly reduces noise in your channels, especially when running multiple pipelines simultaneously.
 
-> **Note**: Threading requires a Bot Token and must be enabled in your configuration. See [Configuration](configuration.md#threading) for details.
+> [!NOTE]
+> Threading requires a Bot Token and must be enabled in your configuration. See [Configuration](configuration.md#threading) for details.
 
-### Automatic File Uploads
+### File Uploads
 
-Upload files automatically when a workflow completes or fails — no code changes required. Add a `files` list to `onComplete` or `onError`:
+Files can be uploaded to a Slack message or thread. All paths are relative to the `launchDir` and are posted as a single message.
+
+To enable file uploading, add a `files` list to `onComplete` or `onError`:
 
 ```groovy
 slack {
@@ -117,11 +120,10 @@ slack {
 
 Files are uploaded after the notification message. If a file doesn't exist (e.g., the pipeline failed before creating it), it's skipped with a warning.
 
-!!! tip "Requirements"
-
-    File upload requires a Bot User with `files:write` scope. It is not supported with webhooks. See [File Uploads in Custom Messages](custom-messages.md#file-uploads) for uploading files from within your workflow code.
-
 When `useThreads` is enabled, uploaded files appear in the same thread as the notification messages.
+
+> [!NOTE]
+> File uploads requires a Bot User with `files:write` scope. See [File Uploads in Custom Messages](custom-messages.md#file-uploads) for details.
 
 ### Common Notification Patterns
 

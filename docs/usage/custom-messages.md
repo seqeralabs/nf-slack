@@ -200,9 +200,8 @@ workflow {
 
 Upload files to Slack using `slackFileUpload()`. This is the file equivalent of `slackMessage()`.
 
-!!! tip "Prerequisites"
-
-    File upload requires a Bot User with `files:write` scope. See [Bot Setup](../getting-started/bot-setup.md) for details. Supports local files and remote URIs (`s3://`, `az://`, `gs://`).
+> [!NOTE]
+> File uploads requires a Bot User with `files:write` scope. See [Bot Setup](../getting-started/bot-setup.md) for details.
 
 ### Basic Usage
 
@@ -258,14 +257,6 @@ workflow {
     // ... your pipeline processes
 }
 ```
-
-!!! important
-
-    The `workflow.onComplete` handler must be defined at the **script level**, not inside the `workflow {}` block. Use absolute paths (e.g. `"${workflow.launchDir}/results/..."`) — relative paths resolve against the JVM working directory.
-
-!!! note "Automatic file uploads"
-
-    You can also upload files automatically on completion without any code changes. See [Automatic File Uploads](automatic-notifications.md#automatic-file-uploads).
 
 ## Next Steps
 
