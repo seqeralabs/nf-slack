@@ -402,4 +402,105 @@ class SlackObserverTest extends Specification {
          1 * mockSender.sendMessage(_)
          1 * mockSender.uploadFile({ it.toString().endsWith('pipeline_report.html') }, _)
      }
+
+    def 'should call validate when validateOnStartup is enabled'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [:]
+        def observer = new SlackObserver()
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890'],
+            validateOnStartup: true,
+            onStart: [enabled: false]
+        ])
+        def mockSender = Mock(BotSlackSender)
+        mockSender.validate() >> true
+
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        when:
+        observer.onFlowCreate(session)
+
+        then:
+        1 * mockSender.validate()
+    }
+
+    def 'should skip validation when validateOnStartup is disabled'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [:]
+        def observer = new SlackObserver()
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890'],
+            validateOnStartup: false,
+            onStart: [enabled: false]
+        ])
+        def mockSender = Mock(BotSlackSender)
+
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        when:
+        observer.onFlowCreate(session)
+
+        then:
+        0 * mockSender.validate()
+    }
+
+    def 'should throw exception when validation fails and failOnInvalidConfig is true'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [:]
+        def observer = new SlackObserver()
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890'],
+            validateOnStartup: true,
+            failOnInvalidConfig: true,
+            onStart: [enabled: false]
+        ])
+        def mockSender = Mock(BotSlackSender)
+        mockSender.validate() >> false
+
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        when:
+        observer.onFlowCreate(session)
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def 'should continue when validation fails and failOnInvalidConfig is false'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [:]
+        def observer = new SlackObserver()
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890'],
+            validateOnStartup: true,
+            failOnInvalidConfig: false,
+            onStart: [enabled: false]
+        ])
+        def mockSender = Mock(BotSlackSender)
+        mockSender.validate() >> false
+
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        when:
+        observer.onFlowCreate(session)
+
+        then:
+        noExceptionThrown()
+    }
 }

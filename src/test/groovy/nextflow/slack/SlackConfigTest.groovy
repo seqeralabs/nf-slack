@@ -398,4 +398,66 @@ class SlackConfigTest extends Specification {
         config != null
         config.useThreads == false
     }
+
+    def 'should parse validateOnStartup default to true'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [slack: [
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890']
+        ]]
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config != null
+        config.validateOnStartup == true
+    }
+
+    def 'should parse validateOnStartup when set to false'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [slack: [
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890'],
+            validateOnStartup: false
+        ]]
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config != null
+        config.validateOnStartup == false
+    }
+
+    def 'should parse failOnInvalidConfig default to false'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [slack: [
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890']
+        ]]
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config != null
+        config.failOnInvalidConfig == false
+    }
+
+    def 'should parse failOnInvalidConfig when set to true'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [slack: [
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890'],
+            failOnInvalidConfig: true
+        ]]
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config != null
+        config.failOnInvalidConfig == true
+    }
 }

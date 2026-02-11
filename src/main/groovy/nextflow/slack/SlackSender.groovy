@@ -47,4 +47,14 @@ interface SlackSender {
      *   - threadTs (String): Thread timestamp for threading
      */
     void uploadFile(Path filePath, Map options)
+
+    /**
+     * Validate the Slack connection.
+     * Returns true if the connection is valid, false otherwise.
+     *
+     * @return true if connection is valid
+     */
+    default boolean validate() {
+        return true
+    }
 }

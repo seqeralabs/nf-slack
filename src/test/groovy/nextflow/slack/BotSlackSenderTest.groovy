@@ -277,4 +277,93 @@ class BotSlackSenderTest extends Specification {
          cleanup:
          tempFile?.delete()
      }
+
+    def 'should validate token and channel successfully'() {
+        given:
+        def sender = new BotSlackSender('xoxb-test-token', 'C1234567890') {
+            @Override
+            protected boolean validateToken() {
+                return true
+            }
+            @Override
+            protected boolean validateChannel(String channel) {
+                return true
+            }
+        }
+
+        when:
+        def result = sender.validate()
+
+        then:
+        result == true
+    }
+
+    def 'should handle token validation failure gracefully'() {
+        given:
+        def sender = new BotSlackSender('xoxb-invalid-token', 'C1234567890') {
+            @Override
+            protected boolean validateToken() {
+                return false
+            }
+            @Override
+            protected boolean validateChannel(String channel) {
+                return true
+            }
+        }
+
+        when:
+        def result = sender.validate()
+
+        then:
+        result == false
+    }
+
+    def 'should handle channel validation failure gracefully'() {
+        given:
+        def tokenValidateCalled = false
+        def channelValidateCalled = false
+        def sender = new BotSlackSender('xoxb-test-token', 'C1234567890') {
+            @Override
+            protected boolean validateToken() {
+                tokenValidateCalled = true
+                return true
+            }
+            @Override
+            protected boolean validateChannel(String channel) {
+                channelValidateCalled = true
+                return false
+            }
+        }
+
+        when:
+        def result = sender.validate()
+
+        then:
+        result == false
+        tokenValidateCalled == true
+        channelValidateCalled == true
+    }
+
+    def 'should skip channel validation when token validation fails'() {
+        given:
+        def channelValidateCalled = false
+        def sender = new BotSlackSender('xoxb-test-token', 'C1234567890') {
+            @Override
+            protected boolean validateToken() {
+                return false
+            }
+            @Override
+            protected boolean validateChannel(String channel) {
+                channelValidateCalled = true
+                return true
+            }
+        }
+
+        when:
+        def result = sender.validate()
+
+        then:
+        result == false
+        channelValidateCalled == false
+    }
 }

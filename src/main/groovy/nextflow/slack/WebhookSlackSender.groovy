@@ -88,6 +88,33 @@ class WebhookSlackSender implements SlackSender {
      * @param options Upload options (ignored)
      */
     @Override
+    boolean validate() {
+        log.info "Slack plugin: Webhook validation is limited - sending a test request"
+        try {
+            def url = new URL(webhookUrl)
+            def connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = 'POST'
+            connection.doOutput = true
+            connection.setRequestProperty('Content-type', 'application/json')
+            connection.outputStream.write('{"text":"nf-slack validation test"}'.bytes)
+            connection.outputStream.close()
+
+            def responseCode = connection.responseCode
+            connection.disconnect()
+
+            if (responseCode != 200) {
+                log.warn "Slack plugin: Webhook validation failed - HTTP ${responseCode}"
+                return false
+            }
+            log.debug "Slack plugin: Webhook validated successfully"
+            return true
+        } catch (Exception e) {
+            log.warn "Slack plugin: Webhook validation failed - ${e.message}"
+            return false
+        }
+    }
+
+    @Override
     void uploadFile(Path filePath, Map options) {
         log.warn "Slack plugin: File upload is not supported with webhooks. Please configure a bot token to upload files."
     }
