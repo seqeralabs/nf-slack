@@ -469,4 +469,34 @@ class SlackConfigTest extends Specification {
         config != null
         config.validateOnStartup == false
     }
+
+    def 'should parse seqeraPlatform config with defaults'() {
+        given:
+        def session = Mock(Session) {
+            config >> [slack: [webhook: [url: 'https://hooks.slack.com/test']]]
+        }
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config.seqeraPlatform != null
+        config.seqeraPlatform.enabled == true
+        config.seqeraPlatform.baseUrl == 'https://cloud.seqera.io'
+    }
+
+    def 'should parse seqeraPlatform config with custom values'() {
+        given:
+        def session = Mock(Session) {
+            config >> [slack: [webhook: [url: 'https://hooks.slack.com/test'], seqeraPlatform: [enabled: false, baseUrl: 'https://tower.example.com']]]
+        }
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config.seqeraPlatform != null
+        config.seqeraPlatform.enabled == false
+        config.seqeraPlatform.baseUrl == 'https://tower.example.com'
+    }
 }

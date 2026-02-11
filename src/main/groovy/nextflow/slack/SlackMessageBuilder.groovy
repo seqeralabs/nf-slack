@@ -107,6 +107,27 @@ class SlackMessageBuilder {
     }
 
     /**
+     * Create a Seqera Platform button action block
+     */
+    private static Map createSeqeraPlatformButton(String url) {
+        return [
+            type: 'actions',
+            elements: [
+                [
+                    type: 'button',
+                    text: [
+                        type: 'plain_text',
+                        text: '🔗 View in Seqera Platform',
+                        emoji: true
+                    ],
+                    url: url,
+                    style: 'primary'
+                ]
+            ]
+        ]
+    }
+
+    /**
      * Create a command line section block
      */
     private static Map createCommandLineSection(String commandLine) {
@@ -117,6 +138,29 @@ class SlackMessageBuilder {
                 text: "*Command Line*\n```${commandLine}```"
             ]
         ]
+    }
+
+    /**
+     * Build Seqera Platform URL if tower is configured and deep links are enabled.
+     * Returns null if unavailable — callers should skip the button.
+     */
+    private String getSeqeraPlatformUrl() {
+        if (!config.seqeraPlatform?.enabled) return null
+
+        def towerConfig = session.config?.navigate('tower') as Map
+        if (!towerConfig?.enabled) return null
+
+        def workspaceId = towerConfig.workspaceId as String
+        def runName = session.runName
+        if (!runName) return null
+
+        def baseUrl = config.seqeraPlatform.baseUrl?.replaceAll('/+$', '')
+        if (!baseUrl) return null
+
+        if (workspaceId) {
+            return "${baseUrl}/orgs/-/workspaces/${workspaceId}/watch/${runName}"
+        }
+        return "${baseUrl}/user/-/watch/${runName}"
     }
 
     /**
@@ -195,6 +239,12 @@ class SlackMessageBuilder {
             blocks << createContextFooter('started', timestamp, workflowName)
         }
 
+        // Seqera Platform deep link button
+        def seqeraUrl = getSeqeraPlatformUrl()
+        if (seqeraUrl) {
+            blocks << createSeqeraPlatformButton(seqeraUrl)
+        }
+
         return createMessagePayload(blocks, threadTs)
     }
 
@@ -241,6 +291,12 @@ class SlackMessageBuilder {
         if (config.onComplete.showFooter) {
             blocks << createDivider()
             blocks << createContextFooter('completed', timestamp, workflowName)
+        }
+
+        // Seqera Platform deep link button
+        def seqeraUrl = getSeqeraPlatformUrl()
+        if (seqeraUrl) {
+            blocks << createSeqeraPlatformButton(seqeraUrl)
         }
 
         return createMessagePayload(blocks, threadTs)
@@ -305,6 +361,12 @@ class SlackMessageBuilder {
         if (config.onError.showFooter) {
             blocks << createDivider()
             blocks << createContextFooter('failed', timestamp, workflowName)
+        }
+
+        // Seqera Platform deep link button
+        def seqeraUrl = getSeqeraPlatformUrl()
+        if (seqeraUrl) {
+            blocks << createSeqeraPlatformButton(seqeraUrl)
         }
 
         return createMessagePayload(blocks, threadTs)

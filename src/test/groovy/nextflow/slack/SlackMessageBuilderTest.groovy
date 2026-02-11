@@ -621,4 +621,65 @@ class SlackMessageBuilderTest extends Specification {
         def text = json.blocks.collect { it.toString() }.join(' ')
         text.contains('5')
     }
+
+    def 'should include Seqera Platform button when tower is enabled'() {
+        given:
+        def towerConfig = new SlackConfig([
+            webhook: 'https://hooks.slack.com/test',
+            seqeraPlatform: [enabled: true, baseUrl: 'https://tower.example.com']
+        ])
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.scriptName >> 'test-workflow.nf'
+        def towerSession = Mock(Session)
+        towerSession.config >> [tower: [enabled: true, workspaceId: 12345]]
+        towerSession.workflowMetadata >> mockMetadata
+        towerSession.runName >> 'crazy_einstein'
+        towerSession.uniqueId >> UUID.fromString('00000000-0000-0000-0000-000000000000')
+        def builder = new SlackMessageBuilder(towerConfig, towerSession)
+
+        when:
+        def message = builder.buildWorkflowStartMessage()
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        def actionsBlock = json.blocks.find { it.type == 'actions' }
+        actionsBlock != null
+        actionsBlock.elements[0].type == 'button'
+        actionsBlock.elements[0].url.contains('tower.example.com')
+        actionsBlock.elements[0].url.contains('crazy_einstein')
+    }
+
+    def 'should not include Seqera Platform button when tower is disabled'() {
+        when:
+        def message = messageBuilder.buildWorkflowStartMessage()
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        def actionsBlock = json.blocks.find { it.type == 'actions' }
+        actionsBlock == null
+    }
+
+    def 'should not include Seqera Platform button when seqeraPlatform is disabled'() {
+        given:
+        def disabledConfig = new SlackConfig([
+            webhook: 'https://hooks.slack.com/test',
+            seqeraPlatform: [enabled: false]
+        ])
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.scriptName >> 'test-workflow.nf'
+        def towerSession = Mock(Session)
+        towerSession.config >> [tower: [enabled: true, workspaceId: 12345]]
+        towerSession.workflowMetadata >> mockMetadata
+        towerSession.runName >> 'crazy_einstein'
+        towerSession.uniqueId >> UUID.fromString('00000000-0000-0000-0000-000000000000')
+        def builder = new SlackMessageBuilder(disabledConfig, towerSession)
+
+        when:
+        def message = builder.buildWorkflowStartMessage()
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        def actionsBlock = json.blocks.find { it.type == 'actions' }
+        actionsBlock == null
+    }
 }
