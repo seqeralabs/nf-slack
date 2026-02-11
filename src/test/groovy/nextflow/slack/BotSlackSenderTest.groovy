@@ -17,6 +17,7 @@
 package nextflow.slack
 
 import spock.lang.Specification
+import java.nio.file.Path
 
 /**
  * Tests for BotSlackSender
@@ -169,12 +170,111 @@ class BotSlackSenderTest extends Specification {
         tempFile.delete()
     }
 
-    // Note: We cannot easily test the actual HTTP call without mocking HttpURLConnection
-    // or using a mock server. The thread timestamp capture happens in the postToSlack method
-    // after a successful API response. Full testing would require:
-    // 1. Mocking HttpURLConnection to return a successful response with a 'ts' field
-    // 2. Verifying that threadTs is captured from the response
-    // 3. Verifying that subsequent calls don't overwrite the threadTs
-    // For this implementation, we rely on integration testing and the fact that the code
-    // doesn't throw exceptions during normal operation.
+     // Note: We cannot easily test the actual HTTP call without mocking HttpURLConnection
+     // or using a mock server. The thread timestamp capture happens in the postToSlack method
+     // after a successful API response. Full testing would require:
+     // 1. Mocking HttpURLConnection to return a successful response with a 'ts' field
+     // 2. Verifying that threadTs is captured from the response
+     // 3. Verifying that subsequent calls don't overwrite the threadTs
+     // For this implementation, we rely on integration testing and the fact that the code
+     // doesn't throw exceptions during normal operation.
+
+     def 'should call upload steps in correct order'() {
+         given:
+         def callLog = []
+         def sender = new BotSlackSender('xoxb-test-token', 'C123456') {
+             @Override
+             protected Map getUploadUrl(String filename, long length) {
+                 callLog << "getUploadUrl:${filename}:${length}"
+                 return [upload_url: 'http://fake-upload-url', file_id: 'F123ABC']
+             }
+             @Override
+             protected boolean uploadFileContent(String uploadUrl, Path filePath) {
+                 callLog << "uploadContent:${uploadUrl}"
+                 return true
+             }
+             @Override
+             protected void completeUpload(String fileId, String title, String channelId, String comment, String threadTs) {
+                 callLog << "completeUpload:${fileId}:${title}:${channelId}"
+             }
+         }
+         def tempFile = File.createTempFile('test-upload', '.txt')
+         tempFile.text = 'test content'
+
+         when:
+         sender.uploadFile(tempFile.toPath(), [filename: 'report.html', title: 'My Report'])
+
+         then:
+         callLog.size() == 3
+         callLog[0] == "getUploadUrl:report.html:${tempFile.length()}"
+         callLog[1] == 'uploadContent:http://fake-upload-url'
+         callLog[2] == 'completeUpload:F123ABC:My Report:C123456'
+
+         cleanup:
+         tempFile?.delete()
+     }
+
+     def 'should pass thread_ts to completeUpload when provided'() {
+         given:
+         def capturedThreadTs = null
+         def sender = new BotSlackSender('xoxb-test-token', 'C123456') {
+             @Override
+             protected Map getUploadUrl(String filename, long length) {
+                 return [upload_url: 'http://fake-upload-url', file_id: 'F123ABC']
+             }
+             @Override
+             protected boolean uploadFileContent(String uploadUrl, Path filePath) {
+                 return true
+             }
+             @Override
+             protected void completeUpload(String fileId, String title, String channelId, String comment, String threadTs) {
+                 capturedThreadTs = threadTs
+             }
+         }
+         def tempFile = File.createTempFile('test-upload', '.txt')
+         tempFile.text = 'test content'
+
+         when:
+         sender.uploadFile(tempFile.toPath(), [threadTs: '1234567890.123456'])
+
+         then:
+         capturedThreadTs == '1234567890.123456'
+
+         cleanup:
+         tempFile?.delete()
+     }
+
+     def 'should stop upload flow when getUploadUrl fails'() {
+         given:
+         def uploadContentCalled = false
+         def completeUploadCalled = false
+         def sender = new BotSlackSender('xoxb-test-token', 'C123456') {
+             @Override
+             protected Map getUploadUrl(String filename, long length) {
+                 return null
+             }
+             @Override
+             protected boolean uploadFileContent(String uploadUrl, Path filePath) {
+                 uploadContentCalled = true
+                 return true
+             }
+             @Override
+             protected void completeUpload(String fileId, String title, String channelId, String comment, String threadTs) {
+                 completeUploadCalled = true
+             }
+         }
+         def tempFile = File.createTempFile('test-upload', '.txt')
+         tempFile.text = 'test content'
+
+         when:
+         sender.uploadFile(tempFile.toPath(), [:])
+
+         then:
+         noExceptionThrown()
+         !uploadContentCalled
+         !completeUploadCalled
+
+         cleanup:
+         tempFile?.delete()
+     }
 }

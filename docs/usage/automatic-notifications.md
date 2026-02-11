@@ -94,6 +94,35 @@ This significantly reduces noise in your channels, especially when running multi
 
 > **Note**: Threading requires a Bot Token and must be enabled in your configuration. See [Configuration](configuration.md#threading) for details.
 
+### Automatic File Uploads
+
+Upload files automatically when a workflow completes or fails — no code changes required. Add a `files` list to `onComplete` or `onError`:
+
+```groovy
+slack {
+    bot {
+        token = System.getenv('SLACK_BOT_TOKEN')
+        channel = '#pipeline-results'
+    }
+
+    onComplete {
+        files = ['results/multiqc_report.html', 'results/pipeline_report.html']
+    }
+
+    onError {
+        files = ['results/pipeline_report.html']
+    }
+}
+```
+
+Files are uploaded after the notification message. If a file doesn't exist (e.g., the pipeline failed before creating it), it's skipped with a warning.
+
+!!! tip "Requirements"
+
+    File upload requires a Bot User with `files:write` scope. It is not supported with webhooks. See [File Uploads in Custom Messages](custom-messages.md#file-uploads) for uploading files from within your workflow code.
+
+When `useThreads` is enabled, uploaded files appear in the same thread as the notification messages.
+
 ### Common Notification Patterns
 
 #### Errors Only

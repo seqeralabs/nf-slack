@@ -108,10 +108,10 @@ Group all workflow notifications (start, complete, error) into a single thread t
 
 ```groovy
 slack {
+    useThreads = true  // Enable threading
     bot {
         token = System.getenv('SLACK_BOT_TOKEN')
         channel = 'general'
-        useThreads = true  // Enable threading
     }
 }
 ```
@@ -252,6 +252,27 @@ slack {
     }
 }
 ```
+
+### onComplete Properties
+
+| Property               | Type           | Default         | Description                                                                                                                             |
+| ---------------------- | -------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `enabled`              | Boolean        | `true`          | Enable/disable completion notifications                                                                                                 |
+| `message`              | String or Map  | Default message | Custom notification text or message object                                                                                              |
+| `includeCommandLine`   | Boolean        | `true`          | Include the Nextflow command line in the message                                                                                        |
+| `includeResourceUsage` | Boolean        | `true`          | Include task statistics and resource usage                                                                                              |
+| `showFooter`           | Boolean        | `true`          | Display timestamp footer                                                                                                                |
+| `files`                | `List<String>` | `[]`            | List of file paths to upload on completion (Bot only). See [Automatic File Uploads](automatic-notifications.md#automatic-file-uploads). |
+
+### onError Properties
+
+| Property             | Type           | Default         | Description                                                                                                                        |
+| -------------------- | -------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `enabled`            | Boolean        | `true`          | Enable/disable error notifications                                                                                                 |
+| `message`            | String or Map  | Default message | Custom notification text or message object                                                                                         |
+| `includeCommandLine` | Boolean        | `true`          | Include the Nextflow command line in the message                                                                                   |
+| `showFooter`         | Boolean        | `true`          | Display timestamp footer                                                                                                           |
+| `files`              | `List<String>` | `[]`            | List of file paths to upload on error (Bot only). See [Automatic File Uploads](automatic-notifications.md#automatic-file-uploads). |
 
 ### Footer Display
 

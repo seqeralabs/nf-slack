@@ -158,7 +158,7 @@ class BotSlackSender implements SlackSender {
      * @param length The file size in bytes
      * @return Map with upload_url and file_id, or null on failure
      */
-    private Map getUploadUrl(String filename, long length) {
+    protected Map getUploadUrl(String filename, long length) {
         HttpURLConnection connection = null
         try {
             def encodedFilename = URLEncoder.encode(filename, "UTF-8")
@@ -200,7 +200,7 @@ class BotSlackSender implements SlackSender {
      * @param filePath The file to upload
      * @return true if successful
      */
-    private boolean uploadFileContent(String uploadUrl, Path filePath) {
+    protected boolean uploadFileContent(String uploadUrl, Path filePath) {
         HttpURLConnection connection = null
         try {
             def url = new URL(uploadUrl)
@@ -240,7 +240,7 @@ class BotSlackSender implements SlackSender {
      * @param comment Optional initial comment
      * @param threadTs Optional thread timestamp for threading
      */
-    private void completeUpload(String fileId, String title, String channelId, String comment, String threadTs) {
+    protected void completeUpload(String fileId, String title, String channelId, String comment, String threadTs) {
         HttpURLConnection connection = null
         try {
             def url = new URL(FILES_COMPLETE_UPLOAD_URL)
@@ -263,6 +263,7 @@ class BotSlackSender implements SlackSender {
             }
 
             def jsonPayload = new JsonBuilder(payload).toString()
+            log.debug "Slack plugin: completeUpload payload: ${jsonPayload}"
 
             connection.outputStream.withCloseable { out ->
                 out.write(jsonPayload.getBytes("UTF-8"))
@@ -301,6 +302,7 @@ class BotSlackSender implements SlackSender {
             connection.setRequestProperty('Authorization', "Bearer ${botToken}")
 
             // Send message
+            log.debug "Slack plugin: Sending payload: ${jsonPayload}"
             connection.outputStream.withCloseable { out ->
                 out.write(jsonPayload.getBytes("UTF-8"))
             }

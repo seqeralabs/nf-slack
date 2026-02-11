@@ -6,8 +6,8 @@ Comprehensive examples demonstrating nf-slack features, from basic to advanced.
 
 The examples are organized into two categories:
 
-- **Configuration Examples**: 6 examples showing automatic workflow notifications
-- **Script Examples**: 3 examples showing programmatic message sending
+- **Configuration Examples**: 10 examples showing automatic workflow notifications
+- **Script Examples**: 4 examples showing programmatic message sending
 
 Each example focuses on **one specific aspect** of the plugin, building progressively in complexity.
 
@@ -26,14 +26,16 @@ Each example focuses on **one specific aspect** of the plugin, building progress
 | [Example 7: Footer Control](#example-7-footer-control)             | Control timestamp footer | ⭐         |
 | [Example 8: Specific Channel ID](#example-8-specific-channel-id)   | Send to specific channel | ⭐         |
 | [Example 9: Threaded Messages](#example-9-threaded-messages)       | Group messages in thread | ⭐⭐       |
+| [Example 10: File Upload](#example-10-file-upload-on-completion)   | Upload files on complete | ⭐⭐       |
 
 ### Script Examples (Programmatic Messages)
 
-| Example                                                      | Feature                     | Complexity |
-| ------------------------------------------------------------ | --------------------------- | ---------- |
-| [Script Example 1](#script-example-1-message-in-workflow)    | Send from workflow body     | ⭐⭐       |
-| [Script Example 2](#script-example-2-message-on-complete)    | Send using onComplete       | ⭐⭐       |
-| [Script Example 3](#script-example-3-message-within-channel) | Send from channel operators | ⭐⭐⭐     |
+| Example                                                          | Feature                     | Complexity |
+| ---------------------------------------------------------------- | --------------------------- | ---------- |
+| [Script Example 1](#script-example-1-message-in-workflow)        | Send from workflow body     | ⭐⭐       |
+| [Script Example 2](#script-example-2-message-on-complete)        | Send using onComplete       | ⭐⭐       |
+| [Script Example 3](#script-example-3-message-within-channel)     | Send from channel operators | ⭐⭐⭐     |
+| [Script Example 4](#script-example-4-upload-files-from-workflow) | Upload files from workflow  | ⭐⭐       |
 
 ## Getting Started
 
@@ -435,10 +437,11 @@ slack {
 
 ```groovy title="09-threaded-messages.config"
 slack {
+    useThreads = true  // Group all workflow messages in a thread
+
     bot {
         token = System.getenv('SLACK_BOT_TOKEN')
         channel = 'general'
-        useThreads = true  // Group all workflow messages in a thread
     }
 
     onStart {
@@ -472,6 +475,53 @@ slack {
 - ✅ Custom `slackMessage()` calls are automatically included in the thread
 
 **Use when**: You want to keep workflow notifications organized and reduce noise in busy channels.
+
+---
+
+### Example 10: File Upload on Completion
+
+**Concept**: Upload files automatically when the pipeline completes or fails.
+
+**New concepts**:
+
+- `onComplete.files` - Files to upload on successful completion
+- `onError.files` - Files to upload on failure
+- Requires bot token with `files:write` scope
+
+**Configuration**:
+
+```groovy title="10-file-upload.config"
+plugins {
+    id 'nf-slack@0.3.1'
+}
+
+slack {
+    enabled = true
+    bot {
+        token = System.getenv('SLACK_BOT_TOKEN')
+        channel = 'pipeline-results'
+    }
+
+    onComplete {
+        message = '✅ *Pipeline completed*'
+        files = ['results/multiqc_report.html', 'results/pipeline_report.html']
+    }
+
+    onError {
+        message = '❌ *Pipeline failed*'
+        files = ['results/pipeline_report.html']
+    }
+}
+```
+
+**File upload options**:
+
+- `files` - Array of file paths to upload
+- Relative paths resolve from the launch directory (where you run `nextflow`)
+
+**Use when**: You want to automatically share reports and results files to Slack when workflows complete
+
+See [Custom Messages](../usage/custom-messages.md#file-uploads) for uploading files from within your workflow scripts.
 
 ---
 
@@ -662,6 +712,64 @@ workflow {
 **Output**:
 
 ![Message within Channel Example](../images/nf-slack-examples-10.png)
+
+---
+
+### Script Example 4: Upload Files from Workflow
+
+**Concept**: Upload files directly from your workflow code using `slackFileUpload()`.
+
+**Code**:
+
+```groovy title="04-file-upload.nf"
+#!/usr/bin/env nextflow
+
+include { slackFileUpload } from 'plugin/nf-slack'
+
+process GENERATE_REPORT {
+    output:
+    path 'report.html'
+
+    script:
+    """
+    echo '<html><body>Report</body></html>' > report.html
+    """
+}
+
+workflow {
+    GENERATE_REPORT()
+        .view { report ->
+            // Simple upload
+            slackFileUpload(report)
+
+            // Upload with metadata
+            slackFileUpload(
+                file: report,
+                title: 'Quality Control Report',
+                comment: 'QC results for the latest run'
+            )
+
+            return report
+        }
+}
+```
+
+**Key features**:
+
+- Uses `slackFileUpload()` function directly in workflow
+- Supports simple file path or map-based configuration
+- Can include title and comment metadata
+- Requires bot token with `files:write` scope
+
+**Upload options**:
+
+- `file` - Path to file to upload (required)
+- `title` - Display title for the file (optional)
+- `comment` - Comment to post with the file (optional)
+
+**Use when**: You want to upload files programmatically from within your workflow logic
+
+See [Custom Messages](../usage/custom-messages.md#file-uploads) for all upload options.
 
 ---
 

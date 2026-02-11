@@ -27,6 +27,7 @@ import groovy.transform.CompileStatic
  *         enabled = true
  *         message = '❌ *Pipeline failed*'
  *         includeCommandLine = true
+ *         files = ['results/pipeline_report.html']
  *     }
  * }
  *
@@ -56,6 +57,11 @@ class OnErrorConfig {
     final boolean showFooter
 
     /**
+     * List of file paths to upload on workflow error
+     */
+    final List<String> files
+
+    /**
      * Create OnErrorConfig from configuration map
      *
      * @param config Configuration map from slack.onError scope
@@ -65,10 +71,11 @@ class OnErrorConfig {
         this.message = config?.message ?: '❌ *Pipeline failed*'
         this.includeCommandLine = config?.includeCommandLine != null ? config.includeCommandLine as boolean : true
         this.showFooter = config?.showFooter != null ? config.showFooter as boolean : true
+        this.files = config?.files != null ? (config.files as List<String>) : []
     }
 
     @Override
     String toString() {
-        return "OnErrorConfig[enabled=${enabled}, includeCommandLine=${includeCommandLine}]"
+        return "OnErrorConfig[enabled=${enabled}, includeCommandLine=${includeCommandLine}, files=${files.size()}]"
     }
 }

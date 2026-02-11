@@ -287,42 +287,119 @@ class SlackObserverTest extends Specification {
         noExceptionThrown()
     }
 
-    def 'should use thread timestamp for error messages when enabled'() {
-        given:
-        def mockBotSender = Mock(BotSlackSender)
-        mockBotSender.getThreadTs() >> '1234567890.123456'
+     def 'should use thread timestamp for error messages when enabled'() {
+         given:
+         def mockBotSender = Mock(BotSlackSender)
+         mockBotSender.getThreadTs() >> '1234567890.123456'
 
-        def session = Mock(Session)
-        session.config >> [
-            slack: [
-                bot: [
-                    token: 'xoxb-token',
-                    channel: 'C123456',
-                    useThreads: true
-                ],
-                onError: [
-                    enabled: true
-                ]
-            ]
-        ]
-        def metadata = Mock(WorkflowMetadata)
-        metadata.scriptName >> 'test.nf'
-        metadata.errorMessage >> 'Test error'
-        session.workflowMetadata >> metadata
-        session.runName >> 'test-run'
+         def session = Mock(Session)
+         session.config >> [
+             slack: [
+                 bot: [
+                     token: 'xoxb-token',
+                     channel: 'C123456',
+                     useThreads: true
+                 ],
+                 onError: [
+                     enabled: true
+                 ]
+             ]
+         ]
+         def metadata = Mock(WorkflowMetadata)
+         metadata.scriptName >> 'test.nf'
+         metadata.errorMessage >> 'Test error'
+         session.workflowMetadata >> metadata
+         session.runName >> 'test-run'
 
-        def errorRecord = Mock(TraceRecord)
-        errorRecord.get('process') >> 'FAILED_PROCESS'
+         def errorRecord = Mock(TraceRecord)
+         errorRecord.get('process') >> 'FAILED_PROCESS'
 
-        def observer = new SlackObserver()
-        observer.onFlowCreate(session)
-        observer.setSender(mockBotSender)
+         def observer = new SlackObserver()
+         observer.onFlowCreate(session)
+         observer.setSender(mockBotSender)
 
-        when:
-        observer.onFlowError(null, errorRecord)
+         when:
+         observer.onFlowError(null, errorRecord)
 
-        then:
-        // Verify that getThreadTs was called for error messages too
-        1 * mockBotSender.getThreadTs()
-    }
+         then:
+         // Verify that getThreadTs was called for error messages too
+         1 * mockBotSender.getThreadTs()
+     }
+
+     def 'should upload configured files on flow complete'() {
+         given:
+         def mockSender = Mock(SlackSender)
+
+         def session = Mock(Session)
+         session.config >> [
+             slack: [
+                 webhook: [
+                     url: 'https://hooks.slack.com/services/TEST/TEST/TEST'
+                 ],
+                 onStart: [
+                     enabled: false
+                 ],
+                 onComplete: [
+                     enabled: true,
+                     files: ['results/report.html', 'results/plot.png']
+                 ]
+             ]
+         ]
+         def metadata = Mock(WorkflowMetadata)
+         metadata.scriptName >> 'test.nf'
+         session.workflowMetadata >> metadata
+         session.runName >> 'test-run'
+
+         def observer = new SlackObserver()
+         observer.onFlowCreate(session)
+         observer.setSender(mockSender)
+
+         when:
+         observer.onFlowComplete()
+
+         then:
+         1 * mockSender.sendMessage(_)
+         1 * mockSender.uploadFile({ it.toString().endsWith('report.html') }, _)
+         1 * mockSender.uploadFile({ it.toString().endsWith('plot.png') }, _)
+     }
+
+     def 'should upload configured files on flow error'() {
+         given:
+         def mockSender = Mock(SlackSender)
+
+         def session = Mock(Session)
+         session.config >> [
+             slack: [
+                 webhook: [
+                     url: 'https://hooks.slack.com/services/TEST/TEST/TEST'
+                 ],
+                 onStart: [
+                     enabled: false
+                 ],
+                 onError: [
+                     enabled: true,
+                     files: ['results/pipeline_report.html']
+                 ]
+             ]
+         ]
+         def metadata = Mock(WorkflowMetadata)
+         metadata.scriptName >> 'test.nf'
+         metadata.errorMessage >> 'Test error'
+         session.workflowMetadata >> metadata
+         session.runName >> 'test-run'
+
+         def errorRecord = Mock(TraceRecord)
+         errorRecord.get('process') >> 'FAILED_PROCESS'
+
+         def observer = new SlackObserver()
+         observer.onFlowCreate(session)
+         observer.setSender(mockSender)
+
+         when:
+         observer.onFlowError(null, errorRecord)
+
+         then:
+         1 * mockSender.sendMessage(_)
+         1 * mockSender.uploadFile({ it.toString().endsWith('pipeline_report.html') }, _)
+     }
 }

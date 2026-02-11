@@ -8,6 +8,7 @@ Get Slack notifications for your Nextflow workflows - automatically notified whe
 
 - 🚀 **Automatic Notifications**: Get notified when workflows start, complete, or fail
 - 💬 **Custom Messages**: Send custom messages from within your workflow scripts
+- 📎 **File Uploads** — Share plots, reports, and files directly to Slack
 - 🤖 **Bot & Webhook Support**: Supports both bot and webhook authentication
 - 🧵 **Threading**: Keep channels clean by threading workflow notifications (Bot only)
 - 🎨 **Rich Formatting**: Beautiful Slack messages with colors and custom fields
@@ -115,6 +116,21 @@ workflow {
 ```
 
 ![Custom workflow messages](images/nf-slack-04.png)
+
+### Upload Files
+
+```groovy
+slack {
+    bot {
+        token = 'xoxb-your-bot-token'
+        channel = 'pipeline-results'
+    }
+
+    onComplete {
+        files = ['results/multiqc_report.html']
+    }
+}
+```
 
 ## Learn More
 

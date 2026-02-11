@@ -17,11 +17,11 @@
 package nextflow.slack
 
 import java.nio.file.Path
-import java.nio.file.Paths
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import nextflow.Session
+import nextflow.file.FileHelper
 import nextflow.plugin.extension.Function
 import nextflow.plugin.extension.PluginExtensionPoint
 
@@ -202,7 +202,7 @@ class SlackExtension extends PluginExtensionPoint {
             if (file instanceof Path) {
                 path = file
             } else {
-                path = Paths.get(file.toString())
+                path = FileHelper.asPath(file.toString())
             }
 
             // Build options map for sender
