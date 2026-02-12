@@ -125,6 +125,24 @@ When `useThreads` is enabled, uploaded files appear in the same thread as the no
 > [!NOTE]
 > File uploads requires a Bot User with `files:write` scope. See [File Uploads in Custom Messages](custom-messages.md#file-uploads) for details.
 
+### Channel Routing
+
+By default, all notifications go to the configured `bot.channel`. You can override this per event type:
+
+```groovy
+slack {
+    bot {
+        token = System.getenv('SLACK_BOT_TOKEN')
+        channel = '#general'
+    }
+    onStart { channel = '#ci-builds' }
+    onComplete { channel = '#ci-results' }
+    onError { channel = '#ci-alerts' }
+}
+```
+
+When events go to different channels, threading is automatically disabled since thread replies must be in the same channel as the parent message.
+
 ### Common Notification Patterns
 
 #### Errors Only
