@@ -13,15 +13,16 @@ Complete API reference for nf-slack plugin configuration options and functions.
 
 ### `slack`
 
-| Property     | Type    | Default                                    | Required | Description                                                        |
-| ------------ | ------- | ------------------------------------------ | -------- | ------------------------------------------------------------------ |
-| `enabled`    | Boolean | `true`                                     | No       | Master switch to enable/disable the plugin                         |
-| `bot`        | Closure | -                                          | No\*     | Bot configuration block (see [`slack.bot`](#slackbot))             |
-| `webhook`    | Closure | -                                          | No\*     | Webhook configuration block (see [`slack.webhook`](#slackwebhook)) |
-| `useThreads` | Boolean | `false`                                    | No       | Group all notifications in a single thread (Bot only)              |
-| `onStart`    | Closure | See [`slack.onStart`](#slackonstart)       | No       | Configuration for workflow start notifications                     |
-| `onComplete` | Closure | See [`slack.onComplete`](#slackoncomplete) | No       | Configuration for workflow completion notifications                |
-| `onError`    | Closure | See [`slack.onError`](#slackonerror)       | No       | Configuration for workflow error notifications                     |
+| Property            | Type    | Default                                    | Required | Description                                                        |
+| ------------------- | ------- | ------------------------------------------ | -------- | ------------------------------------------------------------------ |
+| `enabled`           | Boolean | `true`                                     | No       | Master switch to enable/disable the plugin                         |
+| `bot`               | Closure | -                                          | No\*     | Bot configuration block (see [`slack.bot`](#slackbot))             |
+| `webhook`           | Closure | -                                          | No\*     | Webhook configuration block (see [`slack.webhook`](#slackwebhook)) |
+| `useThreads`        | Boolean | `false`                                    | No       | Group all notifications in a single thread (Bot only)              |
+| `onStart`           | Closure | See [`slack.onStart`](#slackonstart)       | No       | Configuration for workflow start notifications                     |
+| `onComplete`        | Closure | See [`slack.onComplete`](#slackoncomplete) | No       | Configuration for workflow completion notifications                |
+| `onError`           | Closure | See [`slack.onError`](#slackonerror)       | No       | Configuration for workflow error notifications                     |
+| `validateOnStartup` | Boolean | `true`                                     | No       | Validate Slack connection credentials on pipeline startup          |
 
 \*Either `webhook` or `bot` is required. If neither is configured, the plugin will automatically disable itself.
 
@@ -174,6 +175,18 @@ Configuration for workflow error notifications.
 
 - `runName` - Workflow run name
 - `status` - Error status
+
+### `slack.reactions`
+
+| Property    | Type      | Default              | Description                                 |
+| ----------- | --------- | -------------------- | ------------------------------------------- |
+| `enabled`   | `Boolean` | `false`              | Enable emoji reactions on the start message |
+| `onStart`   | `String`  | `'rocket'`           | Emoji reaction added when pipeline starts   |
+| `onSuccess` | `String`  | `'white_check_mark'` | Emoji reaction on successful completion     |
+| `onError`   | `String`  | `'x'`                | Emoji reaction on pipeline error            |
+
+> Reactions require a bot token. They are silently skipped when using webhooks.
+
 - `duration` - Time before failure
 - `commandLine` - Full Nextflow command
 - `errorMessage` - Error details

@@ -37,6 +37,24 @@ When `enabled = false`:
 - Custom `slackMessage()` calls are silently ignored
 - No Slack API calls are made
 
+### Connection Validation
+
+nf-slack validates your Slack connection on startup by default, checking that your bot token is valid and can authenticate to Slack.
+
+```groovy
+slack {
+    validateOnStartup = true      // Validate token and authentication on startup (default: true)
+}
+```
+
+| Property            | Type      | Default | Description                                         |
+| ------------------- | --------- | ------- | --------------------------------------------------- |
+| `validateOnStartup` | `Boolean` | `true`  | Whether to validate the Slack connection on startup |
+
+If validation fails, a warning is logged and the pipeline continues. Set `validateOnStartup = false` to skip validation entirely.
+
+> **Note:** Webhook connections have limited validation capabilities. Only bot token connections can fully verify token validity.
+
 ## Bot Configuration
 
 ### Basic Bot Setup
@@ -146,6 +164,32 @@ slack {
 !!! warning "Bot Tokens Only"
 
     Threading **only works with bot tokens**, not webhooks. Webhooks do not support thread creation or replies.
+
+## Emoji Reactions
+
+Add emoji reactions to the pipeline start message to indicate workflow status at a glance:
+
+```groovy
+slack {
+    reactions {
+        enabled = true
+        onStart = 'rocket'              // Added when pipeline starts (default)
+        onSuccess = 'white_check_mark'  // Added on successful completion (default)
+        onError = 'x'                   // Added on error (default)
+    }
+}
+```
+
+| Property              | Type      | Default              | Description                                 |
+| --------------------- | --------- | -------------------- | ------------------------------------------- |
+| `reactions.enabled`   | `Boolean` | `false`              | Enable emoji reactions on the start message |
+| `reactions.onStart`   | `String`  | `'rocket'`           | Emoji added when the pipeline starts        |
+| `reactions.onSuccess` | `String`  | `'white_check_mark'` | Emoji added on successful completion        |
+| `reactions.onError`   | `String`  | `'x'`                | Emoji added on pipeline error               |
+
+!!! warning "Bot Tokens Only"
+
+    Reactions require a bot token connection. They are silently skipped when using webhooks.
 
 ## Customizing Messages
 

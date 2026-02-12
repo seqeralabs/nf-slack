@@ -84,6 +84,12 @@ class SlackConfig {
     final boolean useThreads
 
     /**
+     * Validate Slack connection on startup (default: true)
+     * Calls auth.test to verify token and authentication
+     */
+    final boolean validateOnStartup
+
+    /**
      * Configuration for workflow start notifications
      */
     final OnStartConfig onStart
@@ -104,6 +110,11 @@ class SlackConfig {
     final OnProgressConfig onProgress
 
     /**
+     * Configuration for emoji reactions on messages
+     */
+    final ReactionsConfig reactions
+
+    /**
      * Private constructor - use from() factory method
      */
     private SlackConfig(Map config) {
@@ -112,11 +123,13 @@ class SlackConfig {
         def botConfig = config.bot as Map
         this.botToken = botConfig?.token as String
         this.botChannel = botConfig?.channel as String
-        this.useThreads = botConfig?.useThreads != null ? botConfig.useThreads as boolean : false
+        this.useThreads = botConfig?.useThreads != null ? botConfig.useThreads as boolean : true
+        this.validateOnStartup = config.validateOnStartup != null ? config.validateOnStartup as boolean : true
         this.onStart = new OnStartConfig(config.onStart as Map)
         this.onComplete = new OnCompleteConfig(config.onComplete as Map)
         this.onError = new OnErrorConfig(config.onError as Map)
         this.onProgress = new OnProgressConfig(config.onProgress as Map)
+        this.reactions = new ReactionsConfig(config.reactions as Map)
     }
 
     /**
@@ -135,6 +148,9 @@ class SlackConfig {
             return null
         }
 
+        def validateOnStartup = session.config?.navigate('slack.validateOnStartup')
+        if (validateOnStartup != null) config.validateOnStartup = validateOnStartup
+
         // Get webhook URL from nested structure
         def webhook = getWebhookUrl(session)
 
@@ -151,22 +167,10 @@ class SlackConfig {
         // Set values in config map for constructor
         if (webhook) config.webhook = webhook
         if (botToken) {
-            // Validate token format
-            if (!botToken.startsWith('xoxb-') && !botToken.startsWith('xoxp-')) {
-                throw new IllegalArgumentException("Slack plugin: Bot token must start with 'xoxb-' or 'xoxp-'")
-            }
-            if (botToken.startsWith('xoxp-')) {
-                log.warn "Slack plugin: You are using a User Token (xoxp-). It is recommended to use a Bot Token (xoxb-) for better security and granular permissions."
-            }
-
-            // Validate channel format (basic check)
+            // Validate channel is present
             if (!botChannel) {
-                throw new IllegalArgumentException("Slack plugin: Bot channel is required when using bot token")
-            }
-            // Basic alphanumeric check for channel ID (allow hyphens/underscores for names)
-            // Also allow # for channel names
-            if (!botChannel.matches(/^[#a-zA-Z0-9\-_]+$/)) {
-                throw new IllegalArgumentException("Slack plugin: Invalid channel ID format: ${botChannel}")
+                log.warn "Slack plugin: Bot channel is required when using bot token — plugin will be disabled"
+                return null
             }
 
             def botConfig = config.bot as Map
