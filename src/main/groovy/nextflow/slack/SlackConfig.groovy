@@ -85,7 +85,7 @@ class SlackConfig {
 
     /**
      * Validate Slack connection on startup (default: true)
-     * Calls auth.test and conversations.info to verify credentials
+     * Calls auth.test to verify token and authentication
      */
     final boolean validateOnStartup
 
@@ -155,22 +155,10 @@ class SlackConfig {
         // Set values in config map for constructor
         if (webhook) config.webhook = webhook
         if (botToken) {
-            // Validate token format
-            if (!botToken.startsWith('xoxb-') && !botToken.startsWith('xoxp-')) {
-                throw new IllegalArgumentException("Slack plugin: Bot token must start with 'xoxb-' or 'xoxp-'")
-            }
-            if (botToken.startsWith('xoxp-')) {
-                log.warn "Slack plugin: You are using a User Token (xoxp-). It is recommended to use a Bot Token (xoxb-) for better security and granular permissions."
-            }
-
-            // Validate channel format (basic check)
+            // Validate channel is present
             if (!botChannel) {
-                throw new IllegalArgumentException("Slack plugin: Bot channel is required when using bot token")
-            }
-            // Basic alphanumeric check for channel ID (allow hyphens/underscores for names)
-            // Also allow # for channel names
-            if (!botChannel.matches(/^[#a-zA-Z0-9\-_]+$/)) {
-                throw new IllegalArgumentException("Slack plugin: Invalid channel ID format: ${botChannel}")
+                log.warn "Slack plugin: Bot channel is required when using bot token — plugin will be disabled"
+                return null
             }
 
             def botConfig = config.bot as Map

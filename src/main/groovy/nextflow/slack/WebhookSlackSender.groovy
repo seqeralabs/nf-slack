@@ -81,11 +81,10 @@ class WebhookSlackSender implements SlackSender {
     }
 
     /**
-     * File upload is not supported via webhooks.
-     * Logs a warning and returns without uploading.
+     * Webhook connections have limited validation.
+     * Token and channel checks require a bot token.
      *
-     * @param filePath Path to the file
-     * @param options Upload options (ignored)
+     * @return true (webhooks are validated implicitly on first message)
      */
     @Override
     boolean validate() {
@@ -93,6 +92,13 @@ class WebhookSlackSender implements SlackSender {
         return true
     }
 
+    /**
+     * File upload is not supported via webhooks.
+     * Logs a warning and returns without uploading.
+     *
+     * @param filePath Path to the file
+     * @param options Upload options (ignored)
+     */
     @Override
     void uploadFile(Path filePath, Map options) {
         log.warn "Slack plugin: File upload is not supported with webhooks. Please configure a bot token to upload files."

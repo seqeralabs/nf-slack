@@ -43,7 +43,6 @@ class BotSlackSender implements SlackSender {
     private static final String FILES_GET_UPLOAD_URL = "https://slack.com/api/files.getUploadURLExternal"
     private static final String FILES_COMPLETE_UPLOAD_URL = "https://slack.com/api/files.completeUploadExternal"
     private static final String AUTH_TEST_URL = "https://slack.com/api/auth.test"
-    private static final String CONVERSATIONS_INFO_URL = "https://slack.com/api/conversations.info"
 
     /** Maximum file size for Slack uploads (free plan: 1GB, but we limit to 100MB for safety) */
     private static final long MAX_FILE_SIZE = 100 * 1024 * 1024
@@ -293,17 +292,23 @@ class BotSlackSender implements SlackSender {
         }
     }
 
+    /**
+     * Validate the Slack connection by calling auth.test.
+     * Verifies the endpoint is reachable, the token is valid, and authentication succeeds.
+     *
+     * @return true if validation passes, false otherwise
+     */
     @Override
     boolean validate() {
-        def tokenValid = validateToken()
-        if (!tokenValid) {
+        // Check token format before making network call
+        if (!botToken?.startsWith('xoxb-') && !botToken?.startsWith('xoxp-')) {
+            log.warn "Slack plugin: Bot token must start with 'xoxb-' or 'xoxp-'"
             return false
         }
-        def channelValid = validateChannel(channelId)
-        return channelValid
-    }
+        if (botToken.startsWith('xoxp-')) {
+            log.warn "Slack plugin: You are using a User Token (xoxp-). It is recommended to use a Bot Token (xoxb-) for better security and granular permissions."
+        }
 
-    protected boolean validateToken() {
         HttpURLConnection connection = null
         try {
             def url = new URL(AUTH_TEST_URL)
@@ -318,7 +323,7 @@ class BotSlackSender implements SlackSender {
 
             def responseCode = connection.responseCode
             if (responseCode != 200) {
-                log.warn "Slack plugin: Token validation failed - HTTP ${responseCode}"
+                log.warn "Slack plugin: Connection validation failed - HTTP ${responseCode}"
                 return false
             }
 
@@ -326,50 +331,15 @@ class BotSlackSender implements SlackSender {
             def response = new JsonSlurper().parseText(responseText) as Map
 
             if (!response.ok) {
-                log.warn "Slack plugin: Token validation failed - ${response.error}"
+                log.warn "Slack plugin: Connection validation failed - ${response.error}"
                 return false
             }
 
-            log.debug "Slack plugin: Token validated successfully (team: ${response.team})"
+            log.debug "Slack plugin: Connection validated successfully (team: ${response.team})"
             return true
 
         } catch (Exception e) {
-            log.warn "Slack plugin: Token validation failed - ${e.message}"
-            return false
-        } finally {
-            connection?.disconnect()
-        }
-    }
-
-    protected boolean validateChannel(String channel) {
-        HttpURLConnection connection = null
-        try {
-            def encodedChannel = URLEncoder.encode(channel, "UTF-8")
-            def url = new URL("${CONVERSATIONS_INFO_URL}?channel=${encodedChannel}")
-            connection = url.openConnection() as HttpURLConnection
-            connection.requestMethod = 'GET'
-            connection.setRequestProperty('Authorization', "Bearer ${botToken}")
-
-            def responseCode = connection.responseCode
-            if (responseCode != 200) {
-                log.warn "Slack plugin: Channel validation failed - HTTP ${responseCode}"
-                return false
-            }
-
-            def responseText = connection.inputStream.text
-            def response = new JsonSlurper().parseText(responseText) as Map
-
-            if (!response.ok) {
-                log.warn "Slack plugin: Channel validation failed - ${response.error}"
-                return false
-            }
-
-            def channelInfo = response.channel as Map
-            log.debug "Slack plugin: Channel validated successfully (name: ${channelInfo?.name})"
-            return true
-
-        } catch (Exception e) {
-            log.warn "Slack plugin: Channel validation failed - ${e.message}"
+            log.warn "Slack plugin: Connection validation failed - ${e.message}"
             return false
         } finally {
             connection?.disconnect()

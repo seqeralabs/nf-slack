@@ -454,7 +454,7 @@ class SlackObserverTest extends Specification {
         0 * mockSender.validate()
     }
 
-    def 'should abort session when validation fails'() {
+    def 'should warn but continue when validation fails'() {
         given:
         def session = Mock(Session)
         session.config >> [:]
@@ -476,6 +476,7 @@ class SlackObserverTest extends Specification {
         observer.onFlowCreate(session)
 
         then:
-        1 * session.abort(_ as IllegalStateException)
+        1 * mockSender.validate() >> false
+        0 * session.abort(_)
     }
 }

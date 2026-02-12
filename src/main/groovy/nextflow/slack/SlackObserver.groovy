@@ -54,15 +54,7 @@ class SlackObserver implements TraceObserver {
 
         // Parse configuration if not already set (supports test injection)
         if (this.config == null) {
-            try {
-                this.config = SlackConfig.from(session)
-            }
-            catch (Exception e) {
-                def msg = "Slack plugin: Invalid configuration - ${e.message}"
-                log.error msg
-                session.abort(new IllegalStateException(msg, e))
-                return
-            }
+            this.config = SlackConfig.from(session)
         }
 
         // If not configured or disabled, skip initialization
@@ -85,10 +77,7 @@ class SlackObserver implements TraceObserver {
         if (config.validateOnStartup) {
             boolean valid = sender.validate()
             if (!valid) {
-                def msg = "Slack plugin: Connection validation failed. Set slack.validateOnStartup = false to skip validation."
-                log.error msg
-                session.abort(new IllegalStateException(msg))
-                return
+                log.warn "Slack plugin: Connection validation failed - Slack notifications may not work. Set slack.validateOnStartup = false to skip validation."
             }
         }
 

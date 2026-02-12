@@ -39,11 +39,11 @@ When `enabled = false`:
 
 ### Connection Validation
 
-nf-slack validates your Slack connection on startup by default, checking that your bot token is valid and the configured channel is accessible.
+nf-slack validates your Slack connection on startup by default, checking that your bot token is valid and can authenticate to Slack.
 
 ```groovy
 slack {
-    validateOnStartup = true      // Validate token and channel on startup (default: true)
+    validateOnStartup = true      // Validate token and authentication on startup (default: true)
 }
 ```
 
@@ -53,7 +53,7 @@ slack {
 
 If validation fails, a warning is logged and the pipeline continues. Set `validateOnStartup = false` to skip validation entirely.
 
-> **Note:** Webhook connections have limited validation capabilities. Only bot token connections can fully verify token validity and channel access.
+> **Note:** Webhook connections have limited validation capabilities. Only bot token connections can fully verify token validity.
 
 ## Bot Configuration
 
