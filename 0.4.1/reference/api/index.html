@@ -893,6 +893,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#slackreactions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        slack.reactions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#slackscopemessage-string" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1389,6 +1400,48 @@
 <ul>
 <li><code>runName</code> - Workflow run name</li>
 <li><code>status</code> - Error status</li>
+</ul>
+<h3 id="slackreactions"><code>slack.reactions</code><a class="headerlink" href="#slackreactions" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enabled</code></td>
+<td><code>Boolean</code></td>
+<td><code>false</code></td>
+<td>Enable emoji reactions on the start message</td>
+</tr>
+<tr>
+<td><code>onStart</code></td>
+<td><code>String</code></td>
+<td><code>'rocket'</code></td>
+<td>Emoji reaction added when pipeline starts</td>
+</tr>
+<tr>
+<td><code>onSuccess</code></td>
+<td><code>String</code></td>
+<td><code>'white_check_mark'</code></td>
+<td>Emoji reaction on successful completion</td>
+</tr>
+<tr>
+<td><code>onError</code></td>
+<td><code>String</code></td>
+<td><code>'x'</code></td>
+<td>Emoji reaction on pipeline error</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Reactions require a bot token. They are silently skipped when using webhooks.</p>
+</blockquote>
+<ul>
 <li><code>duration</code> - Time before failure</li>
 <li><code>commandLine</code> - Full Nextflow command</li>
 <li><code>errorMessage</code> - Error details</li>
