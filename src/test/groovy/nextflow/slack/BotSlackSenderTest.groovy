@@ -314,6 +314,17 @@ class BotSlackSenderTest extends Specification {
         capturedTs == '1234567890.123456'
      }
 
+    def 'should handle non-200 HTTP response from postReaction without throwing' () {
+        given:
+        def sender = new BotSlackSender('xoxb-test-token', 'C123456')
+
+        when:
+        sender.addReaction('rocket', '1234567890.123456')
+
+        then:
+        noExceptionThrown()
+    }
+
     def 'should return false when validate hits unreachable endpoint'() {
         given:
         def sender = new BotSlackSender('xoxb-test-token', 'C1234567890')
