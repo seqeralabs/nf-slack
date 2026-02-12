@@ -199,6 +199,7 @@ class SlackObserverTest extends Specification {
                     channel: 'C123456',
                     useThreads: true
                 ],
+                validateOnStartup: false,
                 onComplete: [
                     enabled: true
                 ]
@@ -233,6 +234,7 @@ class SlackObserverTest extends Specification {
                     channel: 'C123456',
                     useThreads: false
                 ],
+                validateOnStartup: false,
                 onComplete: [
                     enabled: true
                 ]
@@ -300,6 +302,7 @@ class SlackObserverTest extends Specification {
                      channel: 'C123456',
                      useThreads: true
                  ],
+                 validateOnStartup: false,
                  onError: [
                      enabled: true
                  ]
@@ -415,7 +418,6 @@ class SlackObserverTest extends Specification {
             onStart: [enabled: false]
         ])
         def mockSender = Mock(BotSlackSender)
-        mockSender.validate() >> true
 
         observer.setConfig(config)
         observer.setSender(mockSender)
@@ -425,7 +427,7 @@ class SlackObserverTest extends Specification {
         observer.onFlowCreate(session)
 
         then:
-        1 * mockSender.validate()
+        1 * mockSender.validate() >> true
     }
 
     def 'should skip validation when validateOnStartup is disabled'() {
@@ -452,7 +454,7 @@ class SlackObserverTest extends Specification {
         0 * mockSender.validate()
     }
 
-    def 'should continue with warning when validation fails'() {
+    def 'should throw exception when validation fails'() {
         given:
         def session = Mock(Session)
         session.config >> [:]
@@ -474,6 +476,6 @@ class SlackObserverTest extends Specification {
         observer.onFlowCreate(session)
 
         then:
-        noExceptionThrown()
+        thrown(IllegalStateException)
     }
 }

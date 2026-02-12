@@ -77,7 +77,7 @@ class SlackObserver implements TraceObserver {
         if (config.validateOnStartup) {
             boolean valid = sender.validate()
             if (!valid) {
-                log.warn "Slack plugin: Connection validation failed - notifications may not be delivered. Set slack.validateOnStartup = false to skip validation."
+                throw new IllegalStateException("Slack plugin: Connection validation failed. Set slack.validateOnStartup = false to skip validation.")
             }
         }
 
