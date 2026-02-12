@@ -102,6 +102,36 @@ slack {
 }
 ```
 
+## Per-Event Channel Routing
+
+Send different notification types to different Slack channels. Each event can specify its own channel, falling back to the global `bot.channel`:
+
+```groovy
+slack {
+    bot {
+        token = System.getenv('SLACK_BOT_TOKEN')
+        channel = '#general'          // Default channel
+    }
+    onStart {
+        channel = '#deployments'      // Start notifications here
+    }
+    onComplete {
+        channel = '#results'          // Completion notifications here
+    }
+    onError {
+        channel = '#alerts'           // Error notifications here
+    }
+}
+```
+
+| Property             | Type     | Default | Description                                   |
+| -------------------- | -------- | ------- | --------------------------------------------- |
+| `onStart.channel`    | `String` | `null`  | Override channel for start notifications      |
+| `onComplete.channel` | `String` | `null`  | Override channel for completion notifications |
+| `onError.channel`    | `String` | `null`  | Override channel for error notifications      |
+
+> **Note:** Per-event channels require a bot token. When using webhooks, the channel is determined by the webhook URL. Threading is automatically disabled when events are routed to different channels.
+
 ## Threading
 
 Group all workflow notifications (start, complete, error) into a single thread to reduce channel clutter. This is particularly useful for high-volume pipelines.

@@ -56,6 +56,11 @@ class OnStartConfig {
     final boolean showFooter
 
     /**
+     * Optional channel override for start notifications (bot token only)
+     */
+    final String channel
+
+    /**
      * Create OnStartConfig from configuration map
      *
      * @param config Configuration map from slack.onStart scope
@@ -65,6 +70,7 @@ class OnStartConfig {
         this.message = config?.message ?: '🚀 *Pipeline started*'
         this.includeCommandLine = config?.includeCommandLine != null ? config.includeCommandLine as boolean : true
         this.showFooter = config?.showFooter != null ? config.showFooter as boolean : true
+        this.channel = config?.channel as String
     }
 
     @Override

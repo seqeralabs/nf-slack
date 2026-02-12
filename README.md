@@ -15,6 +15,7 @@ Get Slack notifications for your Nextflow workflows - automatically notified whe
 - 🤖 **Bot & Webhook Support**: Supports both bot and webhook authentication
 - 🧵 **Threading**: Keep channels clean by threading workflow notifications (Bot only)
 - 🎨 **Rich Formatting**: Beautiful Slack messages with colors and custom fields
+- 📡 **Per-Event Channel Routing**: Send start, complete, and error to different channels
 - ⚙️ **Highly Configurable**: Control what notifications are sent and when
 
 ## Quick Start

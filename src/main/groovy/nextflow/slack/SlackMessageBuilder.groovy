@@ -137,7 +137,7 @@ class SlackMessageBuilder {
     /**
      * Build message for workflow started event
      */
-    String buildWorkflowStartMessage(String threadTs = null) {
+    String buildWorkflowStartMessage(String threadTs = null, String channelOverride = null) {
         def workflowName = session.workflowMetadata?.scriptName ?: 'Unknown workflow'
         def runName = session.runName ?: 'Unknown run'
         def timestamp = OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
@@ -184,13 +184,13 @@ class SlackMessageBuilder {
             blocks << createContextFooter('started', timestamp, workflowName)
         }
 
-        return createMessagePayload(blocks, threadTs)
+        return createMessagePayload(blocks, threadTs, channelOverride)
     }
 
     /**
      * Build message for workflow completed successfully
      */
-    String buildWorkflowCompleteMessage(String threadTs = null) {
+    String buildWorkflowCompleteMessage(String threadTs = null, String channelOverride = null) {
         def workflowName = session.workflowMetadata?.scriptName ?: 'Unknown workflow'
         def runName = session.runName ?: 'Unknown run'
         def duration = session.workflowMetadata?.duration ?: Duration.of(0)
@@ -232,13 +232,13 @@ class SlackMessageBuilder {
             blocks << createContextFooter('completed', timestamp, workflowName)
         }
 
-        return createMessagePayload(blocks, threadTs)
+        return createMessagePayload(blocks, threadTs, channelOverride)
     }
 
     /**
      * Build message for workflow error
      */
-    String buildWorkflowErrorMessage(TraceRecord errorRecord, String threadTs = null) {
+    String buildWorkflowErrorMessage(TraceRecord errorRecord, String threadTs = null, String channelOverride = null) {
         def workflowName = session.workflowMetadata?.scriptName ?: 'Unknown workflow'
         def runName = session.runName ?: 'Unknown run'
         def duration = session.workflowMetadata?.duration ?: Duration.of(0)
@@ -296,7 +296,7 @@ class SlackMessageBuilder {
             blocks << createContextFooter('failed', timestamp, workflowName)
         }
 
-        return createMessagePayload(blocks, threadTs)
+        return createMessagePayload(blocks, threadTs, channelOverride)
     }
 
     /**
@@ -477,10 +477,11 @@ class SlackMessageBuilder {
     /**
      * Create final message payload with channel and optional thread_ts
      */
-    private String createMessagePayload(List blocks, String threadTs = null) {
+    private String createMessagePayload(List blocks, String threadTs = null, String channelOverride = null) {
         def message = [blocks: blocks] as Map
-        if (config.botChannel) {
-            message.channel = config.botChannel
+        def channel = channelOverride ?: config.botChannel
+        if (channel) {
+            message.channel = channel
         }
         if (threadTs) {
             message.thread_ts = threadTs

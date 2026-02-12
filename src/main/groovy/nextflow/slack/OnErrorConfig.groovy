@@ -62,6 +62,11 @@ class OnErrorConfig {
     final List<String> files
 
     /**
+     * Optional channel override for error notifications (bot token only)
+     */
+    final String channel
+
+    /**
      * Create OnErrorConfig from configuration map
      *
      * @param config Configuration map from slack.onError scope
@@ -72,6 +77,7 @@ class OnErrorConfig {
         this.includeCommandLine = config?.includeCommandLine != null ? config.includeCommandLine as boolean : true
         this.showFooter = config?.showFooter != null ? config.showFooter as boolean : true
         this.files = config?.files != null ? (config.files as List<String>) : []
+        this.channel = config?.channel as String
     }
 
     @Override

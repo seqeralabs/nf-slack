@@ -80,12 +80,13 @@ Configuration for workflow start notifications.
 
 #### Properties
 
-| Property             | Type          | Default                   | Description                            |
-| -------------------- | ------------- | ------------------------- | -------------------------------------- |
-| `enabled`            | Boolean       | `true`                    | Send notification when workflow starts |
-| `message`            | String or Map | `'🚀 *Pipeline started*'` | Start notification message             |
-| `includeCommandLine` | Boolean       | `true`                    | Include command line in message        |
-| `showFooter`         | Boolean       | `true`                    | Show timestamp footer in message       |
+| Property             | Type          | Default                   | Description                                         |
+| -------------------- | ------------- | ------------------------- | --------------------------------------------------- |
+| `enabled`            | Boolean       | `true`                    | Send notification when workflow starts              |
+| `message`            | String or Map | `'🚀 *Pipeline started*'` | Start notification message                          |
+| `includeCommandLine` | Boolean       | `true`                    | Include command line in message                     |
+| `showFooter`         | Boolean       | `true`                    | Show timestamp footer in message                    |
+| `channel`            | String        | `null`                    | Override channel for start notifications (Bot only) |
 
 #### Message Available Fields
 
@@ -126,6 +127,7 @@ Configuration for workflow completion notifications.
 | `includeResourceUsage` | Boolean        | `true`                                   | Include task statistics and resource usage                    |
 | `showFooter`           | Boolean        | `true`                                   | Show timestamp footer in message                              |
 | `files`                | `List<String>` | `[]`                                     | File paths to upload after completion notification (Bot only) |
+| `channel`              | String         | `null`                                   | Override channel for completion notifications (Bot only)      |
 
 > [!NOTE] > `includeResourceUsage` is **only available** in the `onComplete` scope.
 
@@ -169,6 +171,7 @@ Configuration for workflow error notifications.
 | `includeCommandLine` | Boolean        | `true`                   | Include command line in message                          |
 | `showFooter`         | Boolean        | `true`                   | Show timestamp footer in message                         |
 | `files`              | `List<String>` | `[]`                     | File paths to upload after error notification (Bot only) |
+| `channel`            | String         | `null`                   | Override channel for error notifications (Bot only)      |
 
 #### Message Available Fields
 
