@@ -24,6 +24,7 @@ import nextflow.trace.TraceObserver
 import nextflow.trace.TraceRecord
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 import nextflow.file.FileHelper
 
 /**
@@ -52,8 +53,11 @@ class SlackObserver implements TraceObserver {
     private final AtomicInteger cachedTasks = new AtomicInteger(0)
     private final AtomicInteger failedTasks = new AtomicInteger(0)
     private String startMessageTs
-    private Timer progressTimer
     private long startTimeMillis
+    private boolean progressEnabled
+    private long intervalMs
+    private final AtomicLong lastUpdateTime = new AtomicLong(0)
+    private Timer pendingUpdateTimer
 
     /**
      * Called when the workflow is created
@@ -102,31 +106,30 @@ class SlackObserver implements TraceObserver {
         if (config.onProgress?.enabled && sender instanceof BotSlackSender) {
             startMessageTs = (sender as BotSlackSender).getThreadTs()
             startTimeMillis = System.currentTimeMillis()
-            long intervalMs = config.onProgress.getIntervalMillis()
-            progressTimer = new Timer('slack-progress', true)
-            progressTimer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                void run() {
-                    sendProgressUpdate()
-                }
-            }, intervalMs, intervalMs)
-            log.debug "Slack plugin: Progress updates enabled every ${config.onProgress.interval}"
+            intervalMs = config.onProgress.getIntervalMillis()
+            progressEnabled = true
+            // Send initial progress table immediately
+            sendProgressUpdate()
+            log.debug "Slack plugin: Progress updates enabled (min interval: ${config.onProgress.interval})"
         }
     }
 
     @Override
     void onProcessSubmit(TaskHandler handler, TraceRecord trace) {
         submittedTasks.incrementAndGet()
+        scheduleProgressUpdateIfNeeded()
     }
 
     @Override
     void onProcessComplete(TaskHandler handler, TraceRecord trace) {
         completedTasks.incrementAndGet()
+        scheduleProgressUpdateIfNeeded()
     }
 
     @Override
     void onProcessCached(TaskHandler handler, TraceRecord trace) {
         cachedTasks.incrementAndGet()
+        scheduleProgressUpdateIfNeeded()
     }
 
     /**
@@ -143,6 +146,7 @@ class SlackObserver implements TraceObserver {
      */
     @Override
     void onFlowComplete() {
+        if (progressEnabled) sendProgressUpdate()
         cancelProgressTimer()
         if (!isConfigured()) return
 
@@ -168,6 +172,7 @@ class SlackObserver implements TraceObserver {
      */
     @Override
     void onFlowError(TaskHandler handler, TraceRecord trace) {
+        if (progressEnabled) sendProgressUpdate()
         cancelProgressTimer()
         if (!isConfigured()) return
 
@@ -300,9 +305,37 @@ class SlackObserver implements TraceObserver {
         this.messageBuilder = messageBuilder
     }
 
+    private void scheduleProgressUpdateIfNeeded() {
+        if (!progressEnabled) return
+
+        long now = System.currentTimeMillis()
+        long lastUpdate = lastUpdateTime.get()
+        long timeSinceLast = now - lastUpdate
+
+        if (timeSinceLast >= intervalMs) {
+            sendProgressUpdate()
+        } else {
+            synchronized (this) {
+                if (pendingUpdateTimer != null) return
+                long delay = intervalMs - timeSinceLast
+                pendingUpdateTimer = new Timer('slack-progress-pending', true)
+                pendingUpdateTimer.schedule(new TimerTask() {
+                    @Override
+                    void run() {
+                        synchronized (SlackObserver.this) {
+                            pendingUpdateTimer = null
+                        }
+                        sendProgressUpdate()
+                    }
+                }, delay)
+            }
+        }
+    }
+
     private void sendProgressUpdate() {
         try {
             if (startMessageTs == null || !isConfigured()) return
+            lastUpdateTime.set(System.currentTimeMillis())
             long elapsed = System.currentTimeMillis() - startTimeMillis
             String message = messageBuilder.buildProgressUpdateMessage(
                 submittedTasks.get(), completedTasks.get(), cachedTasks.get(), failedTasks.get(), elapsed, startMessageTs
@@ -315,9 +348,11 @@ class SlackObserver implements TraceObserver {
     }
 
     private void cancelProgressTimer() {
-        if (progressTimer != null) {
-            progressTimer.cancel()
-            progressTimer = null
+        synchronized (this) {
+            if (pendingUpdateTimer != null) {
+                pendingUpdateTimer.cancel()
+                pendingUpdateTimer = null
+            }
         }
     }
 }

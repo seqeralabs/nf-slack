@@ -495,7 +495,7 @@ class SlackObserverTest extends Specification {
         observer.onFlowCreate(Mock(Session) { getConfig() >> [:] })
 
         expect:
-        observer.progressTimer == null
+        !observer.progressEnabled
     }
 
      def 'should add start reaction when reactions enabled' () {
