@@ -34,13 +34,7 @@ class SeqeraPlatformConfig {
      */
     final boolean enabled
 
-    /**
-     * Base URL for Seqera Platform UI (default: https://cloud.seqera.io)
-     */
-    final String baseUrl
-
     SeqeraPlatformConfig(Map config) {
         this.enabled = config?.enabled != null ? config.enabled as boolean : true
-        this.baseUrl = config?.baseUrl as String ?: 'https://cloud.seqera.io'
     }
 }

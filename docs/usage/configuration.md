@@ -140,6 +140,24 @@ slack {
 
 > **Note:** Progress updates require a bot token connection and use the Slack `chat.update` API to modify the start message in-place.
 
+## Seqera Platform Integration
+
+When running pipelines through [Seqera Platform](https://seqera.io/platform/), nf-slack can automatically add a "View in Seqera Platform" button to all notifications:
+
+```groovy
+slack {
+    seqeraPlatform {
+        enabled = true                          // Auto-detect (default: true)
+    }
+}
+```
+
+| Property                 | Type      | Default | Description                              |
+| ------------------------ | --------- | ------- | ---------------------------------------- |
+| `seqeraPlatform.enabled` | `Boolean` | `true`  | Enable Seqera Platform deep link buttons |
+
+The watch URL is automatically retrieved from the Seqera Platform tower client when running with `-with-tower`. No additional setup is needed — the correct URL is provided by the platform API.
+
 ## Threading
 
 Group all workflow notifications (start, complete, error) into a single thread to reduce channel clutter. This is particularly useful for high-volume pipelines.

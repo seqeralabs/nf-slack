@@ -141,26 +141,47 @@ class SlackMessageBuilder {
     }
 
     /**
-     * Build Seqera Platform URL if tower is configured and deep links are enabled.
+     * Get Seqera Platform watch URL from TowerClient if deep links are enabled.
      * Returns null if unavailable — callers should skip the button.
+     *
+     * The URL is read directly from TowerClient's watchUrl field, which is the
+     * fully-resolved URL returned by the Seqera Platform API.
      */
     private String getSeqeraPlatformUrl() {
         if (!config.seqeraPlatform?.enabled) return null
 
-        def towerConfig = session.config?.navigate('tower') as Map
-        if (!towerConfig?.enabled) return null
+        def watchUrl = getTowerClientWatchUrl()
+        log.debug "Seqera Platform: watchUrl=${watchUrl}"
+        return watchUrl
+    }
 
-        def workspaceId = towerConfig.workspaceId as String
-        def runName = session.runName
-        if (!runName) return null
+    /**
+     * Retrieve the watch URL from TowerClient via reflection.
+     *
+     * TowerClient is in a separate plugin (nf-tower) so we cannot reference it
+     * directly. We find it by class name in the session's observer list, then
+     * read its private watchUrl field.
+     */
+    // Package-private for testability (Spock Spy cannot stub private methods)
+    String getTowerClientWatchUrl() {
+        try {
+            def observersField = session.class.getDeclaredField('observersV2')
+            observersField.accessible = true
+            def observers = observersField.get(session) as List
 
-        def baseUrl = config.seqeraPlatform.baseUrl?.replaceAll('/+$', '')
-        if (!baseUrl) return null
+            def towerClient = observers?.find {
+                it.class.name == 'io.seqera.tower.plugin.TowerClient'
+            }
+            if (!towerClient) return null
 
-        if (workspaceId) {
-            return "${baseUrl}/orgs/-/workspaces/${workspaceId}/watch/${runName}"
+            def watchUrlField = towerClient.class.getDeclaredField('watchUrl')
+            watchUrlField.accessible = true
+            return watchUrlField.get(towerClient) as String
         }
-        return "${baseUrl}/user/-/watch/${runName}"
+        catch (Exception e) {
+            log.debug "Could not retrieve Seqera Platform watch URL: ${e.message}"
+            return null
+        }
     }
 
     /**
