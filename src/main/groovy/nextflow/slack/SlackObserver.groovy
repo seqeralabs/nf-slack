@@ -106,11 +106,12 @@ class SlackObserver implements TraceObserver {
             sender.sendMessage(message)
             log.debug "Slack plugin: Sent workflow complete notification"
 
-            addReactionIfEnabled(config.reactions?.onSuccess)
-
             // Upload configured files
             uploadConfiguredFiles(config.onComplete.files, threadTs)
         }
+
+        // Add success reaction to the start message (independent of completion message)
+        addReactionIfEnabled(config.reactions?.onSuccess)
     }
 
     /**
@@ -127,11 +128,12 @@ class SlackObserver implements TraceObserver {
             sender.sendMessage(message)
             log.debug "Slack plugin: Sent workflow error notification"
 
-            addReactionIfEnabled(config.reactions?.onError)
-
             // Upload configured files
             uploadConfiguredFiles(config.onError.files, threadTs)
         }
+
+        // Add error reaction to the start message (independent of error message)
+        addReactionIfEnabled(config.reactions?.onError)
     }
 
     /**
