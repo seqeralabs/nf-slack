@@ -41,6 +41,7 @@ class BotSlackSender implements SlackSender {
 
     private static final String CHAT_POST_MESSAGE_URL = "https://slack.com/api/chat.postMessage"
     private static final String REACTIONS_ADD_URL = "https://slack.com/api/reactions.add"
+    private static final String REACTIONS_REMOVE_URL = "https://slack.com/api/reactions.remove"
     private static final String FILES_GET_UPLOAD_URL = "https://slack.com/api/files.getUploadURLExternal"
     private static final String FILES_COMPLETE_UPLOAD_URL = "https://slack.com/api/files.completeUploadExternal"
     private static final String AUTH_TEST_URL = "https://slack.com/api/auth.test"
@@ -424,9 +425,26 @@ class BotSlackSender implements SlackSender {
     }
 
     protected void postReaction(String emoji, String messageTs) {
+        sendReactionRequest(REACTIONS_ADD_URL, 'add', emoji, messageTs)
+    }
+
+    @Override
+    void removeReaction(String emoji, String messageTs) {
+        try {
+            deleteReaction(emoji, messageTs)
+        } catch (Exception e) {
+            log.debug "Slack plugin: Failed to remove reaction '${emoji}': ${e.message}"
+        }
+    }
+
+    protected void deleteReaction(String emoji, String messageTs) {
+        sendReactionRequest(REACTIONS_REMOVE_URL, 'remove', emoji, messageTs)
+    }
+
+    private void sendReactionRequest(String apiUrl, String action, String emoji, String messageTs) {
         HttpURLConnection connection = null
         try {
-            def url = new URL(REACTIONS_ADD_URL)
+            def url = new URL(apiUrl)
             connection = url.openConnection() as HttpURLConnection
             connection.requestMethod = 'POST'
             connection.doOutput = true
@@ -449,10 +467,10 @@ class BotSlackSender implements SlackSender {
                 def response = new JsonSlurper().parseText(responseText) as Map
                 if (!response.ok) {
                     def hint = response.error == 'missing_scope' ? ' (add reactions:write scope to your Slack app)' : ''
-                    log.warn "Slack plugin: Failed to add reaction '${emoji}': ${response.error}${hint}"
+                    log.warn "Slack plugin: Failed to ${action} reaction '${emoji}': ${response.error}${hint}"
                 }
             } else {
-                log.debug "Slack plugin: Failed to add reaction - HTTP ${responseCode}"
+                log.debug "Slack plugin: Failed to ${action} reaction - HTTP ${responseCode}"
             }
         } finally {
             connection?.disconnect()

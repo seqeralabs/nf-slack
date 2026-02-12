@@ -501,8 +501,60 @@ class SlackObserverTest extends Specification {
 
          then:
          1 * mockSender.sendMessage(_)
-         1 * mockSender.addReaction('x', '1234567890.123456')
-     }
+        1 * mockSender.addReaction('x', '1234567890.123456')
+    }
+
+    def 'should remove start reaction and add success reaction on complete'() {
+        given:
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890'],
+            onComplete: [enabled: false],
+            reactions: [enabled: true, onStart: 'rocket', onSuccess: 'white_check_mark']
+        ])
+        def mockSession = Mock(Session)
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.success >> true
+        mockSession.workflowMetadata >> mockMetadata
+        def mockSender = Mock(BotSlackSender)
+        mockSender.getThreadTs() >> '1234567890.123456'
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setSession(mockSession)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        when:
+        observer.onFlowComplete()
+
+        then:
+        1 * mockSender.removeReaction('rocket', '1234567890.123456')
+        1 * mockSender.addReaction('white_check_mark', '1234567890.123456')
+    }
+
+    def 'should remove start reaction and add error reaction on error'() {
+        given:
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890'],
+            onError: [enabled: false],
+            reactions: [enabled: true, onStart: 'rocket', onError: 'x']
+        ])
+        def mockSender = Mock(BotSlackSender)
+        mockSender.getThreadTs() >> '1234567890.123456'
+        def errorRecord = Mock(TraceRecord)
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        when:
+        observer.onFlowError(null, errorRecord)
+
+        then:
+        1 * mockSender.removeReaction('rocket', '1234567890.123456')
+        1 * mockSender.addReaction('x', '1234567890.123456')
+    }
 
     def 'should call validate when validateOnStartup is enabled'() {
         given:

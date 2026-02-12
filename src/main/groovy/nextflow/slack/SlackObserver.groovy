@@ -112,6 +112,7 @@ class SlackObserver implements TraceObserver {
         }
 
         if (session?.workflowMetadata?.success) {
+            removeReactionIfEnabled(config.reactions?.onStart)
             addReactionIfEnabled(config.reactions?.onSuccess)
         }
     }
@@ -134,7 +135,7 @@ class SlackObserver implements TraceObserver {
             uploadConfiguredFiles(config.onError.files, threadTs)
         }
 
-        // Add error reaction to the start message (independent of error message)
+        removeReactionIfEnabled(config.reactions?.onStart)
         addReactionIfEnabled(config.reactions?.onError)
     }
 
@@ -176,6 +177,25 @@ class SlackObserver implements TraceObserver {
         }
         catch (Exception e) {
             log.debug "Slack plugin: Failed to add reaction: ${e.message}"
+        }
+    }
+
+    /**
+     * Remove an emoji reaction from the start message if reactions are enabled
+     */
+    private void removeReactionIfEnabled(String emoji) {
+        if (!emoji) return
+        if (!config.reactions?.enabled) return
+        if (!(sender instanceof BotSlackSender)) return
+
+        try {
+            def messageTs = (sender as BotSlackSender).getThreadTs()
+            if (messageTs) {
+                sender.removeReaction(emoji, messageTs)
+            }
+        }
+        catch (Exception e) {
+            log.debug "Slack plugin: Failed to remove reaction: ${e.message}"
         }
     }
 
