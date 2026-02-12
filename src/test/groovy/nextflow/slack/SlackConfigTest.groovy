@@ -313,7 +313,7 @@ class SlackConfigTest extends Specification {
 
         then:
         config != null
-        config.useThreads == false
+        config.useThreads == true
     }
 
     def 'should parse useThreads when explicitly set to true'() {
@@ -374,7 +374,7 @@ class SlackConfigTest extends Specification {
         then:
         config != null
         config.reactions != null
-        config.reactions.enabled == false
+        config.reactions.enabled == true
         config.reactions.onStart == 'rocket'
         config.reactions.onSuccess == 'white_check_mark'
         config.reactions.onError == 'x'

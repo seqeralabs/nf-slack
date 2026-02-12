@@ -118,7 +118,7 @@ class SlackConfig {
         def botConfig = config.bot as Map
         this.botToken = botConfig?.token as String
         this.botChannel = botConfig?.channel as String
-        this.useThreads = botConfig?.useThreads != null ? botConfig.useThreads as boolean : false
+        this.useThreads = botConfig?.useThreads != null ? botConfig.useThreads as boolean : true
         this.validateOnStartup = config.validateOnStartup != null ? config.validateOnStartup as boolean : true
         this.onStart = new OnStartConfig(config.onStart as Map)
         this.onComplete = new OnCompleteConfig(config.onComplete as Map)

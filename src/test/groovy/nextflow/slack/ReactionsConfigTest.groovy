@@ -28,7 +28,7 @@ class ReactionsConfigTest extends Specification {
         def config = new ReactionsConfig([:])
 
         then:
-        config.enabled == false
+        config.enabled == true
         config.onStart == 'rocket'
         config.onSuccess == 'white_check_mark'
         config.onError == 'x'
@@ -55,7 +55,7 @@ class ReactionsConfigTest extends Specification {
         def config = new ReactionsConfig(null)
 
         then:
-        config.enabled == false
+        config.enabled == true
         config.onStart == 'rocket'
         config.onSuccess == 'white_check_mark'
         config.onError == 'x'

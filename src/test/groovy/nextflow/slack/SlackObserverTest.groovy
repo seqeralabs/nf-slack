@@ -324,9 +324,9 @@ class SlackObserverTest extends Specification {
          when:
          observer.onFlowError(null, errorRecord)
 
-         then:
-         // Verify that getThreadTs was called for error messages too
-         1 * mockBotSender.getThreadTs()
+        then:
+        // Verify that getThreadTs was called for error messages and reactions
+        (1.._) * mockBotSender.getThreadTs()
      }
 
      def 'should upload configured files on flow complete'() {

@@ -65,7 +65,7 @@ class ReactionsConfig {
      * @param config Configuration map from slack.reactions scope
      */
     ReactionsConfig(Map config) {
-        this.enabled = config?.enabled != null ? config.enabled as boolean : false
+        this.enabled = config?.enabled != null ? config.enabled as boolean : true
         this.onStart = (config?.onStart as String) ?: 'rocket'
         this.onSuccess = (config?.onSuccess as String) ?: 'white_check_mark'
         this.onError = (config?.onError as String) ?: 'x'
