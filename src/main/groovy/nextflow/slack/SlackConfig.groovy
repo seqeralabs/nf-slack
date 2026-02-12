@@ -90,12 +90,6 @@ class SlackConfig {
     final boolean validateOnStartup
 
     /**
-     * Fail the workflow if Slack configuration is invalid (default: false)
-     * When false, logs a warning and continues without notifications
-     */
-    final boolean failOnInvalidConfig
-
-    /**
      * Configuration for workflow start notifications
      */
     final OnStartConfig onStart
@@ -121,7 +115,6 @@ class SlackConfig {
         this.botChannel = botConfig?.channel as String
         this.useThreads = botConfig?.useThreads != null ? botConfig.useThreads as boolean : false
         this.validateOnStartup = config.validateOnStartup != null ? config.validateOnStartup as boolean : true
-        this.failOnInvalidConfig = config.failOnInvalidConfig != null ? config.failOnInvalidConfig as boolean : false
         this.onStart = new OnStartConfig(config.onStart as Map)
         this.onComplete = new OnCompleteConfig(config.onComplete as Map)
         this.onError = new OnErrorConfig(config.onError as Map)
@@ -145,9 +138,6 @@ class SlackConfig {
 
         def validateOnStartup = session.config?.navigate('slack.validateOnStartup')
         if (validateOnStartup != null) config.validateOnStartup = validateOnStartup
-
-        def failOnInvalidConfig = session.config?.navigate('slack.failOnInvalidConfig')
-        if (failOnInvalidConfig != null) config.failOnInvalidConfig = failOnInvalidConfig
 
         // Get webhook URL from nested structure
         def webhook = getWebhookUrl(session)
