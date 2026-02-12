@@ -102,6 +102,26 @@ slack {
 }
 ```
 
+## Progress Updates
+
+Get periodic progress updates during workflow execution. The start message is updated in-place with task completion counts:
+
+```groovy
+slack {
+    onProgress {
+        enabled = true
+        interval = '5m'    // Update every 5 minutes (default)
+    }
+}
+```
+
+| Property              | Type      | Default | Description                                       |
+| --------------------- | --------- | ------- | ------------------------------------------------- |
+| `onProgress.enabled`  | `Boolean` | `false` | Enable periodic progress updates                  |
+| `onProgress.interval` | `String`  | `'5m'`  | Update interval (supports `s`, `m`, `h` suffixes) |
+
+> **Note:** Progress updates require a bot token connection and use the Slack `chat.update` API to modify the start message in-place.
+
 ## Threading
 
 Group all workflow notifications (start, complete, error) into a single thread to reduce channel clutter. This is particularly useful for high-volume pipelines.

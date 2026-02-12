@@ -402,4 +402,71 @@ class SlackObserverTest extends Specification {
          1 * mockSender.sendMessage(_)
          1 * mockSender.uploadFile({ it.toString().endsWith('pipeline_report.html') }, _)
      }
+
+    def 'should track completed tasks in progress tracking'() {
+        given:
+        def observer = new SlackObserver()
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C123456'],
+            onStart: [enabled: false],
+            onProgress: [enabled: true, interval: '5m']
+        ])
+        def mockSender = Mock(BotSlackSender)
+        def mockBuilder = Mock(SlackMessageBuilder)
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(mockBuilder)
+        observer.onFlowCreate(Mock(Session) { getConfig() >> [:] })
+
+        when:
+        observer.onProcessComplete(null, null)
+        observer.onProcessComplete(null, null)
+
+        then:
+        observer.completedTasks.get() == 2
+    }
+
+    def 'should track cached tasks in progress tracking'() {
+        given:
+        def observer = new SlackObserver()
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C123456'],
+            onStart: [enabled: false],
+            onProgress: [enabled: true, interval: '5m']
+        ])
+        def mockSender = Mock(BotSlackSender)
+        def mockBuilder = Mock(SlackMessageBuilder)
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(mockBuilder)
+        observer.onFlowCreate(Mock(Session) { getConfig() >> [:] })
+
+        when:
+        observer.onProcessCached(null, null)
+
+        then:
+        observer.cachedTasks.get() == 1
+    }
+
+    def 'should not set up progress timer when disabled'() {
+        given:
+        def observer = new SlackObserver()
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C123456'],
+            onStart: [enabled: false],
+            onProgress: [enabled: false]
+        ])
+        def mockSender = Mock(BotSlackSender)
+        def mockBuilder = Mock(SlackMessageBuilder)
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(mockBuilder)
+        observer.onFlowCreate(Mock(Session) { getConfig() >> [:] })
+
+        expect:
+        observer.progressTimer == null
+    }
 }
