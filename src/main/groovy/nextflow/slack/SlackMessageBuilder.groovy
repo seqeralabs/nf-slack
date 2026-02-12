@@ -135,19 +135,13 @@ class SlackMessageBuilder {
     }
 
     /**
-     * Build message for workflow started event
+     * Build the content blocks for a workflow start message (without footer).
+     * Used by both buildWorkflowStartMessage and buildProgressUpdateMessage.
      */
-    String buildWorkflowStartMessage(String threadTs = null) {
-        def workflowName = session.workflowMetadata?.scriptName ?: 'Unknown workflow'
-        def runName = session.runName ?: 'Unknown run'
-        def timestamp = OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-
-        // Check if using custom message configuration
-        if (config.onStart.message instanceof Map) {
-            return buildCustomMessage(config.onStart.message as Map, workflowName, timestamp, 'started', null, threadTs)
-        }
-
+    private List buildStartContentBlocks() {
         def blocks = []
+
+        def runName = session.runName ?: 'Unknown run'
 
         // Header section
         def messageText = config.onStart.message instanceof String ? config.onStart.message : '🚀 *Pipeline started*'
@@ -177,6 +171,23 @@ class SlackMessageBuilder {
         if (config.onStart.includeCommandLine && session.commandLine) {
             blocks << createCommandLineSection(session.commandLine)
         }
+
+        return blocks
+    }
+
+    /**
+     * Build message for workflow started event
+     */
+    String buildWorkflowStartMessage(String threadTs = null) {
+        def workflowName = session.workflowMetadata?.scriptName ?: 'Unknown workflow'
+        def timestamp = OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+
+        // Check if using custom message configuration
+        if (config.onStart.message instanceof Map) {
+            return buildCustomMessage(config.onStart.message as Map, workflowName, timestamp, 'started', null, threadTs)
+        }
+
+        def blocks = buildStartContentBlocks()
 
         // Footer
         if (config.onStart.showFooter) {
@@ -490,13 +501,15 @@ class SlackMessageBuilder {
 
     /**
      * Build a progress update message showing workflow execution status.
+     * Includes the original start message content with progress stats appended below.
      */
     String buildProgressUpdateMessage(int completed, int cached, int failed, long elapsedMs, String threadTs = null) {
-        def blocks = []
+        // Start with the original start message content blocks
+        def blocks = buildStartContentBlocks()
 
-        // Header
-        blocks.add(createHeaderSection('📊 Pipeline Progress'))
+        // Append progress section
         blocks.add(createDivider())
+        blocks.add(createHeaderSection('📊 *Progress*'))
 
         // Progress stats
         def elapsed = formatDuration(elapsedMs)
