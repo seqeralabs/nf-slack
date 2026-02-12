@@ -57,4 +57,14 @@ interface SlackSender {
     default void addReaction(String emoji, String messageTs) {
         // No-op by default - only BotSlackSender supports reactions
     }
+
+    /**
+     * Validate the Slack connection.
+     * Returns true if the connection is valid, false otherwise.
+     *
+     * @return true if connection is valid
+     */
+    default boolean validate() {
+        return true
+    }
 }

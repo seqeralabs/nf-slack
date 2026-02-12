@@ -199,6 +199,7 @@ class SlackObserverTest extends Specification {
                     channel: 'C123456',
                     useThreads: true
                 ],
+                validateOnStartup: false,
                 onComplete: [
                     enabled: true
                 ]
@@ -233,6 +234,7 @@ class SlackObserverTest extends Specification {
                     channel: 'C123456',
                     useThreads: false
                 ],
+                validateOnStartup: false,
                 onComplete: [
                     enabled: true
                 ]
@@ -300,6 +302,7 @@ class SlackObserverTest extends Specification {
                      channel: 'C123456',
                      useThreads: true
                  ],
+                 validateOnStartup: false,
                  onError: [
                      enabled: true
                  ]
@@ -495,4 +498,78 @@ class SlackObserverTest extends Specification {
          1 * mockSender.sendMessage(_)
          1 * mockSender.addReaction('x', '1234567890.123456')
      }
+
+    def 'should call validate when validateOnStartup is enabled'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [:]
+        def observer = new SlackObserver()
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890'],
+            validateOnStartup: true,
+            onStart: [enabled: false]
+        ])
+        def mockSender = Mock(BotSlackSender)
+
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        when:
+        observer.onFlowCreate(session)
+
+        then:
+        1 * mockSender.validate() >> true
+    }
+
+    def 'should skip validation when validateOnStartup is disabled'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [:]
+        def observer = new SlackObserver()
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890'],
+            validateOnStartup: false,
+            onStart: [enabled: false]
+        ])
+        def mockSender = Mock(BotSlackSender)
+
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        when:
+        observer.onFlowCreate(session)
+
+        then:
+        0 * mockSender.validate()
+    }
+
+    def 'should warn but continue when validation fails'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [:]
+        def observer = new SlackObserver()
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890'],
+            validateOnStartup: true,
+            onStart: [enabled: false]
+        ])
+        def mockSender = Mock(BotSlackSender)
+        mockSender.validate() >> false
+
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        when:
+        observer.onFlowCreate(session)
+
+        then:
+        1 * mockSender.validate() >> false
+        0 * session.abort(_)
+    }
 }

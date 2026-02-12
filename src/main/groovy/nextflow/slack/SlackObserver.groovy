@@ -52,8 +52,7 @@ class SlackObserver implements TraceObserver {
     void onFlowCreate(Session session) {
         this.session = session
 
-        // Parse configuration - throws IllegalArgumentException if invalid
-        // Allow pre-set config for testing
+        // Parse configuration if not already set (supports test injection)
         if (this.config == null) {
             this.config = SlackConfig.from(session)
         }
@@ -64,7 +63,7 @@ class SlackObserver implements TraceObserver {
             return
         }
 
-        // Initialize sender and message builder (allow pre-set for testing)
+        // Initialize sender and message builder if not already set (supports test injection)
         if (this.sender == null) {
             this.sender = config.createSender()
         }
@@ -73,6 +72,14 @@ class SlackObserver implements TraceObserver {
         }
 
         log.debug "Slack plugin: Initialized successfully"
+
+        // Validate Slack connection if enabled
+        if (config.validateOnStartup) {
+            boolean valid = sender.validate()
+            if (!valid) {
+                log.warn "Slack plugin: Connection validation failed - Slack notifications may not work. Set slack.validateOnStartup = false to skip validation."
+            }
+        }
 
         // Send workflow started notification if enabled
         if (config.onStart.enabled) {
