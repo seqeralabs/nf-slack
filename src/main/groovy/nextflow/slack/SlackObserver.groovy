@@ -87,10 +87,16 @@ class SlackObserver implements TraceObserver {
             def message = messageBuilder.buildWorkflowStartMessage()
             sender.sendMessage(message)
             log.debug "Slack plugin: Sent workflow start notification"
-
-            // Add start reaction to the message
-            addReactionIfEnabled(config.reactions?.onStart)
         }
+    }
+
+    /**
+     * Called when the workflow execution begins (after setup, before processes run)
+     */
+    @Override
+    void onFlowBegin() {
+        if (!isConfigured()) return
+        addReactionIfEnabled(config.reactions?.onStart)
     }
 
     /**

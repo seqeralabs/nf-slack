@@ -423,12 +423,13 @@ class SlackObserverTest extends Specification {
           observer.setSender(mockSender)
           observer.setMessageBuilder(mockBuilder)
 
-          when:
-          observer.onFlowCreate(Mock(Session) { getConfig() >> [:] })
+           when:
+           observer.onFlowCreate(Mock(Session) { getConfig() >> [:] })
+           observer.onFlowBegin()
 
-          then:
-          1 * mockSender.sendMessage(_)
-          1 * mockSender.addReaction('rocket', '1234567890.123456')
+           then:
+           1 * mockSender.sendMessage(_)
+           1 * mockSender.addReaction('rocket', '1234567890.123456')
      }
 
      def 'should not add reaction when reactions disabled' () {
