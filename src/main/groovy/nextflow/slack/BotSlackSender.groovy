@@ -388,7 +388,8 @@ class BotSlackSender implements SlackSender {
                 def responseText = connection.inputStream.text
                 def response = new JsonSlurper().parseText(responseText) as Map
                 if (!response.ok) {
-                    log.debug "Slack plugin: Failed to add reaction '${emoji}': ${response.error}"
+                    def hint = response.error == 'missing_scope' ? ' (add reactions:write scope to your Slack app)' : ''
+                    log.warn "Slack plugin: Failed to add reaction '${emoji}': ${response.error}${hint}"
                 }
             } else {
                 log.debug "Slack plugin: Failed to add reaction - HTTP ${responseCode}"
