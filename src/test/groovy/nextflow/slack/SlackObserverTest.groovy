@@ -454,19 +454,24 @@ class SlackObserverTest extends Specification {
           0 * mockSender.addReaction(_, _)
      }
 
-     def 'should add success reaction on complete' () {
-         given:
-         def config = new SlackConfig([
-             enabled: true,
-             bot: [token: 'xoxb-test-token', channel: 'C123456'],
-             reactions: [enabled: true, onSuccess: 'thumbsup']
-         ])
-         def mockSender = Mock(BotSlackSender)
-         mockSender.getThreadTs() >> '1234567890.123456'
-         def observer = new SlackObserver()
-         observer.setConfig(config)
-         observer.setSender(mockSender)
-         observer.setMessageBuilder(Mock(SlackMessageBuilder))
+    def 'should add success reaction on complete' () {
+        given:
+        def metadata = Mock(WorkflowMetadata)
+        metadata.success >> true
+        def mockSession = Mock(Session)
+        mockSession.workflowMetadata >> metadata
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C123456'],
+            reactions: [enabled: true, onSuccess: 'thumbsup']
+        ])
+        def mockSender = Mock(BotSlackSender)
+        mockSender.getThreadTs() >> '1234567890.123456'
+        def observer = new SlackObserver()
+        observer.setSession(mockSession)
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
 
          when:
          observer.onFlowComplete()
