@@ -105,6 +105,11 @@ class SlackConfig {
     final OnErrorConfig onError
 
     /**
+     * Configuration for emoji reactions on messages
+     */
+    final ReactionsConfig reactions
+
+    /**
      * Private constructor - use from() factory method
      */
     private SlackConfig(Map config) {
@@ -113,11 +118,12 @@ class SlackConfig {
         def botConfig = config.bot as Map
         this.botToken = botConfig?.token as String
         this.botChannel = botConfig?.channel as String
-        this.useThreads = botConfig?.useThreads != null ? botConfig.useThreads as boolean : false
+        this.useThreads = botConfig?.useThreads != null ? botConfig.useThreads as boolean : true
         this.validateOnStartup = config.validateOnStartup != null ? config.validateOnStartup as boolean : true
         this.onStart = new OnStartConfig(config.onStart as Map)
         this.onComplete = new OnCompleteConfig(config.onComplete as Map)
         this.onError = new OnErrorConfig(config.onError as Map)
+        this.reactions = new ReactionsConfig(config.reactions as Map)
     }
 
     /**

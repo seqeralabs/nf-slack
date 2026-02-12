@@ -313,7 +313,7 @@ class SlackConfigTest extends Specification {
 
         then:
         config != null
-        config.useThreads == false
+        config.useThreads == true
     }
 
     def 'should parse useThreads when explicitly set to true'() {
@@ -358,6 +358,50 @@ class SlackConfigTest extends Specification {
         config.useThreads == false
     }
 
+    def 'should parse reactions config with defaults' () {
+        given:
+        def session = Mock(Session) {
+            config >> [
+                slack: [
+                    bot: [token: 'xoxb-token', channel: 'C123456'],
+                ]
+            ]
+        }
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config != null
+        config.reactions != null
+        config.reactions.enabled == true
+        config.reactions.onStart == 'rocket'
+        config.reactions.onSuccess == 'white_check_mark'
+        config.reactions.onError == 'x'
+    }
+
+    def 'should parse custom reactions config' () {
+        given:
+        def session = Mock(Session) {
+            config >> [
+                slack: [
+                    bot: [token: 'xoxb-token', channel: 'C123456'],
+                    reactions: [enabled: true, onStart: 'tada', onSuccess: 'thumbsup', onError: 'fire']
+                ]
+            ]
+        }
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config != null
+        config.reactions.enabled == true
+        config.reactions.onStart == 'tada'
+        config.reactions.onSuccess == 'thumbsup'
+        config.reactions.onError == 'fire'
+    }
+
     def 'should parse validateOnStartup default to true'() {
         given:
         def session = Mock(Session)
@@ -388,5 +432,4 @@ class SlackConfigTest extends Specification {
         config != null
         config.validateOnStartup == false
     }
-
 }
