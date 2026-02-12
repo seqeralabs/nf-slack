@@ -52,6 +52,7 @@ class BotSlackSender implements SlackSender {
     private final String channelId
     private final Set<String> loggedErrors = Collections.synchronizedSet(new HashSet<String>())
     private String threadTs  // Store the thread timestamp for threaded conversations
+    private String resolvedChannelId  // Channel ID resolved from Slack API response
 
     /**
      * Create a new BotSlackSender
@@ -388,6 +389,10 @@ class BotSlackSender implements SlackSender {
                     threadTs = ts
                     log.debug "Slack plugin: Captured thread timestamp: ${threadTs}"
                 }
+                def channel = response.channel as String
+                if (channel && !resolvedChannelId) {
+                    resolvedChannelId = channel
+                }
             }
 
         } catch (Exception e) {
@@ -429,7 +434,7 @@ class BotSlackSender implements SlackSender {
             connection.setRequestProperty('Authorization', "Bearer ${botToken}")
 
             def payload = new JsonBuilder([
-                channel: channelId,
+                channel: resolvedChannelId ?: channelId,
                 name: emoji,
                 timestamp: messageTs
             ]).toString()
