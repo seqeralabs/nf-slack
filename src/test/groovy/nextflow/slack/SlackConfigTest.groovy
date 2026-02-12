@@ -239,27 +239,7 @@ class SlackConfigTest extends Specification {
         sender instanceof BotSlackSender
     }
 
-    def 'should throw exception for invalid bot token'() {
-        given:
-        def session = Mock(Session)
-        session.config >> [
-            slack: [
-                bot: [
-                    token: 'invalid-token',
-                    channel: 'C123456'
-                ]
-            ]
-        ]
-
-        when:
-        SlackConfig.from(session)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message.contains("Bot token must start with 'xoxb-' or 'xoxp-'")
-    }
-
-    def 'should throw exception for missing bot channel'() {
+    def 'should return null for missing bot channel'() {
         given:
         def session = Mock(Session)
         session.config >> [
@@ -271,31 +251,10 @@ class SlackConfigTest extends Specification {
         ]
 
         when:
-        SlackConfig.from(session)
+        def config = SlackConfig.from(session)
 
         then:
-        def e = thrown(IllegalArgumentException)
-        e.message.contains("Bot channel is required")
-    }
-
-    def 'should throw exception for invalid bot channel'() {
-        given:
-        def session = Mock(Session)
-        session.config >> [
-            slack: [
-                bot: [
-                    token: 'xoxb-token',
-                    channel: 'Invalid Channel Name'
-                ]
-            ]
-        ]
-
-        when:
-        SlackConfig.from(session)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message.contains("Invalid channel ID format")
+        config == null
     }
     def 'should allow channel name with hash'() {
         given:
@@ -398,4 +357,36 @@ class SlackConfigTest extends Specification {
         config != null
         config.useThreads == false
     }
+
+    def 'should parse validateOnStartup default to true'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [slack: [
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890']
+        ]]
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config != null
+        config.validateOnStartup == true
+    }
+
+    def 'should parse validateOnStartup when set to false'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [slack: [
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890'],
+            validateOnStartup: false
+        ]]
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config != null
+        config.validateOnStartup == false
+    }
+
 }

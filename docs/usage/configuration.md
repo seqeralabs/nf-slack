@@ -37,6 +37,24 @@ When `enabled = false`:
 - Custom `slackMessage()` calls are silently ignored
 - No Slack API calls are made
 
+### Connection Validation
+
+nf-slack validates your Slack connection on startup by default, checking that your bot token is valid and can authenticate to Slack.
+
+```groovy
+slack {
+    validateOnStartup = true      // Validate token and authentication on startup (default: true)
+}
+```
+
+| Property            | Type      | Default | Description                                         |
+| ------------------- | --------- | ------- | --------------------------------------------------- |
+| `validateOnStartup` | `Boolean` | `true`  | Whether to validate the Slack connection on startup |
+
+If validation fails, a warning is logged and the pipeline continues. Set `validateOnStartup = false` to skip validation entirely.
+
+> **Note:** Webhook connections have limited validation capabilities. Only bot token connections can fully verify token validity.
+
 ## Bot Configuration
 
 ### Basic Bot Setup

@@ -42,6 +42,7 @@ class BotSlackSender implements SlackSender {
     private static final String CHAT_POST_MESSAGE_URL = "https://slack.com/api/chat.postMessage"
     private static final String FILES_GET_UPLOAD_URL = "https://slack.com/api/files.getUploadURLExternal"
     private static final String FILES_COMPLETE_UPLOAD_URL = "https://slack.com/api/files.completeUploadExternal"
+    private static final String AUTH_TEST_URL = "https://slack.com/api/auth.test"
 
     /** Maximum file size for Slack uploads (free plan: 1GB, but we limit to 100MB for safety) */
     private static final long MAX_FILE_SIZE = 100 * 1024 * 1024
@@ -286,6 +287,60 @@ class BotSlackSender implements SlackSender {
 
         } catch (Exception e) {
             log.error "Slack plugin: Error completing file upload: ${e.message}"
+        } finally {
+            connection?.disconnect()
+        }
+    }
+
+    /**
+     * Validate the Slack connection by calling auth.test.
+     * Verifies the endpoint is reachable, the token is valid, and authentication succeeds.
+     *
+     * @return true if validation passes, false otherwise
+     */
+    @Override
+    boolean validate() {
+        // Check token format before making network call
+        if (!botToken?.startsWith('xoxb-') && !botToken?.startsWith('xoxp-')) {
+            log.warn "Slack plugin: Bot token must start with 'xoxb-' or 'xoxp-'"
+            return false
+        }
+        if (botToken.startsWith('xoxp-')) {
+            log.warn "Slack plugin: You are using a User Token (xoxp-). It is recommended to use a Bot Token (xoxb-) for better security and granular permissions."
+        }
+
+        HttpURLConnection connection = null
+        try {
+            def url = new URL(AUTH_TEST_URL)
+            connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = 'POST'
+            connection.setRequestProperty('Authorization', "Bearer ${botToken}")
+            connection.setRequestProperty('Content-Type', 'application/json; charset=utf-8')
+            connection.doOutput = true
+            connection.outputStream.withCloseable { out ->
+                out.write("{}".getBytes("UTF-8"))
+            }
+
+            def responseCode = connection.responseCode
+            if (responseCode != 200) {
+                log.warn "Slack plugin: Connection validation failed - HTTP ${responseCode}"
+                return false
+            }
+
+            def responseText = connection.inputStream.text
+            def response = new JsonSlurper().parseText(responseText) as Map
+
+            if (!response.ok) {
+                log.warn "Slack plugin: Connection validation failed - ${response.error}"
+                return false
+            }
+
+            log.debug "Slack plugin: Connection validated successfully (team: ${response.team})"
+            return true
+
+        } catch (Exception e) {
+            log.warn "Slack plugin: Connection validation failed - ${e.message}"
+            return false
         } finally {
             connection?.disconnect()
         }

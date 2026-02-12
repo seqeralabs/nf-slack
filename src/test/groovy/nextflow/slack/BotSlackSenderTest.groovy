@@ -277,4 +277,15 @@ class BotSlackSenderTest extends Specification {
          cleanup:
          tempFile?.delete()
      }
+
+    def 'should return false when validate hits unreachable endpoint'() {
+        given:
+        def sender = new BotSlackSender('xoxb-test-token', 'C1234567890')
+
+        when:
+        def result = sender.validate()
+
+        then:
+        result == false
+    }
 }
