@@ -601,7 +601,7 @@ class SlackMessageBuilderTest extends Specification {
 
     def 'should build progress update message'() {
         when:
-        def message = messageBuilder.buildProgressUpdateMessage(10, 3, 1, 300000L, '1234567890.123456')
+        def message = messageBuilder.buildProgressUpdateMessage(15, 10, 3, 1, 300000L, '1234567890.123456')
         def json = new JsonSlurper().parseText(message)
 
         then:
@@ -613,7 +613,7 @@ class SlackMessageBuilderTest extends Specification {
 
     def 'should format elapsed time in progress message'() {
         when:
-        def message = messageBuilder.buildProgressUpdateMessage(5, 2, 0, 3661000L, null)
+        def message = messageBuilder.buildProgressUpdateMessage(8, 5, 2, 0, 3661000L, null)
         def json = new JsonSlurper().parseText(message)
 
         then:

@@ -47,6 +47,7 @@ class SlackObserver implements TraceObserver {
     private SlackMessageBuilder messageBuilder
 
     // Progress tracking
+    private final AtomicInteger submittedTasks = new AtomicInteger(0)
     private final AtomicInteger completedTasks = new AtomicInteger(0)
     private final AtomicInteger cachedTasks = new AtomicInteger(0)
     private final AtomicInteger failedTasks = new AtomicInteger(0)
@@ -111,6 +112,11 @@ class SlackObserver implements TraceObserver {
             }, intervalMs, intervalMs)
             log.debug "Slack plugin: Progress updates enabled every ${config.onProgress.interval}"
         }
+    }
+
+    @Override
+    void onProcessSubmit(TaskHandler handler, TraceRecord trace) {
+        submittedTasks.incrementAndGet()
     }
 
     @Override
@@ -299,7 +305,7 @@ class SlackObserver implements TraceObserver {
             if (startMessageTs == null || !isConfigured()) return
             long elapsed = System.currentTimeMillis() - startTimeMillis
             String message = messageBuilder.buildProgressUpdateMessage(
-                completedTasks.get(), cachedTasks.get(), failedTasks.get(), elapsed, startMessageTs
+                submittedTasks.get(), completedTasks.get(), cachedTasks.get(), failedTasks.get(), elapsed, startMessageTs
             )
             sender.updateMessage(message, startMessageTs)
         }

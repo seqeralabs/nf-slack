@@ -503,7 +503,7 @@ class SlackMessageBuilder {
      * Build a progress update message showing workflow execution status.
      * Includes the original start message content with progress stats appended below.
      */
-    String buildProgressUpdateMessage(int completed, int cached, int failed, long elapsedMs, String threadTs = null) {
+    String buildProgressUpdateMessage(int submitted, int completed, int cached, int failed, long elapsedMs, String threadTs = null) {
         // Start with the original start message content blocks
         def blocks = buildStartContentBlocks()
 
@@ -513,14 +513,13 @@ class SlackMessageBuilder {
 
         // Progress stats
         def elapsed = formatDuration(elapsedMs)
-        def total = completed + cached + failed
         List<Map> fields = []
+        fields.add(createMarkdownField('Tasks Submitted', "${submitted}"))
         fields.add(createMarkdownField('Tasks Completed', "${completed}"))
         fields.add(createMarkdownField('Tasks Cached', "${cached}"))
         if (failed > 0) {
             fields.add(createMarkdownField('Tasks Failed', "${failed}"))
         }
-        fields.add(createMarkdownField('Total', "${total}"))
         fields.add(createMarkdownField('Elapsed', elapsed))
         blocks.add(createFieldsSection(fields))
 

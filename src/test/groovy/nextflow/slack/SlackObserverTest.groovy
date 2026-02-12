@@ -453,6 +453,31 @@ class SlackObserverTest extends Specification {
         observer.cachedTasks.get() == 1
     }
 
+    def 'should track submitted tasks in progress tracking'() {
+        given:
+        def observer = new SlackObserver()
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C123456'],
+            onStart: [enabled: false],
+            onProgress: [enabled: true, interval: '5m']
+        ])
+        def mockSender = Mock(BotSlackSender)
+        def mockBuilder = Mock(SlackMessageBuilder)
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(mockBuilder)
+        observer.onFlowCreate(Mock(Session) { getConfig() >> [:] })
+
+        when:
+        observer.onProcessSubmit(null, null)
+        observer.onProcessSubmit(null, null)
+        observer.onProcessSubmit(null, null)
+
+        then:
+        observer.submittedTasks.get() == 3
+    }
+
     def 'should not set up progress timer when disabled'() {
         given:
         def observer = new SlackObserver()
