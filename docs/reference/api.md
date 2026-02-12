@@ -174,6 +174,18 @@ Configuration for workflow error notifications.
 
 - `runName` - Workflow run name
 - `status` - Error status
+
+### `slack.reactions`
+
+| Property    | Type      | Default              | Description                                 |
+| ----------- | --------- | -------------------- | ------------------------------------------- |
+| `enabled`   | `Boolean` | `false`              | Enable emoji reactions on the start message |
+| `onStart`   | `String`  | `'rocket'`           | Emoji reaction added when pipeline starts   |
+| `onSuccess` | `String`  | `'white_check_mark'` | Emoji reaction on successful completion     |
+| `onError`   | `String`  | `'x'`                | Emoji reaction on pipeline error            |
+
+> Reactions require a bot token. They are silently skipped when using webhooks.
+
 - `duration` - Time before failure
 - `commandLine` - Full Nextflow command
 - `errorMessage` - Error details

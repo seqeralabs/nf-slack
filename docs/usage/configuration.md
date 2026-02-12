@@ -127,6 +127,32 @@ slack {
 
     Threading **only works with bot tokens**, not webhooks. Webhooks do not support thread creation or replies.
 
+## Emoji Reactions
+
+Add emoji reactions to the pipeline start message to indicate workflow status at a glance:
+
+```groovy
+slack {
+    reactions {
+        enabled = true
+        onStart = 'rocket'              // Added when pipeline starts (default)
+        onSuccess = 'white_check_mark'  // Added on successful completion (default)
+        onError = 'x'                   // Added on error (default)
+    }
+}
+```
+
+| Property              | Type      | Default              | Description                                 |
+| --------------------- | --------- | -------------------- | ------------------------------------------- |
+| `reactions.enabled`   | `Boolean` | `false`              | Enable emoji reactions on the start message |
+| `reactions.onStart`   | `String`  | `'rocket'`           | Emoji added when the pipeline starts        |
+| `reactions.onSuccess` | `String`  | `'white_check_mark'` | Emoji added on successful completion        |
+| `reactions.onError`   | `String`  | `'x'`                | Emoji added on pipeline error               |
+
+!!! warning "Bot Tokens Only"
+
+    Reactions require a bot token connection. They are silently skipped when using webhooks.
+
 ## Customizing Messages
 
 ### Simple Text Messages
