@@ -44,6 +44,7 @@ class SlackObserver implements TraceObserver {
     private SlackConfig config
     private SlackSender sender
     private SlackMessageBuilder messageBuilder
+    private volatile boolean errorOccurred = false
 
     /**
      * Called when the workflow is created
@@ -110,8 +111,9 @@ class SlackObserver implements TraceObserver {
             uploadConfiguredFiles(config.onComplete.files, threadTs)
         }
 
-        // Add success reaction to the start message (independent of completion message)
-        addReactionIfEnabled(config.reactions?.onSuccess)
+        if (!errorOccurred) {
+            addReactionIfEnabled(config.reactions?.onSuccess)
+        }
     }
 
     /**
@@ -120,6 +122,7 @@ class SlackObserver implements TraceObserver {
     @Override
     void onFlowError(TaskHandler handler, TraceRecord trace) {
         if (!isConfigured()) return
+        errorOccurred = true
 
         if (config.onError.enabled) {
             // Get thread timestamp if threading is enabled and we're using bot sender
