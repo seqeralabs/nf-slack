@@ -438,9 +438,12 @@ class BotSlackSender implements SlackSender {
             connection.setRequestProperty('Content-Type', 'application/json; charset=utf-8')
             connection.setRequestProperty('Authorization', "Bearer ${botToken}")
 
-            // Inject ts into the payload for chat.update
+            // Inject ts and resolved channel ID into the payload for chat.update
             def payload = new JsonSlurper().parseText(jsonPayload) as Map
             payload.ts = messageTs
+            if (resolvedChannelId) {
+                payload.channel = resolvedChannelId
+            }
             def updatedPayload = new groovy.json.JsonBuilder(payload).toString()
 
             connection.outputStream.withCloseable { out ->
