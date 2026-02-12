@@ -89,29 +89,8 @@ class WebhookSlackSender implements SlackSender {
      */
     @Override
     boolean validate() {
-        log.info "Slack plugin: Webhook validation is limited - sending a test request"
-        try {
-            def url = new URL(webhookUrl)
-            def connection = url.openConnection() as HttpURLConnection
-            connection.requestMethod = 'POST'
-            connection.doOutput = true
-            connection.setRequestProperty('Content-type', 'application/json')
-            connection.outputStream.write('{"text":"nf-slack validation test"}'.bytes)
-            connection.outputStream.close()
-
-            def responseCode = connection.responseCode
-            connection.disconnect()
-
-            if (responseCode != 200) {
-                log.warn "Slack plugin: Webhook validation failed - HTTP ${responseCode}"
-                return false
-            }
-            log.debug "Slack plugin: Webhook validated successfully"
-            return true
-        } catch (Exception e) {
-            log.warn "Slack plugin: Webhook validation failed - ${e.message}"
-            return false
-        }
+        log.info "Slack plugin: Webhook connections have limited validation - token and channel checks are not available"
+        return true
     }
 
     @Override
