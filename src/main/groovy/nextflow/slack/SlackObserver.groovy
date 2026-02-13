@@ -146,7 +146,10 @@ class SlackObserver implements TraceObserver {
      */
     @Override
     void onFlowComplete() {
-        if (progressEnabled) sendProgressUpdate()
+        if (progressEnabled) {
+            reconcileCountsFromMetadata()
+            sendProgressUpdate()
+        }
         cancelProgressTimer()
         if (!isConfigured()) return
 
@@ -172,7 +175,10 @@ class SlackObserver implements TraceObserver {
      */
     @Override
     void onFlowError(TaskHandler handler, TraceRecord trace) {
-        if (progressEnabled) sendProgressUpdate()
+        if (progressEnabled) {
+            reconcileCountsFromMetadata()
+            sendProgressUpdate()
+        }
         cancelProgressTimer()
         if (!isConfigured()) return
 
@@ -344,6 +350,15 @@ class SlackObserver implements TraceObserver {
         }
         catch (Exception e) {
             log.debug "Slack plugin: Failed to send progress update: ${e.message}"
+        }
+    }
+
+    private void reconcileCountsFromMetadata() {
+        def stats = session?.workflowMetadata?.stats
+        if (stats) {
+            completedTasks.set(stats.succeedCount ?: 0)
+            cachedTasks.set(stats.cachedCount ?: 0)
+            failedTasks.set(stats.failedCount ?: 0)
         }
     }
 
