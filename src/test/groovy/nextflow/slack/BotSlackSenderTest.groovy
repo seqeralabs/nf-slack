@@ -278,6 +278,17 @@ class BotSlackSenderTest extends Specification {
          tempFile?.delete()
      }
 
+    def 'should call updateMessage gracefully when API is unreachable'() {
+        given:
+        def sender = new BotSlackSender('xoxb-test-token', 'C123456')
+
+        when:
+        sender.updateMessage('{"text":"progress update"}', '1234567890.123456')
+
+        then:
+        noExceptionThrown()
+    }
+
     def 'should add reaction gracefully when API unreachable' () {
         given:
         def sender = new BotSlackSender('xoxb-test-token', 'C123456') {

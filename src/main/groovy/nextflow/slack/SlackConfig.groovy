@@ -105,6 +105,11 @@ class SlackConfig {
     final OnErrorConfig onError
 
     /**
+     * Configuration for progress updates during workflow execution
+     */
+    final OnProgressConfig onProgress
+
+    /**
      * Configuration for emoji reactions on messages
      */
     final ReactionsConfig reactions
@@ -123,6 +128,7 @@ class SlackConfig {
         this.onStart = new OnStartConfig(config.onStart as Map)
         this.onComplete = new OnCompleteConfig(config.onComplete as Map)
         this.onError = new OnErrorConfig(config.onError as Map)
+        this.onProgress = new OnProgressConfig(config.onProgress as Map)
         this.reactions = new ReactionsConfig(config.reactions as Map)
     }
 

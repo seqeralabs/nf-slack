@@ -49,6 +49,13 @@ interface SlackSender {
     void uploadFile(Path filePath, Map options)
 
     /**
+     * Update an existing message in Slack (default: no-op for implementations that don't support it)
+     */
+    default void updateMessage(String message, String messageTs) {
+        // No-op by default - only BotSlackSender supports message updates
+    }
+
+    /**
      * Add an emoji reaction to a message. Default no-op for senders that don't support reactions.
      *
      * @param emoji Emoji name without colons (e.g., 'white_check_mark')

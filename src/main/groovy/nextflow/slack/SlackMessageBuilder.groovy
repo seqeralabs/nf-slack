@@ -135,19 +135,13 @@ class SlackMessageBuilder {
     }
 
     /**
-     * Build message for workflow started event
+     * Build the content blocks for a workflow start message (without footer).
+     * Used by both buildWorkflowStartMessage and buildProgressUpdateMessage.
      */
-    String buildWorkflowStartMessage(String threadTs = null) {
-        def workflowName = session.workflowMetadata?.scriptName ?: 'Unknown workflow'
-        def runName = session.runName ?: 'Unknown run'
-        def timestamp = OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-
-        // Check if using custom message configuration
-        if (config.onStart.message instanceof Map) {
-            return buildCustomMessage(config.onStart.message as Map, workflowName, timestamp, 'started', null, threadTs)
-        }
-
+    private List buildStartContentBlocks() {
         def blocks = []
+
+        def runName = session.runName ?: 'Unknown run'
 
         // Header section
         def messageText = config.onStart.message instanceof String ? config.onStart.message : '🚀 *Pipeline started*'
@@ -177,6 +171,23 @@ class SlackMessageBuilder {
         if (config.onStart.includeCommandLine && session.commandLine) {
             blocks << createCommandLineSection(session.commandLine)
         }
+
+        return blocks
+    }
+
+    /**
+     * Build message for workflow started event
+     */
+    String buildWorkflowStartMessage(String threadTs = null) {
+        def workflowName = session.workflowMetadata?.scriptName ?: 'Unknown workflow'
+        def timestamp = OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+
+        // Check if using custom message configuration
+        if (config.onStart.message instanceof Map) {
+            return buildCustomMessage(config.onStart.message as Map, workflowName, timestamp, 'started', null, threadTs)
+        }
+
+        def blocks = buildStartContentBlocks()
 
         // Footer
         if (config.onStart.showFooter) {
@@ -486,5 +497,51 @@ class SlackMessageBuilder {
             message.thread_ts = threadTs
         }
         return new JsonBuilder(message).toPrettyString()
+    }
+
+    /**
+     * Build a progress update message showing workflow execution status.
+     * Includes the original start message content with progress stats appended below.
+     */
+    String buildProgressUpdateMessage(int submitted, int completed, int cached, int failed, long elapsedMs, String threadTs = null) {
+        // Start with the original start message content blocks
+        def blocks = buildStartContentBlocks()
+
+        // Append progress section
+        blocks.add(createDivider())
+        blocks.add(createHeaderSection('📊 *Progress*'))
+
+        // Progress stats
+        def elapsed = formatDuration(elapsedMs)
+        List<Map> fields = []
+        fields.add(createMarkdownField('Tasks Submitted', "${submitted}"))
+        fields.add(createMarkdownField('Tasks Completed', "${completed}"))
+        fields.add(createMarkdownField('Tasks Cached', "${cached}"))
+        if (failed > 0) {
+            fields.add(createMarkdownField('Tasks Failed', "${failed}"))
+        }
+        fields.add(createMarkdownField('Elapsed', elapsed))
+        blocks.add(createFieldsSection(fields))
+
+        return createMessagePayload(blocks, threadTs)
+    }
+
+    /**
+     * Format a duration in milliseconds to a human-readable string.
+     */
+    private static String formatDuration(long millis) {
+        long seconds = (long)(millis / 1000)
+        long minutes = (long)(seconds / 60)
+        long hours = (long)(minutes / 60)
+        seconds = seconds % 60
+        minutes = minutes % 60
+
+        if (hours > 0) {
+            return "${hours}h ${minutes}m ${seconds}s"
+        } else if (minutes > 0) {
+            return "${minutes}m ${seconds}s"
+        } else {
+            return "${seconds}s"
+        }
     }
 }

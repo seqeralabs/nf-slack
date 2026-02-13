@@ -44,6 +44,7 @@ class BotSlackSender implements SlackSender {
     private static final String REACTIONS_REMOVE_URL = "https://slack.com/api/reactions.remove"
     private static final String FILES_GET_UPLOAD_URL = "https://slack.com/api/files.getUploadURLExternal"
     private static final String FILES_COMPLETE_UPLOAD_URL = "https://slack.com/api/files.completeUploadExternal"
+    private static final String CHAT_UPDATE_URL = "https://slack.com/api/chat.update"
     private static final String AUTH_TEST_URL = "https://slack.com/api/auth.test"
 
     /** Maximum file size for Slack uploads (free plan: 1GB, but we limit to 100MB for safety) */
@@ -413,6 +414,60 @@ class BotSlackSender implements SlackSender {
      */
     String getThreadTs() {
         return threadTs
+    }
+
+    @Override
+    void updateMessage(String message, String messageTs) {
+        try {
+            postUpdate(message, messageTs)
+        } catch (Exception e) {
+            def errorMsg = "Slack plugin: Error updating message: ${e.message}".toString()
+            if (loggedErrors.add(errorMsg)) {
+                log.error errorMsg
+            }
+        }
+    }
+
+    protected void postUpdate(String jsonPayload, String messageTs) {
+        HttpURLConnection connection = null
+        try {
+            def url = new URL(CHAT_UPDATE_URL)
+            connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = 'POST'
+            connection.doOutput = true
+            connection.setRequestProperty('Content-Type', 'application/json; charset=utf-8')
+            connection.setRequestProperty('Authorization', "Bearer ${botToken}")
+
+            // Inject ts and resolved channel ID into the payload for chat.update
+            def payload = new JsonSlurper().parseText(jsonPayload) as Map
+            payload.ts = messageTs
+            if (resolvedChannelId) {
+                payload.channel = resolvedChannelId
+            }
+            def updatedPayload = new groovy.json.JsonBuilder(payload).toString()
+
+            connection.outputStream.withCloseable { out ->
+                out.write(updatedPayload.getBytes("UTF-8"))
+            }
+
+            def responseCode = connection.responseCode
+            if (responseCode != 200) {
+                def errorBody = connection.errorStream?.text ?: ""
+                log.error "Slack plugin: Failed to update message - HTTP ${responseCode}: ${errorBody}"
+                return
+            }
+
+            def responseText = connection.inputStream.text
+            def response = new JsonSlurper().parseText(responseText) as Map
+            if (!response.ok) {
+                def error = response.error
+                log.error "Slack plugin: Failed to update message - API error: ${error}"
+            }
+        } catch (Exception e) {
+            log.error "Slack plugin: Error updating message: ${e.message}"
+        } finally {
+            connection?.disconnect()
+        }
     }
 
     @Override

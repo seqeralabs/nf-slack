@@ -210,6 +210,15 @@ onError {
 
 ---
 
+### `slack.onProgress`
+
+| Property   | Type      | Default | Description                                                                        |
+| ---------- | --------- | ------- | ---------------------------------------------------------------------------------- |
+| `enabled`  | `Boolean` | `false` | Enable periodic progress update messages                                           |
+| `interval` | `String`  | `'5m'`  | Update interval. Supports time suffixes: `s` (seconds), `m` (minutes), `h` (hours) |
+
+---
+
 ### `slack.<scope>.message (String)`
 
 Use a string for quick, simple message customization. Supports Slack markdown (`*bold*`, `_italic_`, `` `code` ``), emojis, and newlines (`\n`).
