@@ -5,6 +5,12 @@ All notable changes to the nf-slack plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Seqera Platform Deep Links**: Automatically adds a "View in Seqera Platform" button to all Slack notifications when running through Seqera Platform ([#36](https://github.com/seqeralabs/nf-slack/issues/36))
+
 ## [0.4.0] - 2026-02-11
 
 ### Added

@@ -115,6 +115,11 @@ class SlackConfig {
     final ReactionsConfig reactions
 
     /**
+     * Configuration for Seqera Platform deep links
+     */
+    final SeqeraPlatformConfig seqeraPlatform
+
+    /**
      * Private constructor - use from() factory method
      */
     private SlackConfig(Map config) {
@@ -130,6 +135,7 @@ class SlackConfig {
         this.onError = new OnErrorConfig(config.onError as Map)
         this.onProgress = new OnProgressConfig(config.onProgress as Map)
         this.reactions = new ReactionsConfig(config.reactions as Map)
+        this.seqeraPlatform = new SeqeraPlatformConfig(config.seqeraPlatform as Map)
     }
 
     /**

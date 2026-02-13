@@ -171,6 +171,14 @@ Configuration for workflow error notifications.
 | `showFooter`         | Boolean        | `true`                   | Show timestamp footer in message                         |
 | `files`              | `List<String>` | `[]`                     | File paths to upload after error notification (Bot only) |
 
+### `slack.seqeraPlatform`
+
+| Property  | Type      | Default | Description                                               |
+| --------- | --------- | ------- | --------------------------------------------------------- |
+| `enabled` | `Boolean` | `true`  | Enable Seqera Platform deep link buttons in notifications |
+
+---
+
 #### Message Available Fields
 
 - `runName` - Workflow run name

@@ -17,6 +17,7 @@ Get Slack notifications for your Nextflow workflows - automatically notified whe
 - 🎨 **Rich Formatting**: Beautiful Slack messages with colors and custom fields
 - 📊 **Progress Updates**: Periodic in-place message updates during execution
 - 🎯 **Emoji Reactions**: Visual status indicators on start messages
+- 🔗 **Seqera Platform deep links**: One-click navigation to your runs in Seqera Platform
 - ⚙️ **Highly Configurable**: Control what notifications are sent and when
 
 ## Quick Start
