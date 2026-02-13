@@ -780,6 +780,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#progress-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Progress Updates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#threading" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1304,15 +1315,51 @@
 </span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">    </span><span class="o">}</span>
 </span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="o">}</span>
 </span></code></pre></div>
+<h2 id="progress-updates">Progress Updates<a class="headerlink" href="#progress-updates" title="Permanent link">&para;</a></h2>
+<p>Get periodic progress updates during workflow execution. The start message is updated in-place with task completion counts:</p>
+<div class="language-groovy highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="n">onProgress</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">        </span><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">        </span><span class="n">interval</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;5m&#39;</span><span class="w">    </span><span class="c1">// Update every 5 minutes (default)</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="o">}</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="o">}</span>
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>onProgress.enabled</code></td>
+<td><code>Boolean</code></td>
+<td><code>false</code></td>
+<td>Enable periodic progress updates</td>
+</tr>
+<tr>
+<td><code>onProgress.interval</code></td>
+<td><code>String</code></td>
+<td><code>'5m'</code></td>
+<td>Update interval (supports <code>s</code>, <code>m</code>, <code>h</code> suffixes)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Note:</strong> Progress updates require a bot token connection and use the Slack <code>chat.update</code> API to modify the start message in-place.</p>
+</blockquote>
 <h2 id="threading">Threading<a class="headerlink" href="#threading" title="Permanent link">&para;</a></h2>
 <p>Group all workflow notifications (start, complete, error) into a single thread to reduce channel clutter. This is particularly useful for high-volume pipelines.</p>
-<div class="language-groovy highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="n">useThreads</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">  </span><span class="c1">// Enable threading</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="n">bot</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">        </span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">System</span><span class="o">.</span><span class="na">getenv</span><span class="o">(</span><span class="s1">&#39;SLACK_BOT_TOKEN&#39;</span><span class="o">)</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">        </span><span class="n">channel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;general&#39;</span>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="o">}</span>
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="o">}</span>
+<div class="language-groovy highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="n">useThreads</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">  </span><span class="c1">// Enable threading</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="n">bot</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">        </span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">System</span><span class="o">.</span><span class="na">getenv</span><span class="o">(</span><span class="s1">&#39;SLACK_BOT_TOKEN&#39;</span><span class="o">)</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">        </span><span class="n">channel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;general&#39;</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="o">}</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="o">}</span>
 </span></code></pre></div>
 <p><strong>How it works:</strong></p>
 <ul>
@@ -1327,14 +1374,14 @@
 </div>
 <h2 id="emoji-reactions">Emoji Reactions<a class="headerlink" href="#emoji-reactions" title="Permanent link">&para;</a></h2>
 <p>Add emoji reactions to the pipeline start message to indicate workflow status at a glance:</p>
-<div class="language-groovy highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="n">reactions</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">        </span><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">        </span><span class="n">onStart</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;rocket&#39;</span><span class="w">              </span><span class="c1">// Added when pipeline starts (default)</span>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">        </span><span class="n">onSuccess</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;white_check_mark&#39;</span><span class="w">  </span><span class="c1">// Added on successful completion (default)</span>
-</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">        </span><span class="n">onError</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;x&#39;</span><span class="w">                   </span><span class="c1">// Added on error (default)</span>
-</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="o">}</span>
-</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="o">}</span>
+<div class="language-groovy highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="n">reactions</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">        </span><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">        </span><span class="n">onStart</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;rocket&#39;</span><span class="w">              </span><span class="c1">// Added when pipeline starts (default)</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">        </span><span class="n">onSuccess</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;white_check_mark&#39;</span><span class="w">  </span><span class="c1">// Added on successful completion (default)</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">        </span><span class="n">onError</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;x&#39;</span><span class="w">                   </span><span class="c1">// Added on error (default)</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span><span class="o">}</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="o">}</span>
 </span></code></pre></div>
 <table>
 <thead>
@@ -1379,34 +1426,34 @@
 <h2 id="customizing-messages">Customizing Messages<a class="headerlink" href="#customizing-messages" title="Permanent link">&para;</a></h2>
 <h3 id="simple-text-messages">Simple Text Messages<a class="headerlink" href="#simple-text-messages" title="Permanent link">&para;</a></h3>
 <p>Replace the default message text:</p>
-<div class="language-groovy highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="n">onStart</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">        </span><span class="n">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;🎬 *Production pipeline is starting!*&#39;</span>
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span><span class="o">}</span>
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>
-</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="n">onComplete</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">        </span><span class="n">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;🎉 *Analysis completed successfully!*&#39;</span>
-</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span><span class="o">}</span>
-</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>
-</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">    </span><span class="n">onError</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">        </span><span class="n">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;💥 *Pipeline encountered an error!*&#39;</span>
-</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">    </span><span class="o">}</span>
-</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="o">}</span>
+<div class="language-groovy highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">    </span><span class="n">onStart</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">        </span><span class="n">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;🎬 *Production pipeline is starting!*&#39;</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="o">}</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">    </span><span class="n">onComplete</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">        </span><span class="n">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;🎉 *Analysis completed successfully!*&#39;</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">    </span><span class="o">}</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">    </span><span class="n">onError</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">        </span><span class="n">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;💥 *Pipeline encountered an error!*&#39;</span>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">    </span><span class="o">}</span>
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="o">}</span>
 </span></code></pre></div>
 <p><img alt="Custom message text" src="../../images/nf-slack-02.png" /></p>
 <h3 id="adding-custom-fields">Adding Custom Fields<a class="headerlink" href="#adding-custom-fields" title="Permanent link">&para;</a></h3>
 <p>Include additional information in notifications:</p>
-<div class="language-groovy highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">    </span><span class="n">onComplete</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">        </span><span class="n">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span>
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">            </span><span class="nl">text:</span><span class="w"> </span><span class="s1">&#39;✅ *Analysis Complete*&#39;</span><span class="o">,</span>
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">            </span><span class="nl">customFields:</span><span class="w"> </span><span class="o">[</span>
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">                </span><span class="o">[</span><span class="nl">title:</span><span class="w"> </span><span class="s1">&#39;Environment&#39;</span><span class="o">,</span><span class="w"> </span><span class="nl">value:</span><span class="w"> </span><span class="s1">&#39;Production&#39;</span><span class="o">,</span><span class="w"> </span><span class="kt">short</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="o">],</span>
-</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">                </span><span class="o">[</span><span class="nl">title:</span><span class="w"> </span><span class="s1">&#39;Cost&#39;</span><span class="o">,</span><span class="w"> </span><span class="nl">value:</span><span class="w"> </span><span class="s1">&#39;$12.50&#39;</span><span class="o">,</span><span class="w"> </span><span class="kt">short</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="o">]</span>
-</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">            </span><span class="o">]</span>
-</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">        </span><span class="o">]</span>
-</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">    </span><span class="o">}</span>
-</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="o">}</span>
+<div class="language-groovy highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span><span class="n">onComplete</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">        </span><span class="n">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">            </span><span class="nl">text:</span><span class="w"> </span><span class="s1">&#39;✅ *Analysis Complete*&#39;</span><span class="o">,</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">            </span><span class="nl">customFields:</span><span class="w"> </span><span class="o">[</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">                </span><span class="o">[</span><span class="nl">title:</span><span class="w"> </span><span class="s1">&#39;Environment&#39;</span><span class="o">,</span><span class="w"> </span><span class="nl">value:</span><span class="w"> </span><span class="s1">&#39;Production&#39;</span><span class="o">,</span><span class="w"> </span><span class="kt">short</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="o">],</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">                </span><span class="o">[</span><span class="nl">title:</span><span class="w"> </span><span class="s1">&#39;Cost&#39;</span><span class="o">,</span><span class="w"> </span><span class="nl">value:</span><span class="w"> </span><span class="s1">&#39;$12.50&#39;</span><span class="o">,</span><span class="w"> </span><span class="kt">short</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="o">]</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">            </span><span class="o">]</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">        </span><span class="o">]</span>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="w">    </span><span class="o">}</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="o">}</span>
 </span></code></pre></div>
 <p><img alt="Custom fields" src="../../images/nf-slack-03.png" /></p>
 <h3 id="field-options">Field Options<a class="headerlink" href="#field-options" title="Permanent link">&para;</a></h3>
@@ -1444,15 +1491,15 @@
 <h2 id="controlling-workflow-information">Controlling Workflow Information<a class="headerlink" href="#controlling-workflow-information" title="Permanent link">&para;</a></h2>
 <h3 id="includeexclude-workflow-fields">Include/Exclude Workflow Fields<a class="headerlink" href="#includeexclude-workflow-fields" title="Permanent link">&para;</a></h3>
 <p>Choose which workflow information to display:</p>
-<div class="language-groovy highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span><span class="n">onComplete</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">        </span><span class="n">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span>
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">            </span><span class="nl">text:</span><span class="w"> </span><span class="s1">&#39;✅ *Pipeline Complete*&#39;</span><span class="o">,</span>
-</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">            </span><span class="nl">includeFields:</span><span class="w"> </span><span class="o">[</span><span class="s1">&#39;runName&#39;</span><span class="o">,</span><span class="w"> </span><span class="s1">&#39;duration&#39;</span><span class="o">,</span><span class="w"> </span><span class="s1">&#39;tasks&#39;</span><span class="o">]</span>
-</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">            </span><span class="c1">// Only shows: run name, duration, and task statistics</span>
-</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">        </span><span class="o">]</span>
-</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">    </span><span class="o">}</span>
-</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="o">}</span>
+<div class="language-groovy highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">    </span><span class="n">onComplete</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">        </span><span class="n">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">            </span><span class="nl">text:</span><span class="w"> </span><span class="s1">&#39;✅ *Pipeline Complete*&#39;</span><span class="o">,</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">            </span><span class="nl">includeFields:</span><span class="w"> </span><span class="o">[</span><span class="s1">&#39;runName&#39;</span><span class="o">,</span><span class="w"> </span><span class="s1">&#39;duration&#39;</span><span class="o">,</span><span class="w"> </span><span class="s1">&#39;tasks&#39;</span><span class="o">]</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">            </span><span class="c1">// Only shows: run name, duration, and task statistics</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">        </span><span class="o">]</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">    </span><span class="o">}</span>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="o">}</span>
 </span></code></pre></div>
 <h3 id="available-workflow-fields">Available Workflow Fields<a class="headerlink" href="#available-workflow-fields" title="Permanent link">&para;</a></h3>
 <p><strong>onStart fields:</strong></p>
@@ -1481,23 +1528,23 @@
 </ul>
 <h3 id="command-line-control">Command Line Control<a class="headerlink" href="#command-line-control" title="Permanent link">&para;</a></h3>
 <p>Control whether the command line is included:</p>
-<div class="language-groovy highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">    </span><span class="n">onStart</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">        </span><span class="n">includeCommandLine</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w">  </span><span class="c1">// Don&#39;t show command line</span>
-</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span><span class="o">}</span>
-</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>
-</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">    </span><span class="n">onComplete</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">        </span><span class="n">includeCommandLine</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">  </span><span class="c1">// Show command line (default)</span>
-</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">    </span><span class="o">}</span>
-</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="o">}</span>
+<div class="language-groovy highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">    </span><span class="n">onStart</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">        </span><span class="n">includeCommandLine</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w">  </span><span class="c1">// Don&#39;t show command line</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">    </span><span class="o">}</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">    </span><span class="n">onComplete</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">        </span><span class="n">includeCommandLine</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">  </span><span class="c1">// Show command line (default)</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="w">    </span><span class="o">}</span>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="o">}</span>
 </span></code></pre></div>
 <h3 id="resource-usage-oncomplete-only">Resource Usage (onComplete only)<a class="headerlink" href="#resource-usage-oncomplete-only" title="Permanent link">&para;</a></h3>
 <p>Control whether task statistics and resource usage are included:</p>
-<div class="language-groovy highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">    </span><span class="n">onComplete</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">        </span><span class="n">includeResourceUsage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">  </span><span class="c1">// Show task stats (default)</span>
-</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">    </span><span class="o">}</span>
-</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="o">}</span>
+<div class="language-groovy highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">    </span><span class="n">onComplete</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">        </span><span class="n">includeResourceUsage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">  </span><span class="c1">// Show task stats (default)</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">    </span><span class="o">}</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="o">}</span>
 </span></code></pre></div>
 <h3 id="oncomplete-properties">onComplete Properties<a class="headerlink" href="#oncomplete-properties" title="Permanent link">&para;</a></h3>
 <table>
@@ -1593,19 +1640,19 @@
 </table>
 <h3 id="footer-display">Footer Display<a class="headerlink" href="#footer-display" title="Permanent link">&para;</a></h3>
 <p>Control whether a timestamp footer is shown at the bottom of messages:</p>
-<div class="language-groovy highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">    </span><span class="n">onStart</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">        </span><span class="n">showFooter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">  </span><span class="c1">// Show timestamp (default)</span>
-</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">    </span><span class="o">}</span>
-</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>
-</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">    </span><span class="n">onComplete</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">        </span><span class="n">showFooter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w">  </span><span class="c1">// Hide timestamp footer</span>
-</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">    </span><span class="o">}</span>
-</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>
-</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="w">    </span><span class="n">onError</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="w">        </span><span class="n">showFooter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">  </span><span class="c1">// Show timestamp</span>
-</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="w">    </span><span class="o">}</span>
-</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="o">}</span>
+<div class="language-groovy highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">    </span><span class="n">onStart</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">        </span><span class="n">showFooter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">  </span><span class="c1">// Show timestamp (default)</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">    </span><span class="o">}</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">    </span><span class="n">onComplete</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="w">        </span><span class="n">showFooter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w">  </span><span class="c1">// Hide timestamp footer</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="w">    </span><span class="o">}</span>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="w">    </span><span class="n">onError</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="w">        </span><span class="n">showFooter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">  </span><span class="c1">// Show timestamp</span>
+</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="w">    </span><span class="o">}</span>
+</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="o">}</span>
 </span></code></pre></div>
 <p>The footer displays a human-readable timestamp (e.g., "Nov 20, 2025 at 6:54 PM").</p>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>

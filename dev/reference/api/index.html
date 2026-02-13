@@ -904,6 +904,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#slackonprogress" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        slack.onProgress
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#slackscopemessage-string" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1460,6 +1471,32 @@
 </span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="o">]</span>
 </span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="o">}</span>
 </span></code></pre></div>
+<hr />
+<h3 id="slackonprogress"><code>slack.onProgress</code><a class="headerlink" href="#slackonprogress" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enabled</code></td>
+<td><code>Boolean</code></td>
+<td><code>false</code></td>
+<td>Enable periodic progress update messages</td>
+</tr>
+<tr>
+<td><code>interval</code></td>
+<td><code>String</code></td>
+<td><code>'5m'</code></td>
+<td>Update interval. Supports time suffixes: <code>s</code> (seconds), <code>m</code> (minutes), <code>h</code> (hours)</td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h3 id="slackscopemessage-string"><code>slack.&lt;scope&gt;.message (String)</code><a class="headerlink" href="#slackscopemessage-string" title="Permanent link">&para;</a></h3>
 <p>Use a string for quick, simple message customization. Supports Slack markdown (<code>*bold*</code>, <code>_italic_</code>, <code>`code`</code>), emojis, and newlines (<code>\n</code>).</p>
