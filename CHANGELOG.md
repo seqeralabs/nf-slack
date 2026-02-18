@@ -7,9 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-02-18
+
 ### Added
 
-- **Seqera Platform Deep Links**: Automatically adds a "View in Seqera Platform" button to all Slack notifications when running through Seqera Platform ([#36](https://github.com/seqeralabs/nf-slack/issues/36))
+- **Seqera Platform Deep Links**: Automatically adds a "View in Seqera Platform" button to all Slack notifications when running through Seqera Platform. Reads `watchUrl` from TowerClient, auto-detected and configurable via `slack.seqeraPlatform.enabled`. Start message updated asynchronously once URL is available ([#43](https://github.com/seqeralabs/nf-slack/pull/43))
+- **Progress Updates**: Real-time progress during pipeline execution via in-place start message updates using `chat.update`. Event-driven with rate limiting. Configure via `slack.onProgress { enabled = true; interval = '5m' }`. Tracks submitted, completed, cached, and failed tasks ([#44](https://github.com/seqeralabs/nf-slack/pull/44))
+- **Emoji Reactions**: Automatic emoji reactions on start message for workflow status (🚀 start, ✅ success, ❌ error). Configure via `slack.reactions { enabled = true }`. Requires bot token, fire-and-forget ([#41](https://github.com/seqeralabs/nf-slack/pull/41))
+- **Connection Validation**: Validates Slack credentials on startup using `auth.test` and `conversations.info`. Enabled by default via `slack.validateOnStartup = true`. Warns on failure, never blocks pipeline execution ([#40](https://github.com/seqeralabs/nf-slack/pull/40))
+
+### Fixed
+
+- **Cancelled Workflow Notifications**: Cancelled workflows (via Seqera Platform) now correctly send error notifications instead of success. Checks `session.workflowMetadata.success` in `onFlowComplete()` ([#50](https://github.com/seqeralabs/nf-slack/pull/50))
+- **`includeFields` Config Bug**: Config-level `onStart/onComplete/onError.includeFields` was silently ignored by default message builders. Added `includeFields` property to config classes and `shouldIncludeField()` helper ([#48](https://github.com/seqeralabs/nf-slack/pull/48))
+- **Spurious Reaction Warning**: Fixed "Failed to remove reaction" warning when `onStart.enabled = false` by tracking `startReactionAdded` flag. Downgraded `no_reaction` from WARN to DEBUG ([#48](https://github.com/seqeralabs/nf-slack/pull/48))
+
+### Changed
+
+- **Documentation Simplification**: Consolidated from 11 pages to 6 (~2300 to ~1300 lines). Standardized examples to bot tokens. Removed 7 obsolete configs and 8 unreferenced screenshots. Fixed broken links ([#48](https://github.com/seqeralabs/nf-slack/pull/48))
 
 ## [0.4.0] - 2026-02-11
 
@@ -220,19 +235,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **CI/CD**: Updated Claude Code review workflow for improved PR automation ([#20](https://github.com/seqeralabs/nf-slack/pull/20), [#19](https://github.com/seqeralabs/nf-slack/pull/19))
 
-## [Unreleased]
-
-### Planned
-
-- Asynchronous message sending with ExecutorService
-- Retry logic with exponential backoff (429, 5xx errors)
-- Rate limiting (1 message/second with burst capacity)
-- Webhook URL validation (HTTPS enforcement, format checking)
-
 ---
 
 ## Version History
 
+- **[0.5.0]** - Seqera Platform deep links, progress updates, emoji reactions, connection validation, bug fixes
 - **[0.4.0]** - File upload support, config-based uploads, remote file support
 - **[0.3.1]** - Documentation updates for bot support and threading features
 - **[0.3.0]** - Slack Bot integration, message threading, and organization migration
@@ -241,6 +248,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **[0.1.1]** - Release automation and documentation improvements
 - **[0.1.0]** - Initial release with automatic notifications, custom messages, and progressive configuration examples
 
+[0.5.0]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.5.0
 [0.4.0]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.4.0
 [0.3.1]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.3.1
 [0.3.0]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.3.0
