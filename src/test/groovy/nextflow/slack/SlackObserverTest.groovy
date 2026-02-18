@@ -722,4 +722,136 @@ class SlackObserverTest extends Specification {
         1 * mockSender.validate() >> false
         0 * session.abort(_)
     }
+
+    def 'should send error notification on cancelled workflow'() {
+        given:
+        def mockSender = Mock(SlackSender)
+        def mockMessageBuilder = Mock(SlackMessageBuilder)
+
+        def session = Mock(Session)
+        session.config >> [
+            slack: [
+                webhook: [
+                    url: 'https://hooks.slack.com/services/TEST/TEST/TEST'
+                ],
+                onStart: [
+                    enabled: false
+                ],
+                onComplete: [
+                    enabled: true
+                ],
+                onError: [
+                    enabled: true
+                ]
+            ]
+        ]
+        def metadata = Mock(WorkflowMetadata)
+        metadata.scriptName >> 'test.nf'
+        metadata.success >> false  // Workflow was cancelled/failed
+        session.workflowMetadata >> metadata
+        session.runName >> 'test-run'
+
+        def observer = new SlackObserver()
+        observer.onFlowCreate(session)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(mockMessageBuilder)
+
+        when:
+        observer.onFlowComplete()
+
+        then:
+        // Should call buildWorkflowErrorMessage, not buildWorkflowCompleteMessage
+        1 * mockMessageBuilder.buildWorkflowErrorMessage(null, _)
+        0 * mockMessageBuilder.buildWorkflowCompleteMessage(_)
+        1 * mockSender.sendMessage(_)
+        noExceptionThrown()
+    }
+
+    def 'should send success notification on successful workflow completion'() {
+        given:
+        def mockSender = Mock(SlackSender)
+        def mockMessageBuilder = Mock(SlackMessageBuilder)
+
+        def session = Mock(Session)
+        session.config >> [
+            slack: [
+                webhook: [
+                    url: 'https://hooks.slack.com/services/TEST/TEST/TEST'
+                ],
+                onStart: [
+                    enabled: false
+                ],
+                onComplete: [
+                    enabled: true
+                ],
+                onError: [
+                    enabled: true
+                ]
+            ]
+        ]
+        def metadata = Mock(WorkflowMetadata)
+        metadata.scriptName >> 'test.nf'
+        metadata.success >> true  // Workflow completed successfully
+        session.workflowMetadata >> metadata
+        session.runName >> 'test-run'
+
+        def observer = new SlackObserver()
+        observer.onFlowCreate(session)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(mockMessageBuilder)
+
+        when:
+        observer.onFlowComplete()
+
+        then:
+        // Should call buildWorkflowCompleteMessage, not buildWorkflowErrorMessage
+        1 * mockMessageBuilder.buildWorkflowCompleteMessage(_)
+        0 * mockMessageBuilder.buildWorkflowErrorMessage(_, _)
+        1 * mockSender.sendMessage(_)
+        noExceptionThrown()
+    }
+
+    def 'should not send notification when onComplete disabled and workflow cancelled'() {
+        given:
+        def mockSender = Mock(SlackSender)
+        def mockMessageBuilder = Mock(SlackMessageBuilder)
+
+        def session = Mock(Session)
+        session.config >> [
+            slack: [
+                webhook: [
+                    url: 'https://hooks.slack.com/services/TEST/TEST/TEST'
+                ],
+                onStart: [
+                    enabled: false
+                ],
+                onComplete: [
+                    enabled: false
+                ],
+                onError: [
+                    enabled: false  // Disabled
+                ]
+            ]
+        ]
+        def metadata = Mock(WorkflowMetadata)
+        metadata.scriptName >> 'test.nf'
+        metadata.success >> false  // Workflow was cancelled
+        session.workflowMetadata >> metadata
+        session.runName >> 'test-run'
+
+        def observer = new SlackObserver()
+        observer.onFlowCreate(session)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(mockMessageBuilder)
+
+        when:
+        observer.onFlowComplete()
+
+        then:
+        // Should not send any message since onError is disabled
+        0 * mockMessageBuilder.buildWorkflowErrorMessage(_, _)
+        0 * mockMessageBuilder.buildWorkflowCompleteMessage(_)
+        0 * mockSender.sendMessage(_)
+        noExceptionThrown()
+    }
 }

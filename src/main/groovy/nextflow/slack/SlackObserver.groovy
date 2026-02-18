@@ -172,7 +172,7 @@ class SlackObserver implements TraceObserver {
     }
 
     /**
-     * Called when the workflow completes successfully
+     * Called when the workflow completes (may be success or cancellation)
      */
     @Override
     void onFlowComplete() {
@@ -183,7 +183,10 @@ class SlackObserver implements TraceObserver {
         cancelProgressTimer()
         if (!isConfigured()) return
 
-        if (config.onComplete.enabled) {
+        // Check if the workflow completed successfully or was cancelled/failed
+        def isSuccess = session?.workflowMetadata?.success
+
+        if (isSuccess && config.onComplete.enabled) {
             // Get thread timestamp if threading is enabled and we're using bot sender
             def threadTs = getThreadTsIfEnabled()
             def message = messageBuilder.buildWorkflowCompleteMessage(threadTs)
@@ -192,11 +195,21 @@ class SlackObserver implements TraceObserver {
 
             // Upload configured files
             uploadConfiguredFiles(config.onComplete.files, threadTs)
-        }
 
-        if (session?.workflowMetadata?.success) {
             removeReactionIfEnabled(config.reactions?.onStart)
             addReactionIfEnabled(config.reactions?.onSuccess)
+        } else if (!isSuccess && config.onError.enabled) {
+            // Workflow was cancelled or failed without calling onFlowError
+            def threadTs = getThreadTsIfEnabled()
+            def message = messageBuilder.buildWorkflowErrorMessage(null, threadTs)
+            sender.sendMessage(message)
+            log.debug "Slack plugin: Sent workflow error notification (cancelled or failed)"
+
+            // Upload configured files
+            uploadConfiguredFiles(config.onError.files, threadTs)
+
+            removeReactionIfEnabled(config.reactions?.onStart)
+            addReactionIfEnabled(config.reactions?.onError)
         }
     }
 
