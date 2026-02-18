@@ -203,11 +203,13 @@ class SlackObserver implements TraceObserver {
             }
 
             // Handle reactions independently of notification
-            removeReactionIfEnabled(config.reactions?.onStart)
+            if (startReactionAdded) {
+                removeReactionIfEnabled(config.reactions?.onStart)
+            }
             addReactionIfEnabled(config.reactions?.onSuccess)
         } else {
             // Workflow was cancelled or failed without calling onFlowError
-            // Only remove reactions and update status, don't post new messages
+            // Best-effort cleanup: always attempt to remove reactions
             removeReactionIfEnabled(config.reactions?.onStart)
             removeReactionIfEnabled(config.reactions?.onError)
             log.debug "Slack plugin: Workflow cancelled, removed reactions"
