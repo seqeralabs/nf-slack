@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://seqeralabs.github.io/nf-slack/latest/0.4.1/getting-started/bot-setup/">
+        <link rel="canonical" href="https://seqeralabs.github.io/nf-slack/latest/0.4.1/getting-started/setup/">
       
       
-        <link rel="prev" href="../quick-start/">
+        <link rel="prev" href="../..">
       
       
-        <link rel="next" href="../webhook-setup/">
+        <link rel="next" href="../../usage/guide/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>Bot Setup - nf-slack</title>
+        <title>Setup - nf-slack</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#slack-bot-setup" class="md-skip">
+        <a href="#setup" class="md-skip">
           Skip to content
         </a>
       
@@ -118,7 +118,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Bot Setup
+              Setup
             
           </span>
         </div>
@@ -351,62 +351,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../installation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Installation
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../quick-start/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Quick Start
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -426,7 +370,7 @@
   <span class="md-ellipsis">
     
   
-    Bot Setup
+    Setup
   
 
     
@@ -444,7 +388,7 @@
   <span class="md-ellipsis">
     
   
-    Bot Setup
+    Setup
   
 
     
@@ -481,10 +425,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step-1-create-a-slack-app" class="md-nav__link">
+  <a href="#1-create-a-slack-app" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 1: Create a Slack App
+        1. Create a Slack App
       
     </span>
   </a>
@@ -492,10 +436,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step-2-add-bot-permissions" class="md-nav__link">
+  <a href="#2-configure-slack-credentials" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 2: Add Bot Permissions
+        2. Configure Slack Credentials
       
     </span>
   </a>
@@ -503,10 +447,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step-3-install-app-and-copy-bot-token" class="md-nav__link">
+  <a href="#3-store-credentials-securely" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 3: Install App and Copy Bot Token
+        3. Store Credentials Securely
       
     </span>
   </a>
@@ -514,10 +458,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step-4-configure-the-channel" class="md-nav__link">
+  <a href="#4-add-the-plugin-to-your-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 4: Configure the Channel
+        4. Add the Plugin to Your Pipeline
       
     </span>
   </a>
@@ -525,60 +469,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step-5-store-your-bot-token-securely" class="md-nav__link">
+  <a href="#5-run-your-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 5: Store Your Bot Token Securely
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Step 5: Store Your Bot Token Securely">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#option-1-environment-variables" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Option 1: Environment Variables
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#option-2-nextflow-secret" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Option 2: Nextflow Secret
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#option-3-configuration-file" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Option 3: Configuration File
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#testing-your-bot" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Testing Your Bot
+        5. Run Your Pipeline
       
     </span>
   </a>
@@ -611,34 +505,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../webhook-setup/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Webhook Setup
-  
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -710,70 +576,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../usage/automatic-notifications/" class="md-nav__link">
+      <a href="../../usage/guide/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Automatic Notifications
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../usage/custom-messages/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Custom Messages
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../usage/configuration/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Configuration
+    Guide
   
 
     
@@ -995,6 +805,33 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../BUILD/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -1012,7 +849,7 @@
 
 
   
-    <a href="https://github.com/seqeralabs/nf-slack/edit/main/docs/getting-started/bot-setup.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/seqeralabs/nf-slack/edit/main/docs/getting-started/setup.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -1020,116 +857,141 @@
   
 
 
-<h1 id="slack-bot-setup">Slack Bot Setup<a class="headerlink" href="#slack-bot-setup" title="Permanent link">&para;</a></h1>
-<p>This guide will walk you through setting up Slack Bot authentication for your workspace. Bot authentication is the <strong>recommended method</strong> as it's more secure, more capable, and easier to manage than webhooks.</p>
+<h1 id="setup">Setup<a class="headerlink" href="#setup" title="Permanent link">&para;</a></h1>
+<p>Get Slack notifications working with your Nextflow pipeline in minutes.</p>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <ul>
+<li>Nextflow v25.04.0 or later</li>
 <li>A Slack workspace where you have permission to add apps</li>
-<li>Access to your Nextflow pipeline configuration</li>
 </ul>
-<h2 id="step-1-create-a-slack-app">Step 1: Create a Slack App<a class="headerlink" href="#step-1-create-a-slack-app" title="Permanent link">&para;</a></h2>
+<h2 id="1-create-a-slack-app">1. Create a Slack App<a class="headerlink" href="#1-create-a-slack-app" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Go to <a href="https://api.slack.com/apps">Slack API Apps</a></li>
-<li>Click <strong>"Create New App"</strong></li>
-<li>Choose <strong>"From scratch"</strong></li>
-<li>Give your app a name (e.g., "Nextflow Notifications")</li>
-<li>Select your workspace</li>
-<li>Click <strong>"Create App"</strong></li>
+<li>Click <strong>"Create New App"</strong> → <strong>"From scratch"</strong></li>
+<li>Name your app (e.g., "Nextflow Notifications"), select your workspace, and click <strong>"Create App"</strong></li>
 </ol>
-<h2 id="step-2-add-bot-permissions">Step 2: Add Bot Permissions<a class="headerlink" href="#step-2-add-bot-permissions" title="Permanent link">&para;</a></h2>
+<h2 id="2-configure-slack-credentials">2. Configure Slack Credentials<a class="headerlink" href="#2-configure-slack-credentials" title="Permanent link">&para;</a></h2>
+<p>nf-slack supports two authentication methods. <strong>Bot User is recommended</strong> — it supports threading, emoji reactions, and file uploads.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Bot User (Recommended)</label><label for="__tabbed_1_2">Webhook</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p><strong>Add permissions:</strong></p>
 <ol>
-<li>In your app's settings, navigate to <strong>"OAuth &amp; Permissions"</strong> in the sidebar</li>
-<li>Scroll down to <strong>"Scopes"</strong> → <strong>"Bot Token Scopes"</strong></li>
-<li>Click <strong>"Add an OAuth Scope"</strong> and add the following scopes:</li>
-<li><code>chat:write</code> - Required to send messages</li>
-<li><code>chat:write.public</code> - Optional, allows posting to channels without joining them first</li>
+<li>Navigate to <strong>"OAuth &amp; Permissions"</strong> in the sidebar</li>
+<li>Under <strong>"Bot Token Scopes"</strong>, add:<ul>
+<li><code>chat:write</code> — Send messages</li>
+<li><code>chat:write.public</code> — Post to channels without joining <em>(optional)</em></li>
+</ul>
+</li>
 </ol>
-<h2 id="step-3-install-app-and-copy-bot-token">Step 3: Install App and Copy Bot Token<a class="headerlink" href="#step-3-install-app-and-copy-bot-token" title="Permanent link">&para;</a></h2>
+<p><strong>Install and copy token:</strong></p>
 <ol>
-<li>In <strong>"OAuth &amp; Permissions"</strong>, scroll to the top</li>
-<li>Click <strong>"Install to Workspace"</strong></li>
-<li>Review the permissions and click <strong>"Allow"</strong></li>
-<li>You'll see a <strong>"Bot User OAuth Token"</strong> starting with <code>xoxb-</code></li>
+<li>Scroll to the top of <strong>"OAuth &amp; Permissions"</strong></li>
+<li>Click <strong>"Install to Workspace"</strong> → <strong>"Allow"</strong></li>
+<li>Copy the <strong>Bot User OAuth Token</strong> (starts with <code>xoxb-</code>)</li>
 </ol>
-<p>Copy this token - you'll need it for configuration. It will look like:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>xoxb-1234567890-1234567890123-xxxxxxxxxxxxxxxxxxxx
-</span></code></pre></div>
 <div class="admonition warning">
-<p class="admonition-title">Keep Your Bot Token Secret</p>
-<p>This token allows anyone to post messages as your bot. Never commit it to version control or share it publicly.</p>
+<p class="admonition-title">Keep your token secret</p>
+<p>Never commit tokens to version control. See <a href="#3-store-credentials-securely">storing credentials securely</a> below.</p>
 </div>
-<h2 id="step-4-configure-the-channel">Step 4: Configure the Channel<a class="headerlink" href="#step-4-configure-the-channel" title="Permanent link">&para;</a></h2>
-<p>For most cases, you can simply use the channel name (e.g., <code>general</code>, <code>pipelines</code>) in your configuration.</p>
-<p>If you prefer to use a Channel ID (which remains stable even if the channel is renamed), you can find it as follows:</p>
+<p><strong>Test it:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">SLACK_BOT_TOKEN</span><span class="o">=</span><span class="s1">&#39;xoxb-your-token&#39;</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://slack.com/api/chat.postMessage<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$SLACK_BOT_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span>--data<span class="w"> </span><span class="s1">&#39;{&quot;channel&quot;:&quot;general&quot;,&quot;text&quot;:&quot;Test from nf-slack&quot;}&#39;</span>
+</span></code></pre></div>
+</div>
+<div class="tabbed-block">
+<p><strong>Enable webhooks:</strong></p>
 <ol>
-<li>Open Slack and navigate to the channel</li>
-<li>Click the channel name at the top</li>
-<li>Scroll down in the "About" tab</li>
-<li>Copy the <strong>Channel ID</strong> from the bottom (e.g., <code>C1234567890</code>)</li>
+<li>Navigate to <strong>"Incoming Webhooks"</strong> in the sidebar</li>
+<li>Toggle <strong>"On"</strong></li>
+<li>Click <strong>"Add New Webhook to Workspace"</strong></li>
+<li>Select the target channel → <strong>"Allow"</strong></li>
+<li>Copy the webhook URL (starts with <code>https://hooks.slack.com/services/...</code>)</li>
 </ol>
-<p>Alternatively, look at the channel URL in your browser: <code>https://app.slack.com/client/T.../C1234567890</code> (the part starting with <code>C</code>).</p>
-<h2 id="step-5-store-your-bot-token-securely">Step 5: Store Your Bot Token Securely<a class="headerlink" href="#step-5-store-your-bot-token-securely" title="Permanent link">&para;</a></h2>
-<p>You have several options for managing the bot token and channel ID securely:</p>
-<h3 id="option-1-environment-variables">Option 1: Environment Variables<a class="headerlink" href="#option-1-environment-variables" title="Permanent link">&para;</a></h3>
-<p><em>Recommended</em></p>
-<p>Set environment variables:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">SLACK_BOT_TOKEN</span><span class="o">=</span><span class="s1">&#39;xoxb-your-bot-token-here&#39;</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">SLACK_CHANNEL_ID</span><span class="o">=</span><span class="s1">&#39;C1234567890&#39;</span>
+<div class="admonition warning">
+<p class="admonition-title">Keep your webhook URL secret</p>
+<p>Never commit webhook URLs to version control. See <a href="#3-store-credentials-securely">storing credentials securely</a> below.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Webhook limitations</p>
+<p>Webhooks don't support threading, emoji reactions, or file uploads. Use a Bot User for these features.</p>
+</div>
+<p><strong>Test it:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">SLACK_WEBHOOK_URL</span><span class="o">=</span><span class="s1">&#39;https://hooks.slack.com/services/YOUR/WEBHOOK/URL&#39;</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;Content-type: application/json&#39;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>--data<span class="w"> </span><span class="s1">&#39;{&quot;text&quot;:&quot;Test from nf-slack&quot;}&#39;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nv">$SLACK_WEBHOOK_URL</span>
 </span></code></pre></div>
-<p>Then reference them in your <code>nextflow.config</code>:</p>
-<div class="language-groovy highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="n">bot</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">        </span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">System</span><span class="o">.</span><span class="na">getenv</span><span class="o">(</span><span class="s1">&#39;SLACK_BOT_TOKEN&#39;</span><span class="o">)</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">        </span><span class="n">channel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;general&#39;</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="o">}</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="o">}</span>
+</div>
+</div>
+</div>
+<h2 id="3-store-credentials-securely">3. Store Credentials Securely<a class="headerlink" href="#3-store-credentials-securely" title="Permanent link">&para;</a></h2>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Environment Variables (Recommended)</label><label for="__tabbed_2_2">Nextflow Secrets</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Bot</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">SLACK_BOT_TOKEN</span><span class="o">=</span><span class="s1">&#39;xoxb-your-token&#39;</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># Webhook</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="nb">export</span><span class="w"> </span><span class="nv">SLACK_WEBHOOK_URL</span><span class="o">=</span><span class="s1">&#39;https://hooks.slack.com/services/YOUR/WEBHOOK/URL&#39;</span>
 </span></code></pre></div>
-<h3 id="option-2-nextflow-secret">Option 2: Nextflow Secret<a class="headerlink" href="#option-2-nextflow-secret" title="Permanent link">&para;</a></h3>
-<p><em>Better, but supported in fewer places</em></p>
-<p>Use <a href="https://www.nextflow.io/docs/latest/secrets.html">Nextflow secrets</a>:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>nextflow<span class="w"> </span>secrets<span class="w"> </span><span class="nb">set</span><span class="w"> </span>SLACK_BOT_TOKEN<span class="w"> </span><span class="s1">&#39;xoxb-your-bot-token-here&#39;</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>nextflow<span class="w"> </span>secrets<span class="w"> </span><span class="nb">set</span><span class="w"> </span>SLACK_CHANNEL_ID<span class="w"> </span><span class="s1">&#39;C1234567890&#39;</span>
+</div>
+<div class="tabbed-block">
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Bot</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>nextflow<span class="w"> </span>secrets<span class="w"> </span><span class="nb">set</span><span class="w"> </span>SLACK_BOT_TOKEN<span class="w"> </span><span class="s1">&#39;xoxb-your-token&#39;</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Webhook</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>nextflow<span class="w"> </span>secrets<span class="w"> </span><span class="nb">set</span><span class="w"> </span>SLACK_WEBHOOK_URL<span class="w"> </span><span class="s1">&#39;https://hooks.slack.com/services/YOUR/WEBHOOK/URL&#39;</span>
 </span></code></pre></div>
-<p>Then reference it in your config:</p>
-<div class="language-groovy highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="n">bot</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">        </span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">secrets</span><span class="o">.</span><span class="na">SLACK_BOT_TOKEN</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">        </span><span class="n">channel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;general&#39;</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="o">}</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="o">}</span>
+</div>
+</div>
+</div>
+<h2 id="4-add-the-plugin-to-your-pipeline">4. Add the Plugin to Your Pipeline<a class="headerlink" href="#4-add-the-plugin-to-your-pipeline" title="Permanent link">&para;</a></h2>
+<p>Add nf-slack to your <code>nextflow.config</code>:</p>
+<div class="language-groovy highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">plugins</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="s1">&#39;nf-slack@0.4.0&#39;</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="o">}</span>
 </span></code></pre></div>
-<h3 id="option-3-configuration-file">Option 3: Configuration File<a class="headerlink" href="#option-3-configuration-file" title="Permanent link">&para;</a></h3>
-<p>For testing only, you can put it directly in <code>nextflow.config</code>:</p>
+<p>Then add the Slack configuration block:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Bot User</label><label for="__tabbed_3_2">Webhook</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
 <div class="language-groovy highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="n">bot</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">        </span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;xoxb-your-bot-token-here&#39;</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">        </span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">System</span><span class="o">.</span><span class="na">getenv</span><span class="o">(</span><span class="s1">&#39;SLACK_BOT_TOKEN&#39;</span><span class="o">)</span>
 </span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">        </span><span class="n">channel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;general&#39;</span>
 </span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="o">}</span>
 </span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="o">}</span>
 </span></code></pre></div>
-<div class="admonition danger">
-<p class="admonition-title">Don't Commit Bot Tokens</p>
-<p>If you use this option, add your config file to <code>.gitignore</code> to prevent accidentally committing your bot token.</p>
 </div>
-<h2 id="testing-your-bot">Testing Your Bot<a class="headerlink" href="#testing-your-bot" title="Permanent link">&para;</a></h2>
-<p>To verify your bot is working, you can use the Slack API tester or test it with curl:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://slack.com/api/chat.postMessage<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$SLACK_BOT_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span>--data<span class="w"> </span><span class="s2">&quot;{\&quot;channel\&quot;:\&quot;</span><span class="nv">$SLACK_CHANNEL_ID</span><span class="s2">\&quot;,\&quot;text\&quot;:\&quot;Test message from nf-slack\&quot;}&quot;</span>
+<div class="tabbed-block">
+<div class="language-groovy highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="n">webhook</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">        </span><span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;$SLACK_WEBHOOK_URL&quot;</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="o">}</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="o">}</span>
 </span></code></pre></div>
-<p>If this works, you should see a test message in your Slack channel.</p>
+</div>
+</div>
+</div>
+<h2 id="5-run-your-pipeline">5. Run Your Pipeline<a class="headerlink" href="#5-run-your-pipeline" title="Permanent link">&para;</a></h2>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>nextflow<span class="w"> </span>run<span class="w"> </span>main.nf
+</span></code></pre></div>
+<p>You'll receive Slack notifications when your pipeline starts, completes, and fails.</p>
+<p><img alt="Default notifications" src="../../images/nf-slack-00.png" /></p>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
-<p>Now that you have your bot configured, you can:</p>
 <ul>
-<li>Return to the <a href="../quick-start/">Quick Start guide</a> to configure the plugin</li>
-<li>Learn about <a href="../../usage/automatic-notifications/">automatic notifications</a></li>
-<li>Explore <a href="../../usage/custom-messages/">custom messages</a></li>
+<li><a href="../../usage/guide/">Usage Guide</a> — Customize notifications, enable threading, send messages from code</li>
+<li><a href="../../examples/gallery/">Examples</a> — Copy-paste configurations for common scenarios</li>
+<li><a href="../../reference/api/">API Reference</a> — Complete configuration reference</li>
 </ul>
 <h2 id="learn-more">Learn More<a class="headerlink" href="#learn-more" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="https://api.slack.com/bot-users">Slack Bot Users Documentation</a></li>
-<li><a href="https://api.slack.com/authentication/oauth-v2">Slack OAuth &amp; Permissions</a></li>
+<li><a href="https://api.slack.com/messaging/webhooks">Slack Incoming Webhooks Documentation</a></li>
 <li><a href="https://www.nextflow.io/docs/latest/secrets.html">Nextflow Secrets Documentation</a></li>
 </ul>
 
@@ -1167,7 +1029,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../quick-start/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Quick Start">
+          <a href="../.." class="md-footer__link md-footer__link--prev" aria-label="Previous: Home">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1177,20 +1039,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Quick Start
+                Home
               </div>
             </div>
           </a>
         
         
           
-          <a href="../webhook-setup/" class="md-footer__link md-footer__link--next" aria-label="Next: Webhook Setup">
+          <a href="../../usage/guide/" class="md-footer__link md-footer__link--next" aria-label="Next: Guide">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Webhook Setup
+                Guide
               </div>
             </div>
             <div class="md-footer__button md-icon">
