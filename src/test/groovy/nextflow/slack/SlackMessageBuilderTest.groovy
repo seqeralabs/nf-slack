@@ -708,4 +708,175 @@ class SlackMessageBuilderTest extends Specification {
         def actionsBlock = json.blocks.find { it.type == 'actions' }
         actionsBlock == null
     }
+
+    // --- Config-level includeFields tests ---
+
+    def 'should filter start message fields with config-level includeFields'() {
+        given:
+        config = new SlackConfig([
+            enabled: true,
+            webhook: 'https://hooks.slack.com/services/TEST/TEST/TEST',
+            onStart: [
+                enabled: true,
+                includeCommandLine: true,
+                includeFields: ['runName']
+            ]
+        ])
+        messageBuilder = new SlackMessageBuilder(config, session)
+
+        when:
+        def message = messageBuilder.buildWorkflowStartMessage()
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        // Run Name should be present
+        def fieldsBlock = json.blocks.find { it.type == 'section' && it.fields }
+        fieldsBlock.fields.find { it.text.contains('Run Name') }
+
+        // Work Dir and Command Line should be absent
+        !json.blocks.any { it.type == 'section' && it.text?.text?.contains('Work Directory') }
+        !json.blocks.any { it.type == 'section' && it.text?.text?.contains('Command Line') }
+    }
+
+    def 'should filter complete message fields with config-level includeFields'() {
+        given:
+        config = new SlackConfig([
+            enabled: true,
+            webhook: 'https://hooks.slack.com/services/TEST/TEST/TEST',
+            onComplete: [
+                enabled: true,
+                includeResourceUsage: true,
+                includeFields: ['runName', 'duration']
+            ]
+        ])
+        def metadata = Mock(WorkflowMetadata)
+        metadata.scriptName >> 'test-workflow.nf'
+        metadata.duration >> Duration.of('1h')
+        metadata.stats >> null
+        session.workflowMetadata >> metadata
+        messageBuilder = new SlackMessageBuilder(config, session)
+
+        when:
+        def message = messageBuilder.buildWorkflowCompleteMessage()
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        def fieldsBlock = json.blocks.find { it.type == 'section' && it.fields }
+        def fields = fieldsBlock.fields
+        // These should be present
+        fields.find { it.text.contains('Run Name') }
+        fields.find { it.text.contains('Duration') }
+        // Status should be absent
+        !fields.find { it.text.contains('Status') }
+    }
+
+    def 'should show all default fields when includeFields is not set'() {
+        given:
+        config = new SlackConfig([
+            enabled: true,
+            webhook: 'https://hooks.slack.com/services/TEST/TEST/TEST',
+            onComplete: [
+                enabled: true
+            ]
+        ])
+        def metadata = Mock(WorkflowMetadata)
+        metadata.scriptName >> 'test-workflow.nf'
+        metadata.duration >> Duration.of('1h')
+        metadata.stats >> null
+        session.workflowMetadata >> metadata
+        messageBuilder = new SlackMessageBuilder(config, session)
+
+        when:
+        def message = messageBuilder.buildWorkflowCompleteMessage()
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        def fieldsBlock = json.blocks.find { it.type == 'section' && it.fields }
+        def fields = fieldsBlock.fields
+        // All default fields should be present
+        fields.find { it.text.contains('Run Name') }
+        fields.find { it.text.contains('Duration') }
+        fields.find { it.text.contains('Status') }
+    }
+
+    def 'should filter error message fields with config-level includeFields'() {
+        given:
+        config = new SlackConfig([
+            enabled: true,
+            webhook: 'https://hooks.slack.com/services/TEST/TEST/TEST',
+            onError: [
+                enabled: true,
+                includeFields: ['runName', 'errorMessage']
+            ]
+        ])
+        def errorSession = Mock(Session)
+        def metadata = Mock(WorkflowMetadata)
+        metadata.scriptName >> 'test-workflow.nf'
+        metadata.duration >> Duration.of('30m')
+        metadata.errorMessage >> 'Process failed with exit code 1'
+        errorSession.workflowMetadata >> metadata
+        errorSession.runName >> 'test-run'
+        errorSession.commandLine >> 'nextflow run test.nf'
+        def builder = new SlackMessageBuilder(config, errorSession)
+
+        def errorRecord = Mock(nextflow.trace.TraceRecord)
+        errorRecord.get('process') >> 'FAILED_PROCESS'
+
+        when:
+        def message = builder.buildWorkflowErrorMessage(errorRecord)
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        // Run Name should be present
+        def fieldsBlock = json.blocks.find { it.type == 'section' && it.fields }
+        fieldsBlock.fields.find { it.text.contains('Run Name') }
+
+        // Error message should be present
+        def errorBlock = json.blocks.find { it.type == 'section' && it.text?.text?.contains('Error Message') }
+        errorBlock != null
+
+        // Duration, Status, Failed Process should be absent
+        !fieldsBlock.fields.find { it.text.contains('Duration') }
+        !fieldsBlock.fields.find { it.text.contains('Status') }
+        !fieldsBlock.fields.find { it.text.contains('Failed Process') }
+    }
+
+    def 'should include tasks field in complete message when in includeFields'() {
+        given:
+        config = new SlackConfig([
+            enabled: true,
+            webhook: 'https://hooks.slack.com/services/TEST/TEST/TEST',
+            onComplete: [
+                enabled: true,
+                includeResourceUsage: false,
+                includeFields: ['runName', 'tasks']
+            ]
+        ])
+        def stats = Mock(nextflow.trace.WorkflowStats)
+        stats.succeedCount >> 10
+        stats.cachedCount >> 2
+        stats.failedCount >> 1
+        def metadata = Mock(WorkflowMetadata)
+        metadata.scriptName >> 'test-workflow.nf'
+        metadata.duration >> Duration.of('1h')
+        metadata.stats >> stats
+
+        def testSession = Mock(Session)
+        testSession.workflowMetadata >> metadata
+        testSession.runName >> 'test-run'
+        testSession.commandLine >> 'nextflow run test.nf'
+        messageBuilder = new SlackMessageBuilder(config, testSession)
+
+        when:
+        def message = messageBuilder.buildWorkflowCompleteMessage()
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        def fieldsBlock = json.blocks.find { it.type == 'section' && it.fields }
+        def fields = fieldsBlock.fields
+        fields.find { it.text.contains('Run Name') }
+        fields.find { it.text.contains('Tasks') }
+        !fields.find { it.text.contains('Duration') }
+        !fields.find { it.text.contains('Status') }
+    }
 }

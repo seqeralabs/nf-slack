@@ -68,6 +68,13 @@ class OnCompleteConfig {
     final List<String> files
 
     /**
+     * List of workflow metadata field names to include in the notification.
+     * When set, only these fields are shown. When empty/null, all default fields are shown.
+     * Supported: runName, duration, status, tasks, commandLine, workDir
+     */
+    final List<String> includeFields
+
+    /**
      * Create OnCompleteConfig from configuration map
      *
      * @param config Configuration map from slack.onComplete scope
@@ -79,6 +86,7 @@ class OnCompleteConfig {
         this.includeResourceUsage = config?.includeResourceUsage != null ? config.includeResourceUsage as boolean : true
         this.showFooter = config?.showFooter != null ? config.showFooter as boolean : true
         this.files = config?.files != null ? (config.files as List<String>) : []
+        this.includeFields = config?.includeFields != null ? (config.includeFields as List<String>) : []
     }
 
     @Override

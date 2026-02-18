@@ -92,6 +92,15 @@ class SlackMessageBuilder {
     }
 
     /**
+     * Check if a field should be included based on config-level includeFields.
+     * When the list is null or empty, all fields are shown (default behavior).
+     * When set, only listed fields are shown.
+     */
+    private static boolean shouldIncludeField(List<String> includeFields, String fieldName) {
+        return !includeFields || includeFields.contains(fieldName)
+    }
+
+    /**
      * Create a context footer block with timestamp
      */
     private static Map createContextFooter(String status, String timestamp, String workflowName) {
@@ -205,6 +214,7 @@ class SlackMessageBuilder {
      */
     private List buildStartContentBlocks() {
         def blocks = []
+        def includeFields = config.onStart.includeFields
 
         def runName = session.runName ?: 'Unknown run'
 
@@ -214,7 +224,9 @@ class SlackMessageBuilder {
 
         // Build fields
         List<Map> fields = []
-        fields << createMarkdownField('Run Name', runName)
+        if (shouldIncludeField(includeFields, 'runName')) {
+            fields << createMarkdownField('Run Name', runName)
+        }
 
         if (fields) {
             blocks << createDivider()
@@ -222,7 +234,7 @@ class SlackMessageBuilder {
         }
 
         // Add work directory in a separate section if present
-        if (session.workDir) {
+        if (shouldIncludeField(includeFields, 'workDir') && session.workDir) {
             blocks << [
                 type: 'section',
                 text: [
@@ -233,7 +245,7 @@ class SlackMessageBuilder {
         }
 
         // Add command line in a separate section if configured
-        if (config.onStart.includeCommandLine && session.commandLine) {
+        if (shouldIncludeField(includeFields, 'commandLine') && config.onStart.includeCommandLine && session.commandLine) {
             blocks << createCommandLineSection(session.commandLine)
         }
 
@@ -284,6 +296,7 @@ class SlackMessageBuilder {
         }
 
         def blocks = []
+        def includeFields = config.onComplete.includeFields
 
         // Header section
         def messageText = config.onComplete.message instanceof String ? config.onComplete.message : '✅ *Pipeline completed successfully*'
@@ -291,12 +304,18 @@ class SlackMessageBuilder {
 
         // Build fields
         List<Map> fields = []
-        fields << createMarkdownField('Run Name', runName)
-        fields << createMarkdownField('Duration', duration.toString())
-        fields << createMarkdownField('Status', '✅ Success')
+        if (shouldIncludeField(includeFields, 'runName')) {
+            fields << createMarkdownField('Run Name', runName)
+        }
+        if (shouldIncludeField(includeFields, 'duration')) {
+            fields << createMarkdownField('Duration', duration.toString())
+        }
+        if (shouldIncludeField(includeFields, 'status')) {
+            fields << createMarkdownField('Status', '✅ Success')
+        }
 
-        // Add resource usage if configured
-        if (config.onComplete.includeResourceUsage) {
+        // Add resource usage if configured (via includeResourceUsage or includeFields)
+        if (shouldIncludeField(includeFields, 'tasks') && (config.onComplete.includeResourceUsage || includeFields)) {
             def resourceStats = getResourceUsageStats()
             if (resourceStats) {
                 fields << createMarkdownField('Tasks', resourceStats)
@@ -339,6 +358,7 @@ class SlackMessageBuilder {
         }
 
         def blocks = []
+        def includeFields = config.onError.includeFields
 
         // Header section
         def messageText = config.onError.message instanceof String ? config.onError.message : '❌ *Pipeline failed*'
@@ -346,12 +366,17 @@ class SlackMessageBuilder {
 
         // Build fields
         List<Map> fields = []
-        fields << createMarkdownField('Run Name', runName)
-        fields << createMarkdownField('Duration', duration.toString())
-        fields << createMarkdownField('Status', '❌ Failed')
+        if (shouldIncludeField(includeFields, 'runName')) {
+            fields << createMarkdownField('Run Name', runName)
+        }
+        if (shouldIncludeField(includeFields, 'duration')) {
+            fields << createMarkdownField('Duration', duration.toString())
+        }
+        if (shouldIncludeField(includeFields, 'status')) {
+            fields << createMarkdownField('Status', '❌ Failed')
+        }
 
-        // Add failed process info if available
-        if (errorRecord) {
+        if (shouldIncludeField(includeFields, 'failedProcess') && errorRecord) {
             def processName = errorRecord.get('process')
             if (processName) {
                 fields << createMarkdownField('Failed Process', "`${processName}`")
@@ -363,18 +388,18 @@ class SlackMessageBuilder {
             blocks << createFieldsSection(fields)
         }
 
-        // Add error message in a separate section (it can be long)
-        blocks << createDivider()
-        blocks << [
-            type: 'section',
-            text: [
-                type: 'mrkdwn',
-                text: "*Error Message*\n```${errorMessage.take(2000)}${errorMessage.length() > 2000 ? '...' : ''}```"
+        if (shouldIncludeField(includeFields, 'errorMessage')) {
+            blocks << createDivider()
+            blocks << [
+                type: 'section',
+                text: [
+                    type: 'mrkdwn',
+                    text: "*Error Message*\n```${errorMessage.take(2000)}${errorMessage.length() > 2000 ? '...' : ''}```"
+                ]
             ]
-        ]
+        }
 
-        // Add command line if configured
-        if (config.onError.includeCommandLine && session.commandLine) {
+        if (shouldIncludeField(includeFields, 'commandLine') && config.onError.includeCommandLine && session.commandLine) {
             blocks << createCommandLineSection(session.commandLine)
         }
 
