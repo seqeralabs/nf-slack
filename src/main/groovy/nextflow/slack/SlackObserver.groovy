@@ -198,18 +198,12 @@ class SlackObserver implements TraceObserver {
 
             removeReactionIfEnabled(config.reactions?.onStart)
             addReactionIfEnabled(config.reactions?.onSuccess)
-        } else if (!isSuccess && config.onError.enabled) {
+        } else if (!isSuccess) {
             // Workflow was cancelled or failed without calling onFlowError
-            def threadTs = getThreadTsIfEnabled()
-            def message = messageBuilder.buildWorkflowErrorMessage(null, threadTs)
-            sender.sendMessage(message)
-            log.debug "Slack plugin: Sent workflow error notification (cancelled or failed)"
-
-            // Upload configured files
-            uploadConfiguredFiles(config.onError.files, threadTs)
-
+            // Only remove reactions and update status, don't post new messages
             removeReactionIfEnabled(config.reactions?.onStart)
-            addReactionIfEnabled(config.reactions?.onError)
+            removeReactionIfEnabled(config.reactions?.onError)
+            log.debug "Slack plugin: Workflow cancelled, removed reactions"
         }
     }
 

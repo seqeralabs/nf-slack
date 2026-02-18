@@ -723,16 +723,18 @@ class SlackObserverTest extends Specification {
         0 * session.abort(_)
     }
 
-    def 'should send error notification on cancelled workflow'() {
+    def 'should not send notification on cancelled workflow'() {
         given:
-        def mockSender = Mock(SlackSender)
+        def mockSender = Mock(BotSlackSender)
         def mockMessageBuilder = Mock(SlackMessageBuilder)
+        mockSender.getThreadTs() >> '1234567890.123456'
 
         def session = Mock(Session)
         session.config >> [
             slack: [
-                webhook: [
-                    url: 'https://hooks.slack.com/services/TEST/TEST/TEST'
+                bot: [
+                    token: 'xoxb-token',
+                    channel: 'C123456'
                 ],
                 onStart: [
                     enabled: false
@@ -742,6 +744,11 @@ class SlackObserverTest extends Specification {
                 ],
                 onError: [
                     enabled: true
+                ],
+                reactions: [
+                    enabled: true,
+                    onStart: 'rocket',
+                    onError: 'x'
                 ]
             ]
         ]
@@ -760,10 +767,13 @@ class SlackObserverTest extends Specification {
         observer.onFlowComplete()
 
         then:
-        // Should call buildWorkflowErrorMessage, not buildWorkflowCompleteMessage
-        1 * mockMessageBuilder.buildWorkflowErrorMessage(null, _)
+        // Should NOT call any message builder methods
+        0 * mockMessageBuilder.buildWorkflowErrorMessage(_, _)
         0 * mockMessageBuilder.buildWorkflowCompleteMessage(_)
-        1 * mockSender.sendMessage(_)
+        0 * mockSender.sendMessage(_)
+        // Should remove reactions
+        1 * mockSender.removeReaction('rocket', '1234567890.123456')
+        1 * mockSender.removeReaction('x', '1234567890.123456')
         noExceptionThrown()
     }
 
@@ -811,16 +821,18 @@ class SlackObserverTest extends Specification {
         noExceptionThrown()
     }
 
-    def 'should not send notification when onComplete disabled and workflow cancelled'() {
+    def 'should remove reactions when workflow cancelled even if notifications disabled'() {
         given:
-        def mockSender = Mock(SlackSender)
+        def mockSender = Mock(BotSlackSender)
         def mockMessageBuilder = Mock(SlackMessageBuilder)
+        mockSender.getThreadTs() >> '1234567890.123456'
 
         def session = Mock(Session)
         session.config >> [
             slack: [
-                webhook: [
-                    url: 'https://hooks.slack.com/services/TEST/TEST/TEST'
+                bot: [
+                    token: 'xoxb-token',
+                    channel: 'C123456'
                 ],
                 onStart: [
                     enabled: false
@@ -830,6 +842,10 @@ class SlackObserverTest extends Specification {
                 ],
                 onError: [
                     enabled: false  // Disabled
+                ],
+                reactions: [
+                    enabled: true,
+                    onStart: 'rocket'
                 ]
             ]
         ]
@@ -852,6 +868,8 @@ class SlackObserverTest extends Specification {
         0 * mockMessageBuilder.buildWorkflowErrorMessage(_, _)
         0 * mockMessageBuilder.buildWorkflowCompleteMessage(_)
         0 * mockSender.sendMessage(_)
+        // Should still remove reactions
+        1 * mockSender.removeReaction('rocket', '1234567890.123456')
         noExceptionThrown()
     }
 }
