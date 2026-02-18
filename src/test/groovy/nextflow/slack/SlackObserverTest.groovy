@@ -207,6 +207,7 @@ class SlackObserverTest extends Specification {
         ]
         def metadata = Mock(WorkflowMetadata)
         metadata.scriptName >> 'test.nf'
+        metadata.success >> true
         session.workflowMetadata >> metadata
         session.runName >> 'test-run'
 
@@ -218,8 +219,7 @@ class SlackObserverTest extends Specification {
         observer.onFlowComplete()
 
         then:
-        // Verify that getThreadTs was called to retrieve the thread timestamp
-        1 * mockBotSender.getThreadTs()
+        (1.._) * mockBotSender.getThreadTs()
     }
 
     def 'should not use thread timestamp when useThreads disabled'() {
@@ -237,11 +237,15 @@ class SlackObserverTest extends Specification {
                 validateOnStartup: false,
                 onComplete: [
                     enabled: true
+                ],
+                reactions: [
+                    enabled: false
                 ]
             ]
         ]
         def metadata = Mock(WorkflowMetadata)
         metadata.scriptName >> 'test.nf'
+        metadata.success >> true
         session.workflowMetadata >> metadata
         session.runName >> 'test-run'
 
@@ -253,7 +257,7 @@ class SlackObserverTest extends Specification {
         observer.onFlowComplete()
 
         then:
-        // Verify that getThreadTs was NOT called since threading is disabled
+        // Verify that getThreadTs was NOT called since threading is disabled and reactions are off
         0 * mockBotSender.getThreadTs()
     }
 
@@ -350,6 +354,7 @@ class SlackObserverTest extends Specification {
          ]
          def metadata = Mock(WorkflowMetadata)
          metadata.scriptName >> 'test.nf'
+         metadata.success >> true
          session.workflowMetadata >> metadata
          session.runName >> 'test-run'
 

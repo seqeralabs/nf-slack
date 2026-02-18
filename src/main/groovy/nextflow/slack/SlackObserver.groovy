@@ -186,19 +186,22 @@ class SlackObserver implements TraceObserver {
         // Check if the workflow completed successfully or was cancelled/failed
         def isSuccess = session?.workflowMetadata?.success
 
-        if (isSuccess && config.onComplete.enabled) {
-            // Get thread timestamp if threading is enabled and we're using bot sender
-            def threadTs = getThreadTsIfEnabled()
-            def message = messageBuilder.buildWorkflowCompleteMessage(threadTs)
-            sender.sendMessage(message)
-            log.debug "Slack plugin: Sent workflow complete notification"
+        if (isSuccess) {
+            // Send completion message if enabled
+            if (config.onComplete.enabled) {
+                def threadTs = getThreadTsIfEnabled()
+                def message = messageBuilder.buildWorkflowCompleteMessage(threadTs)
+                sender.sendMessage(message)
+                log.debug "Slack plugin: Sent workflow complete notification"
 
-            // Upload configured files
-            uploadConfiguredFiles(config.onComplete.files, threadTs)
+                // Upload configured files
+                uploadConfiguredFiles(config.onComplete.files, threadTs)
+            }
 
+            // Handle reactions independently of notification
             removeReactionIfEnabled(config.reactions?.onStart)
             addReactionIfEnabled(config.reactions?.onSuccess)
-        } else if (!isSuccess) {
+        } else {
             // Workflow was cancelled or failed without calling onFlowError
             // Only remove reactions and update status, don't post new messages
             removeReactionIfEnabled(config.reactions?.onStart)
