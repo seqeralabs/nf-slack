@@ -104,7 +104,7 @@ slack {
 
 Use map-format messages for colors and additional fields:
 
-```groovy title="example/configs/05-custom-fields.config"
+```groovy title="example/configs/04-custom-fields.config"
 plugins {
     id 'nf-slack'
 }
@@ -152,7 +152,7 @@ slack {
 }
 ```
 
-![Custom fields](../images/nf-slack-examples-05.png)
+![Custom fields](../images/nf-slack-examples-04.png)
 
 ---
 
@@ -160,7 +160,7 @@ slack {
 
 Control which workflow metadata fields appear in notifications:
 
-```groovy title="example/configs/06-selective-fields.config"
+```groovy title="example/configs/05-selective-fields.config"
 plugins {
     id 'nf-slack'
 }
@@ -186,7 +186,7 @@ slack {
 }
 ```
 
-![Selective fields](../images/nf-slack-examples-06.png)
+![Selective fields](../images/nf-slack-examples-05.png)
 
 ---
 
@@ -194,7 +194,7 @@ slack {
 
 By default, all notifications are sent in a single thread. This can be disabled to post each message separately:
 
-```groovy title="example/configs/09-threaded-messages.config"
+```groovy title="example/configs/06-threaded-messages.config"
 plugins {
     id 'nf-slack'
 }
@@ -218,7 +218,7 @@ All messages are posted to the channel as separate messages.
 
 Upload files to Slack on pipeline completion:
 
-```groovy title="example/configs/10-file-upload.config"
+```groovy title="example/configs/07-file-upload.config"
 plugins {
     id 'nf-slack'
 }
@@ -316,7 +316,7 @@ workflow.onComplete {
 
 ### Upload Files from Workflow Code
 
-```groovy title="example/scripts/04-file-upload.nf"
+```groovy title="example/scripts/03-file-upload.nf"
 include { slackFileUpload } from 'plugin/nf-slack'
 
 process GENERATE_REPORT {
