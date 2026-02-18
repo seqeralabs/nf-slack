@@ -17,19 +17,7 @@
          <lastmod>2026-02-18</lastmod>
     </url>
     <url>
-         <loc>https://seqeralabs.github.io/nf-slack/latest/dev/getting-started/bot-setup/</loc>
-         <lastmod>2026-02-18</lastmod>
-    </url>
-    <url>
-         <loc>https://seqeralabs.github.io/nf-slack/latest/dev/getting-started/installation/</loc>
-         <lastmod>2026-02-18</lastmod>
-    </url>
-    <url>
-         <loc>https://seqeralabs.github.io/nf-slack/latest/dev/getting-started/quick-start/</loc>
-         <lastmod>2026-02-18</lastmod>
-    </url>
-    <url>
-         <loc>https://seqeralabs.github.io/nf-slack/latest/dev/getting-started/webhook-setup/</loc>
+         <loc>https://seqeralabs.github.io/nf-slack/latest/dev/getting-started/setup/</loc>
          <lastmod>2026-02-18</lastmod>
     </url>
     <url>
@@ -37,15 +25,7 @@
          <lastmod>2026-02-18</lastmod>
     </url>
     <url>
-         <loc>https://seqeralabs.github.io/nf-slack/latest/dev/usage/automatic-notifications/</loc>
-         <lastmod>2026-02-18</lastmod>
-    </url>
-    <url>
-         <loc>https://seqeralabs.github.io/nf-slack/latest/dev/usage/configuration/</loc>
-         <lastmod>2026-02-18</lastmod>
-    </url>
-    <url>
-         <loc>https://seqeralabs.github.io/nf-slack/latest/dev/usage/custom-messages/</loc>
+         <loc>https://seqeralabs.github.io/nf-slack/latest/dev/usage/guide/</loc>
          <lastmod>2026-02-18</lastmod>
     </url>
 </urlset>
