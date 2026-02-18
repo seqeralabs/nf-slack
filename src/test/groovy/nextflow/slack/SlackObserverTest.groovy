@@ -622,11 +622,43 @@ class SlackObserverTest extends Specification {
         observer.setSession(mockSession)
         observer.setMessageBuilder(Mock(SlackMessageBuilder))
 
+        and: 'simulate start reaction having been added'
+        observer.onFlowBegin()
+
         when:
         observer.onFlowComplete()
 
         then:
         1 * mockSender.removeReaction('rocket', '1234567890.123456')
+        1 * mockSender.addReaction('white_check_mark', '1234567890.123456')
+    }
+
+    def 'should not remove start reaction on complete when start was disabled'() {
+        given:
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890'],
+            onStart: [enabled: false],
+            onComplete: [enabled: false],
+            reactions: [enabled: true, onStart: 'rocket', onSuccess: 'white_check_mark']
+        ])
+        def mockSession = Mock(Session)
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.success >> true
+        mockSession.workflowMetadata >> mockMetadata
+        def mockSender = Mock(BotSlackSender)
+        mockSender.getThreadTs() >> '1234567890.123456'
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setSession(mockSession)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        when: 'complete without start reaction having been added'
+        observer.onFlowComplete()
+
+        then:
+        0 * mockSender.removeReaction('rocket', _)
         1 * mockSender.addReaction('white_check_mark', '1234567890.123456')
     }
 
@@ -645,6 +677,9 @@ class SlackObserverTest extends Specification {
         observer.setConfig(config)
         observer.setSender(mockSender)
         observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        and: 'simulate start reaction having been added'
+        observer.onFlowBegin()
 
         when:
         observer.onFlowError(null, errorRecord)

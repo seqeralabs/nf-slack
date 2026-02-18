@@ -42,3 +42,7 @@ test-output/
 # MkDocs build artifacts
 site/
 .cache/
+
+# Files for experimentation
+./main.nf
+./nextflow.config

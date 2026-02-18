@@ -1,167 +1,85 @@
-# Examples Gallery
+# Examples
 
-Comprehensive examples demonstrating nf-slack features, from basic to advanced.
+Complete, runnable examples that demonstrate nf-slack features. Each example can be run directly from the `example/` directory.
 
-## Overview
-
-The examples are organized into two categories:
-
-- **Configuration Examples**: 10 examples showing automatic workflow notifications
-- **Script Examples**: 4 examples showing programmatic message sending
-
-Each example focuses on **one specific aspect** of the plugin, building progressively in complexity.
-
-## Quick Reference
-
-### Configuration Examples (Automatic Notifications)
-
-| Example                                                            | Feature                  | Complexity |
-| ------------------------------------------------------------------ | ------------------------ | ---------- |
-| [Example 1: Minimal Setup](#example-1-minimal-setup)               | Enable notifications     | ⭐         |
-| [Example 2: Notification Control](#example-2-notification-control) | Control when to notify   | ⭐         |
-| [Example 3: Message Text](#example-3-message-text-customization)   | Customize message text   | ⭐⭐       |
-| [Example 4: Message Colors](#example-4-message-colors)             | Customize message colors | ⭐⭐       |
-| [Example 5: Custom Fields](#example-5-custom-fields)               | Add custom fields        | ⭐⭐⭐     |
-| [Example 6: Selective Fields](#example-6-selective-default-fields) | Choose default fields    | ⭐⭐⭐     |
-| [Example 7: Footer Control](#example-7-footer-control)             | Control timestamp footer | ⭐         |
-| [Example 8: Specific Channel ID](#example-8-specific-channel-id)   | Send to specific channel | ⭐         |
-| [Example 9: Threaded Messages](#example-9-threaded-messages)       | Group messages in thread | ⭐⭐       |
-| [Example 10: File Upload](#example-10-file-upload-on-completion)   | Upload files on complete | ⭐⭐       |
-
-### Script Examples (Programmatic Messages)
-
-| Example                                                          | Feature                     | Complexity |
-| ---------------------------------------------------------------- | --------------------------- | ---------- |
-| [Script Example 1](#script-example-1-message-in-workflow)        | Send from workflow body     | ⭐⭐       |
-| [Script Example 2](#script-example-2-message-on-complete)        | Send using onComplete       | ⭐⭐       |
-| [Script Example 3](#script-example-3-message-within-channel)     | Send from channel operators | ⭐⭐⭐     |
-| [Script Example 4](#script-example-4-upload-files-from-workflow) | Upload files from workflow  | ⭐⭐       |
-
-## Getting Started
-
-### Prerequisites
-
-Set up your Bot Token:
-
-```bash
-export SLACK_BOT_TOKEN='xoxb-your-bot-token'
-```
-
-See the [Installation Guide](../getting-started/installation.md) for detailed setup instructions.
-
-### Running Examples
-
-Configuration examples are run by applying them to any workflow:
-
-```bash
-# Clone the repository
-git clone https://github.com/seqeralabs/nf-slack.git
-cd nf-slack
-
-# Run with a configuration example
-nextflow run example/main.nf -c example/configs/01-minimal.config
-```
-
-Script examples are complete workflows:
-
-```bash
-# Run a script example directly
-nextflow run example/scripts/01-message-in-workflow.nf
-```
+!!! tip "Running Examples"
+All config examples can be run with:
+`bash
+    nextflow run main.nf -c configs/<example>.config
+    `
+Script examples run directly:
+`bash
+    nextflow run scripts/<example>.nf -c configs/01-minimal.config
+    `
 
 ---
 
 ## Configuration Examples
 
-Configuration examples show how to set up automatic workflow notifications using the plugin's configuration options.
+### Minimal Setup
 
-### Example 1: Minimal Setup
+The simplest possible configuration — a bot token, channel, and defaults:
 
-**Concept**: Just enable notifications with defaults
+```groovy title="example/configs/01-minimal.config"
+plugins {
+    id 'nf-slack'
+}
 
-**Configuration**:
-
-```groovy title="01-minimal.config"
 slack {
+    enabled = true
     bot {
-        token = System.getenv('SLACK_BOT_TOKEN')
-        channel = 'general'
+        token = System.getenv("SLACK_BOT_TOKEN")
+        channel = System.getenv("SLACK_CHANNEL_ID")
     }
 }
 ```
 
-**What you get**:
+You'll receive start, complete, and error notifications with default formatting.
 
-- ✅ Notifications on start, complete, and error
-- ✅ Default message templates
-- ✅ Default formatting
-
-**Use when**: You want to enable notifications quickly without customization
-
-**Output**:
-
-![Minimal Setup Example](../images/nf-slack-examples-01.png)
+![Minimal notifications](../images/nf-slack-examples-01.png)
 
 ---
 
-### Example 2: Notification Control
+### Notification Control
 
-**Concept**: Choose which events trigger notifications
+Choose which events trigger notifications:
 
-**New concepts**:
+```groovy title="example/configs/02-notification-control.config"
+plugins {
+    id 'nf-slack'
+}
 
-- `onStart.enabled` - Control start notifications
-- `onComplete.enabled` - Control completion notifications
-- `onError.enabled` - Control error notifications
-
-**Configuration**:
-
-```groovy title="02-notification-control.config"
 slack {
+    enabled = true
     bot {
-        token = System.getenv('SLACK_BOT_TOKEN')
-        channel = 'general'
+        token = System.getenv("SLACK_BOT_TOKEN")
+        channel = System.getenv("SLACK_CHANNEL_ID")
     }
 
-    onStart {
-        enabled = false      // Don't notify on start
-    }
-
-    onComplete {
-        enabled = true       // DO notify on completion
-    }
-
-    onError {
-        enabled = true       // DO notify on error
-    }
+    onStart.enabled = false
+    onComplete.enabled = true
+    onError.enabled = true
 }
 ```
 
-**Use when**: You want to reduce notification noise (e.g., only errors and completions)
-
-**Output**:
-
-![Notification Control Example](../images/nf-slack-examples-02.png)
+![Notification control](../images/nf-slack-examples-02.png)
 
 ---
 
-### Example 3: Message Text Customization
+### Custom Message Text
 
-**Concept**: Customize the text in notification messages
+Personalize your notification messages:
 
-**New concepts**:
+```groovy title="example/configs/03-message-text.config"
+plugins {
+    id 'nf-slack'
+}
 
-- `onStart.message` - Custom text for start notifications
-- `onComplete.message` - Custom text for completion notifications
-- `onError.message` - Custom text for error notifications
-
-**Configuration**:
-
-```groovy title="03-message-text.config"
 slack {
+    enabled = true
     bot {
-        token = System.getenv('SLACK_BOT_TOKEN')
-        channel = 'general'
+        token = System.getenv("SLACK_BOT_TOKEN")
+        channel = System.getenv("SLACK_CHANNEL_ID")
     }
 
     onStart {
@@ -178,384 +96,157 @@ slack {
 }
 ```
 
-**Supports**: Slack markdown formatting (`*bold*`, `_italic_`, `` `code` ``)
-
-**Use when**: You want different message text than the defaults
-
-**Output**:
-
-![Message Text Customization Example](../images/nf-slack-examples-03.png)
+![Custom text](../images/nf-slack-examples-03.png)
 
 ---
 
-### Example 4: Message Colors
+### Colors and Custom Fields
 
-**Concept**: Use custom colors for message attachments
+Use map-format messages for colors and additional fields:
 
-**New concepts**:
-
-- Map-based message configuration
-- `color` property for hex color codes
-
-**Configuration**:
-
-```groovy title="04-message-colors.config"
-slack {
-    bot {
-        token = System.getenv('SLACK_BOT_TOKEN')
-        channel = 'general'
-    }
-
-    onStart {
-        message = [
-            text: '🚀 *Pipeline started*',
-            color: '#3AA3E3'  // Blue
-        ]
-    }
-
-    onComplete {
-        message = [
-            text: '✅ *Pipeline completed*',
-            color: '#2EB887'  // Green
-        ]
-    }
-
-    onError {
-        message = [
-            text: '❌ *Pipeline failed*',
-            color: '#A30301'  // Red
-        ]
-    }
-}
-```
-
-**Map structure**:
-
-- `text` - Message text (same as string format)
-- `color` - Hex color code (e.g., `'#FF5733'`)
-
-**Use when**: You want visual distinction with custom colors
-
-**Output**:
-
-![Message Colors Example](../images/nf-slack-examples-04.png)
-
----
-
-### Example 5: Custom Fields
-
-**Concept**: Add your own custom information fields
-
-**New concepts**:
-
-- `customFields` array for additional information
-- Field properties: `title`, `value`, `short`
-
-**Configuration**:
-
-```groovy title="05-custom-fields.config"
-slack {
-    bot {
-        token = System.getenv('SLACK_BOT_TOKEN')
-        channel = 'general'
-    }
-
-    onStart {
-        message = [
-            text: '🚀 *Pipeline started*',
-            color: '#3AA3E3',
-            customFields: [
-                [title: 'Priority', value: 'High', short: true],
-                [title: 'Team', value: 'Bioinformatics', short: true],
-                [title: 'Notes', value: 'Running with increased resources', short: false]
-            ]
-        ]
-    }
-}
-```
-
-**Field structure**:
-
-- `title` - Field label (required)
-- `value` - Field content (required)
-- `short` - Layout: `true` = columns (2 per row), `false` = full width
-
-**Use when**: You want to add extra context to messages
-
-**Output**:
-
-![Custom Fields Example](../images/nf-slack-examples-05.png)
-
----
-
-### Example 6: Selective Default Fields
-
-**Concept**: Choose which built-in workflow information to include
-
-**New concepts**:
-
-- `includeFields` array to select default workflow fields
-- Fine-grained control over message content
-
-**Configuration**:
-
-```groovy title="06-selective-fields.config"
-slack {
-    bot {
-        token = System.getenv('SLACK_BOT_TOKEN')
-        channel = 'general'
-    }
-
-    onStart {
-        message = [
-            text: '🚀 *Pipeline started*',
-            color: '#3AA3E3',
-            includeFields: ['runName', 'status']
-        ]
-    }
-
-    onComplete {
-        message = [
-            text: '✅ *Pipeline completed*',
-            color: '#2EB887',
-            includeFields: ['runName', 'duration', 'status', 'tasks']
-        ]
-    }
-
-    onError {
-        message = [
-            text: '❌ *Pipeline failed*',
-            color: '#A30301',
-            includeFields: ['runName', 'duration', 'errorMessage', 'failedProcess']
-        ]
-    }
-}
-```
-
-**Available fields by event**:
-
-**All messages**:
-
-- `runName` - Nextflow run name
-- `status` - Workflow status
-
-**Start messages only**:
-
-- `commandLine` - Command used to launch workflow
-- `workDir` - Work directory path
-
-**Complete messages only**:
-
-- `duration` - How long the workflow ran
-- `tasks` - Task statistics (cached, completed, failed)
-
-**Error messages only**:
-
-- `duration` - How long before failure
-- `errorMessage` - Error details
-- `failedProcess` - Which process failed
-
-!!! warning "Important"
-
-    If you use map-based config without `includeFields`, NO default fields are included (only your `customFields` if specified).
-
-**Use when**: You want fine-grained control over what information appears
-
-**Output**:
-
-![Selective Fields Example](../images/nf-slack-examples-06.png)
-
----
-
-### Example 7: Footer Control
-
-**Concept**: Control whether messages include a timestamp footer
-
-**New concepts**:
-
-- `showFooter` - Enable/disable timestamp footer per event
-
-**Configuration**:
-
-```groovy title="07-footer-control.config"
-slack {
-    bot {
-        token = System.getenv('SLACK_BOT_TOKEN')
-        channel = 'general'
-    }
-
-    onStart {
-        showFooter = true    // Show timestamp (default)
-    }
-
-    onComplete {
-        showFooter = false   // Hide footer for cleaner look
-    }
-
-    onError {
-        showFooter = true    // Show timestamp on errors
-    }
-}
-```
-
-**Use when**: You want to reduce visual clutter by hiding timestamps on routine notifications.
-
-![Footer Control Example](../images/nf-slack-examples-07.png)
-
----
-
-### Example 8: Specific Channel ID
-
-**Concept**: Send notifications to a specific channel by ID
-
-**Configuration**:
-
-```groovy title="08-channel-id.config"
-slack {
-    bot {
-        token = System.getenv('SLACK_BOT_TOKEN')
-        // You can use a channel ID (e.g. 'C12345678') or a channel name
-        channel = 'C12345678'
-    }
-}
-```
-
-**Use when**: You want to send notifications to a specific channel by ID instead of name.
-
----
-
-### Example 9: Threaded Messages
-
-**Concept**: Group all workflow notifications (start, complete, error) into a single thread
-
-**New concepts**:
-
-- `useThreads` - Enable threading to reduce channel clutter
-- Each workflow run creates a new thread automatically
-
-**Configuration**:
-
-```groovy title="09-threaded-messages.config"
-slack {
-    useThreads = true  // Group all workflow messages in a thread
-
-    bot {
-        token = System.getenv('SLACK_BOT_TOKEN')
-        channel = 'general'
-    }
-
-    onStart {
-        message = '🚀 *Pipeline started*'
-    }
-
-    onComplete {
-        message = '✅ *Pipeline completed successfully*'
-    }
-
-    onError {
-        message = '❌ *Pipeline failed*'
-    }
-}
-```
-
-![Threaded Messages Example](../images/nf-slack-examples-08.png)
-
-**How it works**:
-
-1. The initial "workflow started" message creates a new thread
-2. Subsequent messages (complete/error) are posted as replies to that thread
-3. **Custom messages** sent via `slackMessage()` are also posted in the thread
-4. Each new workflow run creates a separate thread
-
-**Important notes**:
-
-- ⚠️ Threading only works with bot tokens (see [Threading configuration](../usage/configuration.md#threading) for details)
-- ✅ Reduces channel clutter by keeping related messages together
-- ✅ Each workflow run gets its own thread
-- ✅ Custom `slackMessage()` calls are automatically included in the thread
-
-**Use when**: You want to keep workflow notifications organized and reduce noise in busy channels.
-
----
-
-### Example 10: File Upload on Completion
-
-**Concept**: Upload files automatically when the pipeline completes or fails.
-
-**New concepts**:
-
-- `onComplete.files` - Files to upload on successful completion
-- `onError.files` - Files to upload on failure
-- Requires bot token with `files:write` scope
-
-**Configuration**:
-
-```groovy title="10-file-upload.config"
+```groovy title="example/configs/04-custom-fields.config"
 plugins {
-    id 'nf-slack@0.4.0'
+    id 'nf-slack'
 }
 
 slack {
     enabled = true
     bot {
-        token = System.getenv('SLACK_BOT_TOKEN')
-        channel = 'pipeline-results'
+        token = System.getenv("SLACK_BOT_TOKEN")
+        channel = 'general'
+    }
+
+    onStart {
+        message = [
+            text: '🚀 *Pipeline Starting*',
+            color: '#3AA3E3',
+            customFields: [
+                [title: 'Priority', value: 'High', short: true],
+                [title: 'Team', value: 'Bioinformatics', short: true],
+                [title: 'Notes', value: 'Scheduled run for weekly analysis']
+            ]
+        ]
     }
 
     onComplete {
-        message = '✅ *Pipeline completed*'
+        message = [
+            text: '✅ *Pipeline Complete*',
+            color: '#2EB887',
+            customFields: [
+                [title: 'Status', value: 'All samples processed', short: true],
+                [title: 'Quality', value: 'PASS', short: true]
+            ]
+        ]
+    }
+
+    onError {
+        message = [
+            text: '❌ *Pipeline Failed*',
+            color: '#A30200',
+            customFields: [
+                [title: 'Support Contact', value: '#help-pipelines', short: true],
+                [title: 'Action', value: 'Check logs and retry', short: true]
+            ]
+        ]
+    }
+}
+```
+
+![Custom fields](../images/nf-slack-examples-04.png)
+
+---
+
+### Selective Workflow Fields
+
+Control which workflow metadata fields appear in notifications:
+
+```groovy title="example/configs/05-selective-fields.config"
+plugins {
+    id 'nf-slack'
+}
+
+slack {
+    enabled = true
+    bot {
+        token = System.getenv("SLACK_BOT_TOKEN")
+        channel = System.getenv("SLACK_CHANNEL_ID")
+    }
+
+    onStart {
+        includeFields = ['runName', 'status']
+    }
+
+    onComplete {
+        includeFields = ['runName', 'duration', 'status']
+    }
+
+    onError {
+        includeFields = ['runName', 'duration', 'errorMessage', 'failedProcess']
+    }
+}
+```
+
+![Selective fields](../images/nf-slack-examples-05.png)
+
+---
+
+### Threaded Messages
+
+By default, all notifications are sent in a single thread. This can be disabled to post each message separately:
+
+```groovy title="example/configs/06-threaded-messages.config"
+plugins {
+    id 'nf-slack'
+}
+
+slack {
+    enabled = true
+
+    bot {
+        token = System.getenv("SLACK_BOT_TOKEN")
+        channel = 'general'
+    }
+    useThreads = false
+}
+```
+
+All messages are posted to the channel as separate messages.
+
+---
+
+### File Uploads
+
+Upload files to Slack on pipeline completion:
+
+```groovy title="example/configs/07-file-upload.config"
+plugins {
+    id 'nf-slack'
+}
+
+slack {
+    enabled = true
+    bot {
+        token = System.getenv("SLACK_BOT_TOKEN")
+        channel = System.getenv("SLACK_CHANNEL_ID")
+    }
+
+    onComplete {
         files = ['results/multiqc_report.html', 'results/pipeline_report.html']
     }
 
     onError {
-        message = '❌ *Pipeline failed*'
         files = ['results/pipeline_report.html']
     }
 }
 ```
 
-**File upload options**:
-
-- `files` - Array of file paths to upload
-- Relative paths resolve from the launch directory (where you run `nextflow`)
-
-**Use when**: You want to automatically share reports and results files to Slack when workflows complete
-
-See [Custom Messages](../usage/custom-messages.md#file-uploads) for uploading files from within your workflow scripts.
-
 ---
 
 ## Script Examples
 
-Script examples demonstrate how to use the `slackMessage()` function programmatically within your Nextflow workflows.
+### Send Messages from Workflow Code
 
-!!! note "Disable Automatic Notifications"
-
-    These examples disable automatic notifications to avoid duplicate messages. Adjust your configuration:
-
-    ```groovy
-    slack {
-        bot {
-            token = System.getenv("SLACK_BOT_TOKEN")
-            channel = 'general'
-        }
-
-        onStart.enabled = false
-        onComplete.enabled = false
-        onError.enabled = false
-    }
-    ```
-
-### Script Example 1: Message in Workflow
-
-**Concept**: Send a message from the workflow body after processes complete
-
-**Code**:
-
-```groovy title="01-message-in-workflow.nf"
-#!/usr/bin/env nextflow
-
-// Import the Slack messaging function
+```groovy title="example/scripts/01-message-in-workflow.nf"
 include { slackMessage } from 'plugin/nf-slack'
 
 process HELLO {
@@ -563,55 +254,33 @@ process HELLO {
     val sample_id
 
     output:
-    stdout
+    val sample_id
 
     script:
     """
-    echo "Processing sample: ${sample_id}"
-    sleep 2  # Simulate some work
-    echo "${sample_id}_processed"
+    echo "Processing ${sample_id}"
     """
 }
 
 workflow {
-    inputs = channel.of('sample_1', 'sample_2', 'sample_3')
-    HELLO(inputs)
+    samples = Channel.of('sample1', 'sample2', 'sample3')
+    HELLO(samples)
 
-    // Send rich formatted completion message
     slackMessage([
-        message: "Example workflow complete! 🎉",
-        color: "#2EB887",  // Green for success
+        message: '📊 *Pipeline Progress Update*',
         fields: [
-            [title: "Status", value: "Success", short: true],
-            [title: "Samples", value: "3", short: true]
+            [title: 'Status', value: 'Processing started', short: true],
+            [title: 'Samples', value: '3 samples queued', short: true]
         ]
     ])
 }
 ```
 
-**Key features**:
-
-- Uses `slackMessage()` function directly in workflow body
-- Sends message after processes complete
-- Supports same map format as config examples
-
-**Use when**: You want to send a message at a specific point in your workflow logic
-
-**Output**:
-
-![Message in Workflow Example](../images/nf-slack-examples-08.png)
-
 ---
 
-### Script Example 2: Message on Complete
+### Conditional Notifications on Completion
 
-**Concept**: Send a message using the `workflow.onComplete` event handler
-
-**Code**:
-
-```groovy title="02-message-on-complete.nf"
-#!/usr/bin/env nextflow
-
+```groovy title="example/scripts/02-message-on-complete.nf"
 include { slackMessage } from 'plugin/nf-slack'
 
 process HELLO {
@@ -619,170 +288,70 @@ process HELLO {
     val sample_id
 
     output:
-    stdout
-
-    script:
-    """
-    echo "Processing sample: ${sample_id}"
-    """
-}
-
-workflow {
-    inputs = channel.of('sample_1', 'sample_2', 'sample_3')
-    HELLO(inputs)
-
-    // Send message when workflow completes
-    workflow.onComplete = {
-        def status = workflow.success ? '✅ SUCCESS' : '❌ FAILED'
-        def color = workflow.success ? '#2EB887' : '#A30301'
-
-        slackMessage([
-            message: "Workflow ${status}",
-            color: color,
-            fields: [
-                [title: "Duration", value: "${workflow.duration}", short: true]
-            ]
-        ])
-    }
-}
-```
-
-**Key features**:
-
-- Uses `workflow.onComplete` event handler
-- Access to workflow metadata (success status, duration, etc.)
-- Conditional message formatting based on success/failure
-
-**Use when**: You want to send a summary message when the workflow finishes, with access to workflow metadata
-
-**Output**:
-
-![Message on Complete Example](../images/nf-slack-examples-09.png)
-
----
-
-### Script Example 3: Message within Channel
-
-**Concept**: Send messages from within channel operators during processing
-
-**Code**:
-
-```groovy title="03-message-within-channel.nf"
-#!/usr/bin/env nextflow
-
-include { slackMessage } from 'plugin/nf-slack'
-
-process HELLO {
-    input:
     val sample_id
 
-    output:
-    stdout
-
     script:
     """
-    echo "Processing sample: ${sample_id}"
+    echo "Processing ${sample_id}"
     """
 }
 
 workflow {
-    inputs = channel.of('sample_1', 'sample_2', 'sample_3')
-        .map { sample ->
-            // Send a message for each item
-            slackMessage("⚙️ Processing ${sample}")
-            return sample
-        }
+    samples = Channel.of('sample1', 'sample2', 'sample3')
+    HELLO(samples)
+}
 
-    HELLO(inputs)
+workflow.onComplete {
+    def status = workflow.success ? '✅ Success' : '❌ Failed'
+    slackMessage([
+        message: "*Pipeline ${status}*",
+        fields: [
+            [title: 'Duration', value: "${workflow.duration}", short: true]
+        ]
+    ])
 }
 ```
 
-**Key features**:
-
-- Uses `slackMessage()` within channel operator (`.map`)
-- Sends individual messages for each channel item
-- Simple string format for quick notifications
-
-!!! warning "High Volume Usage"
-
-    Be cautious when sending messages in channel operators with many items. Slack has rate limits on incoming webhooks, and sending too many messages rapidly may result in throttling.
-
-**Use when**: You want to send notifications during data processing, tracking progress through a channel
-
-**Output**:
-
-![Message within Channel Example](../images/nf-slack-examples-10.png)
-
 ---
 
-### Script Example 4: Upload Files from Workflow
+### Upload Files from Workflow Code
 
-**Concept**: Upload files directly from your workflow code using `slackFileUpload()`.
-
-**Code**:
-
-```groovy title="04-file-upload.nf"
-#!/usr/bin/env nextflow
-
+```groovy title="example/scripts/03-file-upload.nf"
 include { slackFileUpload } from 'plugin/nf-slack'
 
 process GENERATE_REPORT {
     output:
-    path 'report.html'
+    path 'qc_summary.csv'
 
     script:
     """
-    echo '<html><body>Report</body></html>' > report.html
+    echo "sample,reads,quality" > qc_summary.csv
+    echo "sample1,1000000,38.5" >> qc_summary.csv
+    echo "sample2,1200000,39.1" >> qc_summary.csv
+    echo "sample3,950000,37.8" >> qc_summary.csv
     """
 }
 
 workflow {
-    GENERATE_REPORT()
-        .view { report ->
-            // Simple upload
-            slackFileUpload(report)
+    report = GENERATE_REPORT()
 
-            // Upload with metadata
-            slackFileUpload(
-                file: report,
-                title: 'Quality Control Report',
-                comment: 'QC results for the latest run'
-            )
+    // Simple upload
+    report | map { slackFileUpload(file: it) }
 
-            return report
-        }
+    // Upload with metadata
+    report | map {
+        slackFileUpload(
+            file: it,
+            title: 'QC Summary Report',
+            comment: 'Automatically generated QC metrics'
+        )
+    }
 }
 ```
 
-**Key features**:
-
-- Uses `slackFileUpload()` function directly in workflow
-- Supports simple file path or map-based configuration
-- Can include title and comment metadata
-- Requires bot token with `files:write` scope
-
-**Upload options**:
-
-- `file` - Path to file to upload (required)
-- `title` - Display title for the file (optional)
-- `comment` - Comment to post with the file (optional)
-
-**Use when**: You want to upload files programmatically from within your workflow logic
-
-See [Custom Messages](../usage/custom-messages.md#file-uploads) for all upload options.
-
 ---
 
-## Next Steps
+## What's Next?
 
-- Explore the [API Reference](../reference/api.md) for complete configuration options
-- Learn about [automatic notifications](../usage/automatic-notifications.md)
-- Discover [custom messages](../usage/custom-messages.md)
-
-## All Example Files
-
-All example files are available in the [nf-slack repository](https://github.com/seqeralabs/nf-slack/tree/main/example):
-
-- Configuration examples: `example/configs/`
-- Script examples: `example/scripts/`
-- Base workflow: `example/main.nf`
+- **[Usage Guide](../usage/guide.md)** — All configuration options explained
+- **[API Reference](../reference/api.md)** — Complete property and function reference

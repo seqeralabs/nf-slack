@@ -58,6 +58,7 @@ class SlackObserver implements TraceObserver {
     private long intervalMs
     private final AtomicLong lastUpdateTime = new AtomicLong(0)
     private Timer pendingUpdateTimer
+    private boolean startReactionAdded = false
 
     /**
      * Called when the workflow is created
@@ -142,7 +143,10 @@ class SlackObserver implements TraceObserver {
     @Override
     void onFlowBegin() {
         if (!isConfigured()) return
-        addReactionIfEnabled(config.reactions?.onStart)
+        if (config.onStart.enabled) {
+            addReactionIfEnabled(config.reactions?.onStart)
+            startReactionAdded = true
+        }
         scheduleSeqeraPlatformButtonUpdate()
     }
 
@@ -199,11 +203,13 @@ class SlackObserver implements TraceObserver {
             }
 
             // Handle reactions independently of notification
-            removeReactionIfEnabled(config.reactions?.onStart)
+            if (startReactionAdded) {
+                removeReactionIfEnabled(config.reactions?.onStart)
+            }
             addReactionIfEnabled(config.reactions?.onSuccess)
         } else {
             // Workflow was cancelled or failed without calling onFlowError
-            // Only remove reactions and update status, don't post new messages
+            // Best-effort cleanup: always attempt to remove reactions
             removeReactionIfEnabled(config.reactions?.onStart)
             removeReactionIfEnabled(config.reactions?.onError)
             log.debug "Slack plugin: Workflow cancelled, removed reactions"
@@ -233,7 +239,9 @@ class SlackObserver implements TraceObserver {
             uploadConfiguredFiles(config.onError.files, threadTs)
         }
 
-        removeReactionIfEnabled(config.reactions?.onStart)
+        if (startReactionAdded) {
+            removeReactionIfEnabled(config.reactions?.onStart)
+        }
         addReactionIfEnabled(config.reactions?.onError)
     }
 

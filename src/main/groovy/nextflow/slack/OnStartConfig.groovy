@@ -56,6 +56,13 @@ class OnStartConfig {
     final boolean showFooter
 
     /**
+     * List of workflow metadata field names to include in the notification.
+     * When set, only these fields are shown. When empty/null, all default fields are shown.
+     * Supported: runName, commandLine, workDir
+     */
+    final List<String> includeFields
+
+    /**
      * Create OnStartConfig from configuration map
      *
      * @param config Configuration map from slack.onStart scope
@@ -65,6 +72,7 @@ class OnStartConfig {
         this.message = config?.message ?: '🚀 *Pipeline started*'
         this.includeCommandLine = config?.includeCommandLine != null ? config.includeCommandLine as boolean : true
         this.showFooter = config?.showFooter != null ? config.showFooter as boolean : true
+        this.includeFields = config?.includeFields != null ? (config.includeFields as List<String>) : []
     }
 
     @Override

@@ -7,19 +7,15 @@ edit_uri: edit/main/docs/
 nav:
   - Home: index.md
   - Getting Started:
-      - Installation: getting-started/installation.md
-      - Quick Start: getting-started/quick-start.md
-      - Bot Setup: getting-started/bot-setup.md
-      - Webhook Setup: getting-started/webhook-setup.md
+      - Setup: getting-started/setup.md
   - Usage:
-      - Automatic Notifications: usage/automatic-notifications.md
-      - Custom Messages: usage/custom-messages.md
-      - Configuration: usage/configuration.md
+      - Guide: usage/guide.md
   - Examples:
       - Gallery: examples/gallery.md
   - Reference:
       - API Reference: reference/api.md
   - Contributing: CONTRIBUTING.md
+  - Build: BUILD.md
 
 theme:
   name: material
