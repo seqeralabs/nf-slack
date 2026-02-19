@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-02-19
+
+### Fixed
+
+- Documentation admonition fixes
+- Clarified required bot roles in documentation
+
 ## [0.5.0] - 2026-02-18
 
 ### Added
@@ -239,6 +246,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
+- **[0.5.1]** - Documentation admonition fixes, clarified required bot roles
 - **[0.5.0]** - Seqera Platform deep links, progress updates, emoji reactions, connection validation, bug fixes
 - **[0.4.0]** - File upload support, config-based uploads, remote file support
 - **[0.3.1]** - Documentation updates for bot support and threading features
@@ -248,6 +256,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **[0.1.1]** - Release automation and documentation improvements
 - **[0.1.0]** - Initial release with automatic notifications, custom messages, and progressive configuration examples
 
+[0.5.1]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.5.1
 [0.5.0]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.5.0
 [0.4.0]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.4.0
 [0.3.1]: https://github.com/seqeralabs/nf-slack/releases/tag/v0.3.1

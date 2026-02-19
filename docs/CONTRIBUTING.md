@@ -41,7 +41,7 @@ Thank you for your interest in contributing to nf-slack! This document provides 
 5. **Test with Nextflow**
 
    ```bash
-   nextflow run hello -plugins nf-slack@0.5.0 // Make sure to have the correct version!
+   nextflow run hello -plugins nf-slack@0.5.1 // Make sure to have the correct version!
    ```
 
 ## Development Workflow
