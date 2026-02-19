@@ -31,8 +31,9 @@ slack {
 
 **2. Run your pipeline** — that's it! You'll get Slack notifications automatically.
 
+<!-- prettier-ignore -->
 !!! tip "Need help setting up Slack?"
-See the **[Setup Guide](getting-started/setup.md)** for step-by-step instructions on creating a Slack app and choosing between Bot and Webhook modes.
+    See the **[Setup Guide](getting-started/setup.md)** for step-by-step instructions on creating a Slack app and choosing between Bot and Webhook modes.
 
 ## What Can You Do?
 

@@ -149,8 +149,9 @@ slack {
 
 ## Threading
 
+<!-- prettier-ignore -->
 !!! note "Bot User only"
-Threading requires a Bot User. Webhooks do not support this feature.
+    Threading requires a Bot User. Webhooks do not support this feature.
 
 Group all notifications from a single pipeline run into one Slack thread:
 
@@ -168,8 +169,9 @@ The start notification becomes the parent message. Complete, error, and any cust
 
 ## Emoji Reactions
 
+<!-- prettier-ignore -->
 !!! note "Bot User only"
-Emoji reactions require a Bot User. Webhooks do not support this feature.
+    Emoji reactions require a Bot User. Webhooks do not support this feature.
 
 Add emoji reactions to the start notification to show pipeline status at a glance:
 
@@ -190,8 +192,9 @@ slack {
 
 ## Progress Updates
 
+<!-- prettier-ignore -->
 !!! note "Bot User only"
-Progress updates require a Bot User with threading enabled.
+    Progress updates require a Bot User with threading enabled.
 
 Get periodic progress updates during long-running pipelines:
 
@@ -213,8 +216,9 @@ Progress messages are posted as replies in the pipeline's thread.
 
 ## File Uploads
 
+<!-- prettier-ignore -->
 !!! note "Bot User only"
-File uploads require a Bot User.
+    File uploads require a Bot User.
 
 Attach files (logs, reports, plots) to completion or error notifications:
 
