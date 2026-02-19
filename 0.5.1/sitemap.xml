@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://seqeralabs.github.io/nf-slack/latest/0.5.1/</loc>
+         <lastmod>2026-02-19</lastmod>
+    </url>
+    <url>
+         <loc>https://seqeralabs.github.io/nf-slack/latest/0.5.1/BUILD/</loc>
+         <lastmod>2026-02-19</lastmod>
+    </url>
+    <url>
+         <loc>https://seqeralabs.github.io/nf-slack/latest/0.5.1/CONTRIBUTING/</loc>
+         <lastmod>2026-02-19</lastmod>
+    </url>
+    <url>
+         <loc>https://seqeralabs.github.io/nf-slack/latest/0.5.1/examples/gallery/</loc>
+         <lastmod>2026-02-19</lastmod>
+    </url>
+    <url>
+         <loc>https://seqeralabs.github.io/nf-slack/latest/0.5.1/getting-started/setup/</loc>
+         <lastmod>2026-02-19</lastmod>
+    </url>
+    <url>
+         <loc>https://seqeralabs.github.io/nf-slack/latest/0.5.1/reference/api/</loc>
+         <lastmod>2026-02-19</lastmod>
+    </url>
+    <url>
+         <loc>https://seqeralabs.github.io/nf-slack/latest/0.5.1/usage/guide/</loc>
+         <lastmod>2026-02-19</lastmod>
+    </url>
+</urlset>
