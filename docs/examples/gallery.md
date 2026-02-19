@@ -2,15 +2,16 @@
 
 Complete, runnable examples that demonstrate nf-slack features. Each example can be run directly from the `example/` directory.
 
+<!-- prettier-ignore -->
 !!! tip "Running Examples"
-All config examples can be run with:
-`bash
+    All config examples can be run with:
+    ```bash
     nextflow run main.nf -c configs/<example>.config
-    `
-Script examples run directly:
-`bash
+    ```
+    Script examples run directly:
+    ```bash
     nextflow run scripts/<example>.nf -c configs/01-minimal.config
-    `
+    ```
 
 ---
 

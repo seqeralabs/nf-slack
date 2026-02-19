@@ -25,6 +25,8 @@ nf-slack supports two authentication methods. **Bot User is recommended** — it
     2. Under **"Bot Token Scopes"**, add:
         - `chat:write` — Send messages
         - `chat:write.public` — Post to channels without joining *(optional)*
+        - `reactions:write` — Add emoji reactions *(optional — required for [emoji reactions](../usage/guide.md#emoji-reactions))*
+        - `files:write` — Upload files *(optional — required for [file uploads](../usage/guide.md#file-uploads))*
 
     **Install and copy token:**
 
