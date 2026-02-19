@@ -1195,10 +1195,11 @@
 </span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="o">}</span>
 </span></code></pre></div>
 <h2 id="threading">Threading<a class="headerlink" href="#threading" title="Permanent link">&para;</a></h2>
+<!-- prettier-ignore -->
 <div class="admonition note">
 <p class="admonition-title">Bot User only</p>
-</div>
 <p>Threading requires a Bot User. Webhooks do not support this feature.</p>
+</div>
 <p>Group all notifications from a single pipeline run into one Slack thread:</p>
 <div class="language-groovy highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="n">bot</span><span class="w"> </span><span class="o">{</span>
@@ -1210,10 +1211,11 @@
 </span></code></pre></div>
 <p>The start notification becomes the parent message. Complete, error, and any custom messages sent via <code>slackMessage()</code> appear as replies in the thread.</p>
 <h2 id="emoji-reactions">Emoji Reactions<a class="headerlink" href="#emoji-reactions" title="Permanent link">&para;</a></h2>
+<!-- prettier-ignore -->
 <div class="admonition note">
 <p class="admonition-title">Bot User only</p>
-</div>
 <p>Emoji reactions require a Bot User. Webhooks do not support this feature.</p>
+</div>
 <p>Add emoji reactions to the start notification to show pipeline status at a glance:</p>
 <div class="language-groovy highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
 </span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="n">bot</span><span class="w"> </span><span class="o">{</span>
@@ -1229,10 +1231,11 @@
 </span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="o">}</span>
 </span></code></pre></div>
 <h2 id="progress-updates">Progress Updates<a class="headerlink" href="#progress-updates" title="Permanent link">&para;</a></h2>
+<!-- prettier-ignore -->
 <div class="admonition note">
 <p class="admonition-title">Bot User only</p>
-</div>
 <p>Progress updates require a Bot User with threading enabled.</p>
+</div>
 <p>Get periodic progress updates during long-running pipelines:</p>
 <div class="language-groovy highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="n">bot</span><span class="w"> </span><span class="o">{</span>
@@ -1248,10 +1251,11 @@
 </span></code></pre></div>
 <p>Progress messages are posted as replies in the pipeline's thread.</p>
 <h2 id="file-uploads">File Uploads<a class="headerlink" href="#file-uploads" title="Permanent link">&para;</a></h2>
+<!-- prettier-ignore -->
 <div class="admonition note">
 <p class="admonition-title">Bot User only</p>
-</div>
 <p>File uploads require a Bot User.</p>
+</div>
 <p>Attach files (logs, reports, plots) to completion or error notifications:</p>
 <div class="language-groovy highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">    </span><span class="n">bot</span><span class="w"> </span><span class="o">{</span>
