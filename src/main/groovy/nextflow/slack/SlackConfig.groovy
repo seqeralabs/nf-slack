@@ -90,6 +90,12 @@ class SlackConfig {
     final boolean validateOnStartup
 
     /**
+     * If true, throw an exception (aborting the pipeline) when a Slack notification fails.
+     * Default: false (log warning and continue)
+     */
+    final boolean failOnError
+
+    /**
      * Configuration for workflow start notifications
      */
     final OnStartConfig onStart
@@ -130,6 +136,7 @@ class SlackConfig {
         this.botChannel = botConfig?.channel as String
         this.useThreads = botConfig?.useThreads != null ? botConfig.useThreads as boolean : true
         this.validateOnStartup = config.validateOnStartup != null ? config.validateOnStartup as boolean : true
+        this.failOnError = config.failOnError != null ? config.failOnError as boolean : false
         this.onStart = new OnStartConfig(config.onStart as Map)
         this.onComplete = new OnCompleteConfig(config.onComplete as Map)
         this.onError = new OnErrorConfig(config.onError as Map)
@@ -234,6 +241,7 @@ class SlackConfig {
         return "SlackConfig[enabled=${enabled}, " +
                "webhook=${webhook ? '***configured***' : 'null'}, " +
                "botToken=${botToken ? '***configured***' : 'null'}, " +
+               "failOnError=${failOnError}, " +
                "onStart=${onStart}, onComplete=${onComplete}, onError=${onError}]"
     }
 }
