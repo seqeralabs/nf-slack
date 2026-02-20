@@ -879,4 +879,59 @@ class SlackMessageBuilderTest extends Specification {
         !fields.find { it.text.contains('Duration') }
         !fields.find { it.text.contains('Status') }
     }
+
+    // --- Per-event channel routing tests ---
+
+    def 'should use channel override in start message when provided'() {
+        when:
+        def message = messageBuilder.buildWorkflowStartMessage(null, '#alerts')
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        json.channel == '#alerts'
+    }
+
+    def 'should use default channel when no override in start message'() {
+        when:
+        def message = messageBuilder.buildWorkflowStartMessage(null, null)
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        json.channel == config.botChannel
+    }
+
+    def 'should use channel override in complete message when provided'() {
+        given:
+        def metadata = Mock(WorkflowMetadata)
+        metadata.scriptName >> 'test-workflow.nf'
+        metadata.duration >> Duration.of('1h')
+        session.workflowMetadata >> metadata
+
+        when:
+        def message = messageBuilder.buildWorkflowCompleteMessage(null, '#completed')
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        json.channel == '#completed'
+    }
+
+    def 'should use channel override in error message when provided'() {
+        given:
+        def errorSession = Mock(Session)
+        def metadata = Mock(WorkflowMetadata)
+        metadata.scriptName >> 'test-workflow.nf'
+        metadata.duration >> Duration.of('30m')
+        metadata.errorMessage >> 'Test error'
+        errorSession.workflowMetadata >> metadata
+        errorSession.runName >> 'test-run'
+
+        def builder = new SlackMessageBuilder(config, errorSession)
+
+        when:
+        def message = builder.buildWorkflowErrorMessage(null, null, '#errors')
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        json.channel == '#errors'
+    }
 }

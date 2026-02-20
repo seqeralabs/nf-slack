@@ -256,6 +256,7 @@ class SlackConfigTest extends Specification {
         then:
         config == null
     }
+
     def 'should allow channel name with hash'() {
         given:
         def session = Mock(Session)
@@ -496,5 +497,71 @@ class SlackConfigTest extends Specification {
         then:
         config.seqeraPlatform != null
         config.seqeraPlatform.enabled == false
+    }
+
+    def 'should throw exception for invalid bot token'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [
+            slack: [
+                bot: [
+                    token: 'invalid-token',
+                    channel: 'C123456'
+                ]
+            ]
+        ]
+
+        when:
+        SlackConfig.from(session)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.contains("Bot token must start with 'xoxb-' or 'xoxp-'")
+    }
+
+    def 'should throw exception for invalid bot channel format'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [
+            slack: [
+                bot: [
+                    token: 'xoxb-token',
+                    channel: 'Invalid Channel Name'
+                ]
+            ]
+        ]
+
+        when:
+        SlackConfig.from(session)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.contains("Invalid channel ID format")
+    }
+
+    def 'should parse per-event channel from onStart config'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [slack: [bot: [token: 'xoxb-token', channel: 'C123456'], onStart: [channel: '#alerts']]]
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config.onStart.channel == '#alerts'
+    }
+
+    def 'should have null per-event channel by default'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [slack: [bot: [token: 'xoxb-token', channel: 'C123456']]]
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config.onStart.channel == null
+        config.onComplete.channel == null
+        config.onError.channel == null
     }
 }

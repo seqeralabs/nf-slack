@@ -81,12 +81,13 @@ Configuration for workflow start notifications.
 
 #### Properties
 
-| Property             | Type          | Default                   | Description                            |
-| -------------------- | ------------- | ------------------------- | -------------------------------------- |
-| `enabled`            | Boolean       | `true`                    | Send notification when workflow starts |
-| `message`            | String or Map | `'🚀 *Pipeline started*'` | Start notification message             |
-| `includeCommandLine` | Boolean       | `true`                    | Include command line in message        |
-| `showFooter`         | Boolean       | `true`                    | Show timestamp footer in message       |
+| Property             | Type          | Default                   | Required | Description                                            |
+| -------------------- | ------------- | ------------------------- | -------- | ------------------------------------------------------ |
+| `enabled`            | Boolean       | `true`                    | No       | Send notification when workflow starts                 |
+| `message`            | String or Map | `'🚀 *Pipeline started*'` | No       | Start notification message                             |
+| `includeCommandLine` | Boolean       | `true`                    | No       | Include command line in message                        |
+| `showFooter`         | Boolean       | `true`                    | No       | Show timestamp footer in message                       |
+| `channel`            | String        | `null`                    | No       | Override channel for start notifications (Bot only)    |
 
 #### Message Available Fields
 
@@ -119,14 +120,15 @@ Configuration for workflow completion notifications.
 
 #### Properties
 
-| Property               | Type           | Default                                  | Description                                                   |
-| ---------------------- | -------------- | ---------------------------------------- | ------------------------------------------------------------- |
-| `enabled`              | Boolean        | `true`                                   | Send notification when workflow completes                     |
-| `message`              | String or Map  | `'✅ *Pipeline completed successfully*'` | Completion notification message                               |
-| `includeCommandLine`   | Boolean        | `true`                                   | Include command line in message                               |
-| `includeResourceUsage` | Boolean        | `true`                                   | Include task statistics and resource usage                    |
-| `showFooter`           | Boolean        | `true`                                   | Show timestamp footer in message                              |
-| `files`                | `List<String>` | `[]`                                     | File paths to upload after completion notification (Bot only) |
+| Property               | Type           | Default                                  | Required | Description                                                       |
+| ---------------------- | -------------- | ---------------------------------------- | -------- | ----------------------------------------------------------------- |
+| `enabled`              | Boolean        | `true`                                   | No       | Send notification when workflow completes                         |
+| `message`              | String or Map  | `'✅ *Pipeline completed successfully*'` | No       | Completion notification message                                   |
+| `includeCommandLine`   | Boolean        | `true`                                   | No       | Include command line in message                                   |
+| `includeResourceUsage` | Boolean        | `true`                                   | No       | Include task statistics and resource usage                        |
+| `showFooter`           | Boolean        | `true`                                   | No       | Show timestamp footer in message                                  |
+| `files`                | `List<String>` | `[]`                                     | No       | File paths to upload after completion notification (Bot only)     |
+| `channel`              | String         | `null`                                   | No       | Override channel for completion notifications (Bot only)          |
 
 <!-- prettier-ignore -->
 !!! note
@@ -165,13 +167,14 @@ Configuration for workflow error notifications.
 
 #### Properties
 
-| Property             | Type           | Default                  | Description                                              |
-| -------------------- | -------------- | ------------------------ | -------------------------------------------------------- |
-| `enabled`            | Boolean        | `true`                   | Send notification when workflow fails                    |
-| `message`            | String or Map  | `'❌ *Pipeline failed*'` | Error notification message                               |
-| `includeCommandLine` | Boolean        | `true`                   | Include command line in message                          |
-| `showFooter`         | Boolean        | `true`                   | Show timestamp footer in message                         |
-| `files`              | `List<String>` | `[]`                     | File paths to upload after error notification (Bot only) |
+| Property             | Type           | Default                  | Required | Description                                                  |
+| -------------------- | -------------- | ------------------------ | -------- | ------------------------------------------------------------ |
+| `enabled`            | Boolean        | `true`                   | No       | Send notification when workflow fails                        |
+| `message`            | String or Map  | `'❌ *Pipeline failed*'` | No       | Error notification message                                   |
+| `includeCommandLine` | Boolean        | `true`                   | No       | Include command line in message                              |
+| `showFooter`         | Boolean        | `true`                   | No       | Show timestamp footer in message                             |
+| `files`              | `List<String>` | `[]`                     | No       | File paths to upload after error notification (Bot only)     |
+| `channel`            | String         | `null`                   | No       | Override channel for error notifications (Bot only)          |
 
 ### `slack.seqeraPlatform`
 
