@@ -98,9 +98,13 @@ class SlackObserver implements TraceObserver {
 
         // Send workflow started notification if enabled
         if (config.onStart.enabled) {
-            def message = messageBuilder.buildWorkflowStartMessage()
-            sender.sendMessage(message)
-            log.debug "Slack plugin: Sent workflow start notification"
+            try {
+                def message = messageBuilder.buildWorkflowStartMessage()
+                sender.sendMessage(message)
+                log.debug "Slack plugin: Sent workflow start notification"
+            } catch (Exception e) {
+                handleNotificationError("send workflow start notification", e)
+            }
         }
 
         // Set up progress updates if enabled and using bot sender
@@ -193,13 +197,17 @@ class SlackObserver implements TraceObserver {
         if (isSuccess) {
             // Send completion message if enabled
             if (config.onComplete.enabled) {
-                def threadTs = getThreadTsIfEnabled()
-                def message = messageBuilder.buildWorkflowCompleteMessage(threadTs)
-                sender.sendMessage(message)
-                log.debug "Slack plugin: Sent workflow complete notification"
+                try {
+                    def threadTs = getThreadTsIfEnabled()
+                    def message = messageBuilder.buildWorkflowCompleteMessage(threadTs)
+                    sender.sendMessage(message)
+                    log.debug "Slack plugin: Sent workflow complete notification"
+                } catch (Exception e) {
+                    handleNotificationError("send workflow complete notification", e)
+                }
 
                 // Upload configured files
-                uploadConfiguredFiles(config.onComplete.files, threadTs)
+                uploadConfiguredFiles(config.onComplete.files, getThreadTsIfEnabled())
             }
 
             // Handle reactions independently of notification
@@ -229,14 +237,17 @@ class SlackObserver implements TraceObserver {
         if (!isConfigured()) return
 
         if (config.onError.enabled) {
-            // Get thread timestamp if threading is enabled and we're using bot sender
-            def threadTs = getThreadTsIfEnabled()
-            def message = messageBuilder.buildWorkflowErrorMessage(trace, threadTs)
-            sender.sendMessage(message)
-            log.debug "Slack plugin: Sent workflow error notification"
+            try {
+                def threadTs = getThreadTsIfEnabled()
+                def message = messageBuilder.buildWorkflowErrorMessage(trace, threadTs)
+                sender.sendMessage(message)
+                log.debug "Slack plugin: Sent workflow error notification"
+            } catch (Exception e) {
+                handleNotificationError("send workflow error notification", e)
+            }
 
             // Upload configured files
-            uploadConfiguredFiles(config.onError.files, threadTs)
+            uploadConfiguredFiles(config.onError.files, getThreadTsIfEnabled())
         }
 
         if (startReactionAdded) {
@@ -246,7 +257,8 @@ class SlackObserver implements TraceObserver {
     }
 
     /**
-     * Upload files configured in the notification config
+     * Upload files configured in the notification config.
+     * Respects failOnError: throws on failure when enabled, logs and continues otherwise.
      */
     private void uploadConfiguredFiles(List<String> files, String threadTs) {
         if (!files) return
@@ -262,13 +274,14 @@ class SlackObserver implements TraceObserver {
                 log.debug "Slack plugin: Uploaded file ${filePath}"
             }
             catch (Exception e) {
-                log.warn "Slack plugin: Failed to upload file ${filePath}: ${e.message}"
+                handleNotificationError("upload file ${filePath}", e)
             }
         }
     }
 
     /**
-     * Add an emoji reaction to the start message if reactions are enabled
+     * Add an emoji reaction to the start message if reactions are enabled.
+     * Respects failOnError: throws on failure when enabled, logs and continues otherwise.
      */
     private void addReactionIfEnabled(String emoji) {
         if (!emoji) return
@@ -282,12 +295,13 @@ class SlackObserver implements TraceObserver {
             }
         }
         catch (Exception e) {
-            log.debug "Slack plugin: Failed to add reaction: ${e.message}"
+            handleNotificationError("add reaction '${emoji}'", e)
         }
     }
 
     /**
-     * Remove an emoji reaction from the start message if reactions are enabled
+     * Remove an emoji reaction from the start message if reactions are enabled.
+     * Respects failOnError: throws on failure when enabled, logs and continues otherwise.
      */
     private void removeReactionIfEnabled(String emoji) {
         if (!emoji) return
@@ -301,7 +315,7 @@ class SlackObserver implements TraceObserver {
             }
         }
         catch (Exception e) {
-            log.debug "Slack plugin: Failed to remove reaction: ${e.message}"
+            handleNotificationError("remove reaction '${emoji}'", e)
         }
     }
 
@@ -313,6 +327,23 @@ class SlackObserver implements TraceObserver {
             return (sender as BotSlackSender).getThreadTs()
         }
         return null
+    }
+
+    /**
+     * Handle a notification error based on failOnError configuration.
+     * When failOnError is false (default): logs a warning and continues.
+     * When failOnError is true: logs a warning and throws to abort the pipeline.
+     *
+     * @param description Human-readable description of the failed operation
+     * @param e The exception that caused the failure
+     * @throws RuntimeException if failOnError is true
+     */
+    private void handleNotificationError(String description, Exception e) {
+        def msg = "Slack plugin: Failed to ${description}: ${e.message}"
+        log.warn msg
+        if (config?.failOnError) {
+            throw new RuntimeException(msg, e)
+        }
     }
 
     /**

@@ -17,6 +17,7 @@
 package nextflow.slack
 
 import spock.lang.Specification
+import java.net.ConnectException
 import java.nio.file.Path
 
 /**
@@ -32,22 +33,22 @@ class BotSlackSenderTest extends Specification {
         sender != null
     }
 
-    def 'should handle message sending gracefully'() {
+    def 'should throw exception when sending message fails'() {
         when:
         def sender = new BotSlackSender('xoxb-token', 'C123456')
         sender.sendMessage('{"text":"test"}')
 
         then:
-        noExceptionThrown()
+        thrown(RuntimeException)
     }
 
-    def 'should handle invalid JSON gracefully'() {
+    def 'should throw exception for invalid JSON payload'() {
         when:
         def sender = new BotSlackSender('xoxb-token', 'C123456')
         sender.sendMessage('not valid json')
 
         then:
-        noExceptionThrown()
+        thrown(RuntimeException)
     }
 
     def 'should return null for threadTs initially'() {
@@ -69,7 +70,7 @@ class BotSlackSenderTest extends Specification {
         threadTs == null || threadTs instanceof String
     }
 
-    def 'should handle file upload gracefully when API is unreachable'() {
+    def 'should throw exception when file upload API is unreachable'() {
         given:
         def sender = new BotSlackSender('xoxb-token', 'C123456')
         def tempFile = File.createTempFile('test', '.txt')
@@ -79,13 +80,13 @@ class BotSlackSenderTest extends Specification {
         sender.uploadFile(tempFile.toPath(), [:])
 
         then:
-        noExceptionThrown()
+        thrown(RuntimeException)
 
         cleanup:
         tempFile.delete()
     }
 
-    def 'should handle file upload for non-existent file gracefully'() {
+    def 'should throw exception for non-existent file'() {
         given:
         def sender = new BotSlackSender('xoxb-token', 'C123456')
         def nonExistentPath = java.nio.file.Paths.get('/tmp/non-existent-file-' + System.nanoTime() + '.txt')
@@ -94,10 +95,10 @@ class BotSlackSenderTest extends Specification {
         sender.uploadFile(nonExistentPath, [:])
 
         then:
-        noExceptionThrown()
+        thrown(IllegalArgumentException)
     }
 
-    def 'should handle file upload for empty file gracefully'() {
+    def 'should throw exception for empty file'() {
         given:
         def sender = new BotSlackSender('xoxb-token', 'C123456')
         def emptyFile = File.createTempFile('test-empty', '.txt')
@@ -107,13 +108,13 @@ class BotSlackSenderTest extends Specification {
         sender.uploadFile(emptyFile.toPath(), [:])
 
         then:
-        noExceptionThrown()
+        thrown(IllegalArgumentException)
 
         cleanup:
         emptyFile.delete()
     }
 
-    def 'should handle file upload for unreadable file gracefully'() {
+    def 'should throw exception for unreadable file'() {
         given:
         def sender = new BotSlackSender('xoxb-token', 'C123456')
         def unreadableFile = File.createTempFile('test-unreadable', '.txt')
@@ -124,14 +125,14 @@ class BotSlackSenderTest extends Specification {
         sender.uploadFile(unreadableFile.toPath(), [:])
 
         then:
-        noExceptionThrown()
+        thrown(IllegalArgumentException)
 
         cleanup:
         unreadableFile.setReadable(true)
         unreadableFile.delete()
     }
 
-    def 'should accept file upload with custom options'() {
+    def 'should throw exception when upload API unreachable even with custom options'() {
         given:
         def sender = new BotSlackSender('xoxb-token', 'C123456')
         def tempFile = File.createTempFile('test-options', '.png')
@@ -146,14 +147,13 @@ class BotSlackSenderTest extends Specification {
         ])
 
         then:
-        // API call will fail but should not throw (graceful handling)
-        noExceptionThrown()
+        thrown(RuntimeException)
 
         cleanup:
         tempFile.delete()
     }
 
-    def 'should use filename from path when not specified in options'() {
+    def 'should throw exception when upload API unreachable using default filename'() {
         given:
         def sender = new BotSlackSender('xoxb-token', 'C123456')
         def tempFile = File.createTempFile('test-default-name', '.txt')
@@ -163,8 +163,7 @@ class BotSlackSenderTest extends Specification {
         sender.uploadFile(tempFile.toPath(), [:])
 
         then:
-        // Graceful handling - API unreachable but no exception
-        noExceptionThrown()
+        thrown(RuntimeException)
 
         cleanup:
         tempFile.delete()
@@ -244,7 +243,7 @@ class BotSlackSenderTest extends Specification {
          tempFile?.delete()
      }
 
-     def 'should stop upload flow when getUploadUrl fails'() {
+     def 'should throw exception and stop upload flow when getUploadUrl fails'() {
          given:
          def uploadContentCalled = false
          def completeUploadCalled = false
@@ -270,7 +269,7 @@ class BotSlackSenderTest extends Specification {
          sender.uploadFile(tempFile.toPath(), [:])
 
          then:
-         noExceptionThrown()
+         thrown(RuntimeException)
          !uploadContentCalled
          !completeUploadCalled
 
@@ -278,7 +277,7 @@ class BotSlackSenderTest extends Specification {
          tempFile?.delete()
      }
 
-    def 'should call updateMessage gracefully when API is unreachable'() {
+    def 'should throw exception when updateMessage API is unreachable'() {
         given:
         def sender = new BotSlackSender('xoxb-test-token', 'C123456')
 
@@ -286,10 +285,10 @@ class BotSlackSenderTest extends Specification {
         sender.updateMessage('{"text":"progress update"}', '1234567890.123456')
 
         then:
-        noExceptionThrown()
+        thrown(RuntimeException)
     }
 
-    def 'should add reaction gracefully when API unreachable' () {
+    def 'should propagate exception from addReaction when API unreachable' () {
         given:
         def sender = new BotSlackSender('xoxb-test-token', 'C123456') {
             @Override
@@ -302,7 +301,7 @@ class BotSlackSenderTest extends Specification {
         sender.addReaction('white_check_mark', '1234567890.123456')
 
         then:
-        noExceptionThrown()
+        thrown(ConnectException)
     }
 
     def 'should call postReaction with correct parameters' () {
@@ -325,7 +324,7 @@ class BotSlackSenderTest extends Specification {
         capturedTs == '1234567890.123456'
      }
 
-    def 'should remove reaction gracefully when API unreachable' () {
+    def 'should propagate exception from removeReaction when API unreachable' () {
         given:
         def sender = new BotSlackSender('xoxb-test-token', 'C123456') {
             @Override
@@ -338,7 +337,7 @@ class BotSlackSenderTest extends Specification {
         sender.removeReaction('rocket', '1234567890.123456')
 
         then:
-        noExceptionThrown()
+        thrown(ConnectException)
     }
 
     def 'should call deleteReaction with correct parameters' () {
@@ -361,7 +360,7 @@ class BotSlackSenderTest extends Specification {
         capturedTs == '1234567890.123456'
     }
 
-    def 'should handle non-200 HTTP response from postReaction without throwing' () {
+    def 'should throw exception on non-200 HTTP response from postReaction' () {
         given:
         def sender = new BotSlackSender('xoxb-test-token', 'C123456')
 
@@ -369,7 +368,7 @@ class BotSlackSenderTest extends Specification {
         sender.addReaction('rocket', '1234567890.123456')
 
         then:
-        noExceptionThrown()
+        thrown(Exception)
     }
 
     def 'should return false when validate hits unreachable endpoint'() {

@@ -52,7 +52,6 @@ class BotSlackSender implements SlackSender {
 
     private final String botToken
     private final String channelId
-    private final Set<String> loggedErrors = Collections.synchronizedSet(new HashSet<String>())
     private String threadTs  // Store the thread timestamp for threaded conversations
     private String resolvedChannelId  // Channel ID resolved from Slack API response
 
@@ -68,22 +67,15 @@ class BotSlackSender implements SlackSender {
     }
 
     /**
-     * Send a message to Slack via Web API
+     * Send a message to Slack via Web API.
+     * Throws a RuntimeException if the message cannot be delivered.
      *
      * @param message JSON message payload (must be compatible with chat.postMessage)
+     * @throws RuntimeException if the API call fails
      */
     @Override
     void sendMessage(String message) {
-        try {
-            // Message is already formatted by SlackMessageBuilder with channel ID
-            postToSlack(message)
-
-        } catch (Exception e) {
-            def errorMsg = "Slack plugin: Error sending bot message: ${e.message}".toString()
-            if (loggedErrors.add(errorMsg)) {
-                log.error errorMsg
-            }
-        }
+        postToSlack(message)
     }
 
     /**
@@ -92,76 +84,69 @@ class BotSlackSender implements SlackSender {
      * 2. Upload the file content to that URL
      * 3. Call files.completeUploadExternal to finalize and share
      *
+     * Throws a RuntimeException if the upload fails at any step.
+     *
      * @param filePath Path to the file to upload
      * @param options Map with optional keys: title, comment, filename, threadTs
+     * @throws IllegalArgumentException if the file is invalid
+     * @throws RuntimeException if the upload fails
      */
     @Override
     void uploadFile(Path filePath, Map options) {
-        try {
-            if (filePath == null) {
-                log.error "Slack plugin: File path is required for file upload"
-                return
-            }
-
-            if (!Files.exists(filePath)) {
-                log.error "Slack plugin: File not found: ${filePath}"
-                return
-            }
-
-            if (!Files.isReadable(filePath)) {
-                log.error "Slack plugin: File is not readable: ${filePath}"
-                return
-            }
-
-            def fileSize = Files.size(filePath)
-            if (fileSize == 0) {
-                log.error "Slack plugin: Cannot upload empty file: ${filePath}"
-                return
-            }
-
-            if (fileSize > MAX_FILE_SIZE) {
-                log.error "Slack plugin: File exceeds maximum size of ${MAX_FILE_SIZE / (1024 * 1024)}MB: ${filePath}"
-                return
-            }
-
-            def filename = (options?.filename as String) ?: filePath.getFileName().toString()
-            def title = (options?.title as String) ?: filename
-            def comment = options?.comment as String
-            def threadTs = options?.threadTs as String
-
-            // Step 1: Get upload URL
-            def uploadInfo = getUploadUrl(filename, fileSize)
-            if (!uploadInfo) {
-                return
-            }
-
-            def uploadUrl = uploadInfo.upload_url as String
-            def fileId = uploadInfo.file_id as String
-
-            // Step 2: Upload file content
-            if (!uploadFileContent(uploadUrl, filePath)) {
-                return
-            }
-
-            // Step 3: Complete the upload
-            completeUpload(fileId, title, channelId, comment, threadTs)
-
-            log.debug "Slack plugin: Successfully uploaded file: ${filename}"
-
-        } catch (Exception e) {
-            def errorMsg = "Slack plugin: Error uploading file: ${e.message}".toString()
-            if (loggedErrors.add(errorMsg)) {
-                log.error errorMsg
-            }
+        if (filePath == null) {
+            throw new IllegalArgumentException("Slack plugin: File path is required for file upload")
         }
+
+        if (!Files.exists(filePath)) {
+            throw new IllegalArgumentException("Slack plugin: File not found: ${filePath}")
+        }
+
+        if (!Files.isReadable(filePath)) {
+            throw new IllegalArgumentException("Slack plugin: File is not readable: ${filePath}")
+        }
+
+        def fileSize = Files.size(filePath)
+        if (fileSize == 0) {
+            throw new IllegalArgumentException("Slack plugin: Cannot upload empty file: ${filePath}")
+        }
+
+        if (fileSize > MAX_FILE_SIZE) {
+            throw new IllegalArgumentException("Slack plugin: File exceeds maximum size of ${MAX_FILE_SIZE / (1024 * 1024)}MB: ${filePath}")
+        }
+
+        def filename = (options?.filename as String) ?: filePath.getFileName().toString()
+        def title = (options?.title as String) ?: filename
+        def comment = options?.comment as String
+        def threadTs = options?.threadTs as String
+
+        // Step 1: Get upload URL (throws on failure)
+        def uploadInfo = getUploadUrl(filename, fileSize)
+        if (!uploadInfo) {
+            throw new RuntimeException("Slack plugin: Failed to get upload URL for file: ${filename}")
+        }
+
+        def uploadUrl = uploadInfo.upload_url as String
+        def fileId = uploadInfo.file_id as String
+
+        // Step 2: Upload file content (throws on failure)
+        if (!uploadFileContent(uploadUrl, filePath)) {
+            throw new RuntimeException("Slack plugin: Failed to upload file content for: ${filename}")
+        }
+
+        // Step 3: Complete the upload (throws on failure)
+        completeUpload(fileId, title, channelId, comment, threadTs)
+
+        log.debug "Slack plugin: Successfully uploaded file: ${filename}"
     }
 
     /**
-     * Step 1: Get an external upload URL from Slack
+     * Step 1: Get an external upload URL from Slack.
+     * Throws a RuntimeException on failure.
      *
      * @param filename The filename to upload
      * @param length The file size in bytes
-     * @return Map with upload_url and file_id, or null on failure
+     * @return Map with upload_url and file_id
+     * @throws RuntimeException if the API call fails
      */
     protected Map getUploadUrl(String filename, long length) {
         HttpURLConnection connection = null
@@ -175,35 +160,35 @@ class BotSlackSender implements SlackSender {
             def responseCode = connection.responseCode
             if (responseCode != 200) {
                 def errorBody = connection.errorStream?.text ?: ""
-                log.error "Slack plugin: Failed to get upload URL - HTTP ${responseCode}: ${errorBody}"
-                return null
+                throw new RuntimeException("Slack plugin: Failed to get upload URL - HTTP ${responseCode}: ${errorBody}")
             }
 
             def responseText = connection.inputStream.text
             def response = new JsonSlurper().parseText(responseText) as Map
 
             if (!response.ok) {
-                def error = response.error
-                log.error "Slack plugin: Failed to get upload URL - API error: ${error}"
-                return null
+                throw new RuntimeException("Slack plugin: Failed to get upload URL - API error: ${response.error}")
             }
 
             return response
 
+        } catch (RuntimeException e) {
+            throw e
         } catch (Exception e) {
-            log.error "Slack plugin: Error getting upload URL: ${e.message}"
-            return null
+            throw new RuntimeException("Slack plugin: Error getting upload URL: ${e.message}", e)
         } finally {
             connection?.disconnect()
         }
     }
 
     /**
-     * Step 2: Upload file content to the external URL
+     * Step 2: Upload file content to the external URL.
+     * Throws a RuntimeException on failure.
      *
      * @param uploadUrl The URL to upload to (from Step 1)
      * @param filePath The file to upload
      * @return true if successful
+     * @throws RuntimeException if the upload fails
      */
     protected boolean uploadFileContent(String uploadUrl, Path filePath) {
         HttpURLConnection connection = null
@@ -222,28 +207,30 @@ class BotSlackSender implements SlackSender {
             def responseCode = connection.responseCode
             if (responseCode != 200) {
                 def errorBody = connection.errorStream?.text ?: ""
-                log.error "Slack plugin: Failed to upload file content - HTTP ${responseCode}: ${errorBody}"
-                return false
+                throw new RuntimeException("Slack plugin: Failed to upload file content - HTTP ${responseCode}: ${errorBody}")
             }
 
             return true
 
+        } catch (RuntimeException e) {
+            throw e
         } catch (Exception e) {
-            log.error "Slack plugin: Error uploading file content: ${e.message}"
-            return false
+            throw new RuntimeException("Slack plugin: Error uploading file content: ${e.message}", e)
         } finally {
             connection?.disconnect()
         }
     }
 
     /**
-     * Step 3: Complete the file upload and share to channel
+     * Step 3: Complete the file upload and share to channel.
+     * Throws a RuntimeException on failure.
      *
      * @param fileId The file ID from Step 1
      * @param title The title to display for the file
      * @param channelId The channel to share the file in
      * @param comment Optional initial comment
      * @param threadTs Optional thread timestamp for threading
+     * @throws RuntimeException if the API call fails
      */
     protected void completeUpload(String fileId, String title, String channelId, String comment, String threadTs) {
         HttpURLConnection connection = null
@@ -277,20 +264,20 @@ class BotSlackSender implements SlackSender {
             def responseCode = connection.responseCode
             if (responseCode != 200) {
                 def errorBody = connection.errorStream?.text ?: ""
-                log.error "Slack plugin: Failed to complete file upload - HTTP ${responseCode}: ${errorBody}"
-                return
+                throw new RuntimeException("Slack plugin: Failed to complete file upload - HTTP ${responseCode}: ${errorBody}")
             }
 
             def responseText = connection.inputStream.text
             def response = new JsonSlurper().parseText(responseText) as Map
 
             if (!response.ok) {
-                def error = response.error
-                log.error "Slack plugin: Failed to complete file upload - API error: ${error}"
+                throw new RuntimeException("Slack plugin: Failed to complete file upload - API error: ${response.error}")
             }
 
+        } catch (RuntimeException e) {
+            throw e
         } catch (Exception e) {
-            log.error "Slack plugin: Error completing file upload: ${e.message}"
+            throw new RuntimeException("Slack plugin: Error completing file upload: ${e.message}", e)
         } finally {
             connection?.disconnect()
         }
@@ -370,8 +357,7 @@ class BotSlackSender implements SlackSender {
             def responseCode = connection.responseCode
             if (responseCode != 200) {
                 def errorBody = connection.errorStream?.text ?: ""
-                log.error "Slack plugin: HTTP ${responseCode}: ${errorBody}"
-                return
+                throw new RuntimeException("Slack plugin: HTTP ${responseCode}: ${errorBody}")
             }
 
             // Check Slack API 'ok' status
@@ -379,29 +365,24 @@ class BotSlackSender implements SlackSender {
             def response = new JsonSlurper().parseText(responseText) as Map
 
             if (!response.ok) {
-                def error = response.error
-                def errorMsg = "Slack plugin: API error: ${error}".toString()
-                if (loggedErrors.add(errorMsg)) {
-                    log.error errorMsg
-                }
-            } else {
-                // Capture the thread timestamp from the response for future threaded replies
-                def ts = response.ts as String
-                if (ts && !threadTs) {
-                    threadTs = ts
-                    log.debug "Slack plugin: Captured thread timestamp: ${threadTs}"
-                }
-                def channel = response.channel as String
-                if (channel && !resolvedChannelId) {
-                    resolvedChannelId = channel
-                }
+                throw new RuntimeException("Slack plugin: API error: ${response.error}")
             }
 
-        } catch (Exception e) {
-            def errorMsg = "Slack plugin: Error sending bot message: ${e.message}".toString()
-            if (loggedErrors.add(errorMsg)) {
-                log.error errorMsg
+            // Capture the thread timestamp from the response for future threaded replies
+            def ts = response.ts as String
+            if (ts && !threadTs) {
+                threadTs = ts
+                log.debug "Slack plugin: Captured thread timestamp: ${threadTs}"
             }
+            def channel = response.channel as String
+            if (channel && !resolvedChannelId) {
+                resolvedChannelId = channel
+            }
+
+        } catch (RuntimeException e) {
+            throw e
+        } catch (Exception e) {
+            throw new RuntimeException("Slack plugin: Error sending bot message: ${e.message}", e)
         } finally {
             connection?.disconnect()
         }
@@ -418,14 +399,7 @@ class BotSlackSender implements SlackSender {
 
     @Override
     void updateMessage(String message, String messageTs) {
-        try {
-            postUpdate(message, messageTs)
-        } catch (Exception e) {
-            def errorMsg = "Slack plugin: Error updating message: ${e.message}".toString()
-            if (loggedErrors.add(errorMsg)) {
-                log.error errorMsg
-            }
-        }
+        postUpdate(message, messageTs)
     }
 
     protected void postUpdate(String jsonPayload, String messageTs) {
@@ -453,18 +427,18 @@ class BotSlackSender implements SlackSender {
             def responseCode = connection.responseCode
             if (responseCode != 200) {
                 def errorBody = connection.errorStream?.text ?: ""
-                log.error "Slack plugin: Failed to update message - HTTP ${responseCode}: ${errorBody}"
-                return
+                throw new RuntimeException("Slack plugin: Failed to update message - HTTP ${responseCode}: ${errorBody}")
             }
 
             def responseText = connection.inputStream.text
             def response = new JsonSlurper().parseText(responseText) as Map
             if (!response.ok) {
-                def error = response.error
-                log.error "Slack plugin: Failed to update message - API error: ${error}"
+                throw new RuntimeException("Slack plugin: Failed to update message - API error: ${response.error}")
             }
+        } catch (RuntimeException e) {
+            throw e
         } catch (Exception e) {
-            log.error "Slack plugin: Error updating message: ${e.message}"
+            throw new RuntimeException("Slack plugin: Error updating message: ${e.message}", e)
         } finally {
             connection?.disconnect()
         }
@@ -472,11 +446,7 @@ class BotSlackSender implements SlackSender {
 
     @Override
     void addReaction(String emoji, String messageTs) {
-        try {
-            postReaction(emoji, messageTs)
-        } catch (Exception e) {
-            log.debug "Slack plugin: Failed to add reaction '${emoji}': ${e.message}"
-        }
+        postReaction(emoji, messageTs)
     }
 
     protected void postReaction(String emoji, String messageTs) {
@@ -485,11 +455,7 @@ class BotSlackSender implements SlackSender {
 
     @Override
     void removeReaction(String emoji, String messageTs) {
-        try {
-            deleteReaction(emoji, messageTs)
-        } catch (Exception e) {
-            log.debug "Slack plugin: Failed to remove reaction '${emoji}': ${e.message}"
-        }
+        deleteReaction(emoji, messageTs)
     }
 
     protected void deleteReaction(String emoji, String messageTs) {
