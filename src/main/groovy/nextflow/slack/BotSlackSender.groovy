@@ -55,6 +55,7 @@ class BotSlackSender implements SlackSender {
     private final Set<String> loggedErrors = Collections.synchronizedSet(new HashSet<String>())
     private String threadTs  // Store the thread timestamp for threaded conversations
     private String resolvedChannelId  // Channel ID resolved from Slack API response
+    private final SlackUserResolver userResolver
 
     /**
      * Create a new BotSlackSender
@@ -65,6 +66,7 @@ class BotSlackSender implements SlackSender {
     BotSlackSender(String botToken, String channelId) {
         this.botToken = botToken
         this.channelId = channelId
+        this.userResolver = new SlackUserResolver(botToken)
     }
 
     /**
@@ -75,8 +77,10 @@ class BotSlackSender implements SlackSender {
     @Override
     void sendMessage(String message) {
         try {
-            // Message is already formatted by SlackMessageBuilder with channel ID
-            postToSlack(message)
+            // Resolve any display-name @mentions (e.g. <@Jane>) to Slack user IDs
+            // before posting; already-resolved IDs like <@U1234567890> are left unchanged.
+            def resolvedMessage = userResolver.resolveText(message)
+            postToSlack(resolvedMessage)
 
         } catch (Exception e) {
             def errorMsg = "Slack plugin: Error sending bot message: ${e.message}".toString()
