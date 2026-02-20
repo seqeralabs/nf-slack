@@ -92,6 +92,15 @@ class SlackMessageBuilder {
     }
 
     /**
+     * Check if a field should be included based on config-level includeFields.
+     * When the list is null or empty, all fields are shown (default behavior).
+     * When set, only listed fields are shown.
+     */
+    private static boolean shouldIncludeField(List<String> includeFields, String fieldName) {
+        return !includeFields || includeFields.contains(fieldName)
+    }
+
+    /**
      * Create a context footer block with timestamp
      */
     private static Map createContextFooter(String status, String timestamp, String workflowName) {
@@ -101,6 +110,27 @@ class SlackMessageBuilder {
                 [
                     type: 'mrkdwn',
                     text: formatTimestamp(timestamp)
+                ]
+            ]
+        ]
+    }
+
+    /**
+     * Create a Seqera Platform button action block
+     */
+    private static Map createSeqeraPlatformButton(String url) {
+        return [
+            type: 'actions',
+            elements: [
+                [
+                    type: 'button',
+                    text: [
+                        type: 'plain_text',
+                        text: '🔗 View in Seqera Platform',
+                        emoji: true
+                    ],
+                    url: url,
+                    style: 'primary'
                 ]
             ]
         ]
@@ -120,6 +150,50 @@ class SlackMessageBuilder {
     }
 
     /**
+     * Get Seqera Platform watch URL from TowerClient if deep links are enabled.
+     * Returns null if unavailable — callers should skip the button.
+     *
+     * The URL is read directly from TowerClient's watchUrl field, which is the
+     * fully-resolved URL returned by the Seqera Platform API.
+     */
+    private String getSeqeraPlatformUrl() {
+        if (!config.seqeraPlatform?.enabled) return null
+
+        def watchUrl = getTowerClientWatchUrl()
+        log.debug "Seqera Platform: watchUrl=${watchUrl}"
+        return watchUrl
+    }
+
+    /**
+     * Retrieve the watch URL from TowerClient via reflection.
+     *
+     * TowerClient is in a separate plugin (nf-tower) so we cannot reference it
+     * directly. We find it by class name in the session's observer list, then
+     * read its private watchUrl field.
+     */
+    // Package-private for testability (Spock Spy cannot stub private methods)
+    String getTowerClientWatchUrl() {
+        try {
+            def observersField = session.class.getDeclaredField('observersV2')
+            observersField.accessible = true
+            def observers = observersField.get(session) as List
+
+            def towerClient = observers?.find {
+                it.class.name == 'io.seqera.tower.plugin.TowerClient'
+            }
+            if (!towerClient) return null
+
+            def watchUrlField = towerClient.class.getDeclaredField('watchUrl')
+            watchUrlField.accessible = true
+            return watchUrlField.get(towerClient) as String
+        }
+        catch (Exception e) {
+            log.debug "Could not retrieve Seqera Platform watch URL: ${e.message}"
+            return null
+        }
+    }
+
+    /**
      * Get resource usage statistics as a formatted string
      */
     private String getResourceUsageStats() {
@@ -135,19 +209,14 @@ class SlackMessageBuilder {
     }
 
     /**
-     * Build message for workflow started event
+     * Build the content blocks for a workflow start message (without footer).
+     * Used by both buildWorkflowStartMessage and buildProgressUpdateMessage.
      */
-    String buildWorkflowStartMessage(String threadTs = null, String channelOverride = null) {
-        def workflowName = session.workflowMetadata?.scriptName ?: 'Unknown workflow'
-        def runName = session.runName ?: 'Unknown run'
-        def timestamp = OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-
-        // Check if using custom message configuration
-        if (config.onStart.message instanceof Map) {
-            return buildCustomMessage(config.onStart.message as Map, workflowName, timestamp, 'started', null, threadTs)
-        }
-
+    private List buildStartContentBlocks() {
         def blocks = []
+        def includeFields = config.onStart.includeFields
+
+        def runName = session.runName ?: 'Unknown run'
 
         // Header section
         def messageText = config.onStart.message instanceof String ? config.onStart.message : '🚀 *Pipeline started*'
@@ -155,7 +224,9 @@ class SlackMessageBuilder {
 
         // Build fields
         List<Map> fields = []
-        fields << createMarkdownField('Run Name', runName)
+        if (shouldIncludeField(includeFields, 'runName')) {
+            fields << createMarkdownField('Run Name', runName)
+        }
 
         if (fields) {
             blocks << createDivider()
@@ -163,7 +234,7 @@ class SlackMessageBuilder {
         }
 
         // Add work directory in a separate section if present
-        if (session.workDir) {
+        if (shouldIncludeField(includeFields, 'workDir') && session.workDir) {
             blocks << [
                 type: 'section',
                 text: [
@@ -174,14 +245,37 @@ class SlackMessageBuilder {
         }
 
         // Add command line in a separate section if configured
-        if (config.onStart.includeCommandLine && session.commandLine) {
+        if (shouldIncludeField(includeFields, 'commandLine') && config.onStart.includeCommandLine && session.commandLine) {
             blocks << createCommandLineSection(session.commandLine)
         }
+
+        return blocks
+    }
+
+    /**
+     * Build message for workflow started event
+     */
+    String buildWorkflowStartMessage(String threadTs = null, String channelOverride = null) {
+        def workflowName = session.workflowMetadata?.scriptName ?: 'Unknown workflow'
+        def timestamp = OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+
+        // Check if using custom message configuration
+        if (config.onStart.message instanceof Map) {
+            return buildCustomMessage(config.onStart.message as Map, workflowName, timestamp, 'started', null, threadTs, channelOverride)
+        }
+
+        def blocks = buildStartContentBlocks()
 
         // Footer
         if (config.onStart.showFooter) {
             blocks << createDivider()
             blocks << createContextFooter('started', timestamp, workflowName)
+        }
+
+        // Seqera Platform deep link button
+        def seqeraUrl = getSeqeraPlatformUrl()
+        if (seqeraUrl) {
+            blocks << createSeqeraPlatformButton(seqeraUrl)
         }
 
         return createMessagePayload(blocks, threadTs, channelOverride)
@@ -198,10 +292,11 @@ class SlackMessageBuilder {
 
         // Check if using custom message configuration
         if (config.onComplete.message instanceof Map) {
-            return buildCustomMessage(config.onComplete.message as Map, workflowName, timestamp, 'completed', null, threadTs)
+            return buildCustomMessage(config.onComplete.message as Map, workflowName, timestamp, 'completed', null, threadTs, channelOverride)
         }
 
         def blocks = []
+        def includeFields = config.onComplete.includeFields
 
         // Header section
         def messageText = config.onComplete.message instanceof String ? config.onComplete.message : '✅ *Pipeline completed successfully*'
@@ -209,12 +304,18 @@ class SlackMessageBuilder {
 
         // Build fields
         List<Map> fields = []
-        fields << createMarkdownField('Run Name', runName)
-        fields << createMarkdownField('Duration', duration.toString())
-        fields << createMarkdownField('Status', '✅ Success')
+        if (shouldIncludeField(includeFields, 'runName')) {
+            fields << createMarkdownField('Run Name', runName)
+        }
+        if (shouldIncludeField(includeFields, 'duration')) {
+            fields << createMarkdownField('Duration', duration.toString())
+        }
+        if (shouldIncludeField(includeFields, 'status')) {
+            fields << createMarkdownField('Status', '✅ Success')
+        }
 
-        // Add resource usage if configured
-        if (config.onComplete.includeResourceUsage) {
+        // Add resource usage if configured (via includeResourceUsage or includeFields)
+        if (shouldIncludeField(includeFields, 'tasks') && (config.onComplete.includeResourceUsage || includeFields)) {
             def resourceStats = getResourceUsageStats()
             if (resourceStats) {
                 fields << createMarkdownField('Tasks', resourceStats)
@@ -232,6 +333,12 @@ class SlackMessageBuilder {
             blocks << createContextFooter('completed', timestamp, workflowName)
         }
 
+        // Seqera Platform deep link button
+        def seqeraUrl = getSeqeraPlatformUrl()
+        if (seqeraUrl) {
+            blocks << createSeqeraPlatformButton(seqeraUrl)
+        }
+
         return createMessagePayload(blocks, threadTs, channelOverride)
     }
 
@@ -247,10 +354,11 @@ class SlackMessageBuilder {
 
         // Check if using custom message configuration
         if (config.onError.message instanceof Map) {
-            return buildCustomMessage(config.onError.message as Map, workflowName, timestamp, 'failed', errorRecord, threadTs)
+            return buildCustomMessage(config.onError.message as Map, workflowName, timestamp, 'failed', errorRecord, threadTs, channelOverride)
         }
 
         def blocks = []
+        def includeFields = config.onError.includeFields
 
         // Header section
         def messageText = config.onError.message instanceof String ? config.onError.message : '❌ *Pipeline failed*'
@@ -258,12 +366,17 @@ class SlackMessageBuilder {
 
         // Build fields
         List<Map> fields = []
-        fields << createMarkdownField('Run Name', runName)
-        fields << createMarkdownField('Duration', duration.toString())
-        fields << createMarkdownField('Status', '❌ Failed')
+        if (shouldIncludeField(includeFields, 'runName')) {
+            fields << createMarkdownField('Run Name', runName)
+        }
+        if (shouldIncludeField(includeFields, 'duration')) {
+            fields << createMarkdownField('Duration', duration.toString())
+        }
+        if (shouldIncludeField(includeFields, 'status')) {
+            fields << createMarkdownField('Status', '❌ Failed')
+        }
 
-        // Add failed process info if available
-        if (errorRecord) {
+        if (shouldIncludeField(includeFields, 'failedProcess') && errorRecord) {
             def processName = errorRecord.get('process')
             if (processName) {
                 fields << createMarkdownField('Failed Process', "`${processName}`")
@@ -275,18 +388,18 @@ class SlackMessageBuilder {
             blocks << createFieldsSection(fields)
         }
 
-        // Add error message in a separate section (it can be long)
-        blocks << createDivider()
-        blocks << [
-            type: 'section',
-            text: [
-                type: 'mrkdwn',
-                text: "*Error Message*\n```${errorMessage.take(2000)}${errorMessage.length() > 2000 ? '...' : ''}```"
+        if (shouldIncludeField(includeFields, 'errorMessage')) {
+            blocks << createDivider()
+            blocks << [
+                type: 'section',
+                text: [
+                    type: 'mrkdwn',
+                    text: "*Error Message*\n```${errorMessage.take(2000)}${errorMessage.length() > 2000 ? '...' : ''}```"
+                ]
             ]
-        ]
+        }
 
-        // Add command line if configured
-        if (config.onError.includeCommandLine && session.commandLine) {
+        if (shouldIncludeField(includeFields, 'commandLine') && config.onError.includeCommandLine && session.commandLine) {
             blocks << createCommandLineSection(session.commandLine)
         }
 
@@ -294,6 +407,12 @@ class SlackMessageBuilder {
         if (config.onError.showFooter) {
             blocks << createDivider()
             blocks << createContextFooter('failed', timestamp, workflowName)
+        }
+
+        // Seqera Platform deep link button
+        def seqeraUrl = getSeqeraPlatformUrl()
+        if (seqeraUrl) {
+            blocks << createSeqeraPlatformButton(seqeraUrl)
         }
 
         return createMessagePayload(blocks, threadTs, channelOverride)
@@ -344,7 +463,7 @@ class SlackMessageBuilder {
     /**
      * Build a custom message using map configuration
      */
-    private String buildCustomMessage(Map customConfig, String workflowName, String timestamp, String status, TraceRecord errorRecord = null, String threadTs = null) {
+    private String buildCustomMessage(Map customConfig, String workflowName, String timestamp, String status, TraceRecord errorRecord = null, String threadTs = null, String channelOverride = null) {
         def runName = session.runName ?: 'Unknown run'
         def duration = session.workflowMetadata?.duration ?: Duration.of(0)
         def errorMessage = session.workflowMetadata?.errorMessage ?: 'Unknown error'
@@ -427,7 +546,7 @@ class SlackMessageBuilder {
             blocks << createContextFooter(status, timestamp, workflowName)
         }
 
-        return createMessagePayload(blocks, threadTs)
+        return createMessagePayload(blocks, threadTs, channelOverride)
     }
 
     /**
@@ -487,5 +606,51 @@ class SlackMessageBuilder {
             message.thread_ts = threadTs
         }
         return new JsonBuilder(message).toPrettyString()
+    }
+
+    /**
+     * Build a progress update message showing workflow execution status.
+     * Includes the original start message content with progress stats appended below.
+     */
+    String buildProgressUpdateMessage(int submitted, int completed, int cached, int failed, long elapsedMs, String threadTs = null) {
+        // Start with the original start message content blocks
+        def blocks = buildStartContentBlocks()
+
+        // Append progress section
+        blocks.add(createDivider())
+        blocks.add(createHeaderSection('📊 *Progress*'))
+
+        // Progress stats
+        def elapsed = formatDuration(elapsedMs)
+        List<Map> fields = []
+        fields.add(createMarkdownField('Tasks Submitted', "${submitted}"))
+        fields.add(createMarkdownField('Tasks Completed', "${completed}"))
+        fields.add(createMarkdownField('Tasks Cached', "${cached}"))
+        if (failed > 0) {
+            fields.add(createMarkdownField('Tasks Failed', "${failed}"))
+        }
+        fields.add(createMarkdownField('Elapsed', elapsed))
+        blocks.add(createFieldsSection(fields))
+
+        return createMessagePayload(blocks, threadTs)
+    }
+
+    /**
+     * Format a duration in milliseconds to a human-readable string.
+     */
+    private static String formatDuration(long millis) {
+        long seconds = (long)(millis / 1000)
+        long minutes = (long)(seconds / 60)
+        long hours = (long)(minutes / 60)
+        seconds = seconds % 60
+        minutes = minutes % 60
+
+        if (hours > 0) {
+            return "${hours}h ${minutes}m ${seconds}s"
+        } else if (minutes > 0) {
+            return "${minutes}m ${seconds}s"
+        } else {
+            return "${seconds}s"
+        }
     }
 }

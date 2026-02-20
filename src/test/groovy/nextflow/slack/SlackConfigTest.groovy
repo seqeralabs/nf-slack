@@ -239,27 +239,7 @@ class SlackConfigTest extends Specification {
         sender instanceof BotSlackSender
     }
 
-    def 'should throw exception for invalid bot token'() {
-        given:
-        def session = Mock(Session)
-        session.config >> [
-            slack: [
-                bot: [
-                    token: 'invalid-token',
-                    channel: 'C123456'
-                ]
-            ]
-        ]
-
-        when:
-        SlackConfig.from(session)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message.contains("Bot token must start with 'xoxb-' or 'xoxp-'")
-    }
-
-    def 'should throw exception for missing bot channel'() {
+    def 'should return null for missing bot channel'() {
         given:
         def session = Mock(Session)
         session.config >> [
@@ -271,32 +251,12 @@ class SlackConfigTest extends Specification {
         ]
 
         when:
-        SlackConfig.from(session)
+        def config = SlackConfig.from(session)
 
         then:
-        def e = thrown(IllegalArgumentException)
-        e.message.contains("Bot channel is required")
+        config == null
     }
 
-    def 'should throw exception for invalid bot channel'() {
-        given:
-        def session = Mock(Session)
-        session.config >> [
-            slack: [
-                bot: [
-                    token: 'xoxb-token',
-                    channel: 'Invalid Channel Name'
-                ]
-            ]
-        ]
-
-        when:
-        SlackConfig.from(session)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message.contains("Invalid channel ID format")
-    }
     def 'should allow channel name with hash'() {
         given:
         def session = Mock(Session)
@@ -354,7 +314,7 @@ class SlackConfigTest extends Specification {
 
         then:
         config != null
-        config.useThreads == false
+        config.useThreads == true
     }
 
     def 'should parse useThreads when explicitly set to true'() {
@@ -397,6 +357,186 @@ class SlackConfigTest extends Specification {
         then:
         config != null
         config.useThreads == false
+    }
+
+    def 'should parse onProgress config'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [
+            slack: [
+                webhook: [url: 'https://hooks.slack.com/services/T00/B00/XXX'],
+                onProgress: [enabled: true, interval: '10m']
+            ]
+        ]
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config != null
+        config.onProgress.enabled == true
+        config.onProgress.interval == '10m'
+    }
+
+    def 'should have onProgress defaults'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [
+            slack: [
+                webhook: [url: 'https://hooks.slack.com/services/T00/B00/XXX']
+            ]
+        ]
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config != null
+        config.onProgress.enabled == false
+        config.onProgress.interval == '5m'
+    }
+
+    def 'should parse reactions config with defaults' () {
+        given:
+        def session = Mock(Session) {
+            config >> [
+                slack: [
+                    bot: [token: 'xoxb-token', channel: 'C123456'],
+                ]
+            ]
+        }
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config != null
+        config.reactions != null
+        config.reactions.enabled == true
+        config.reactions.onStart == 'rocket'
+        config.reactions.onSuccess == 'white_check_mark'
+        config.reactions.onError == 'x'
+    }
+
+    def 'should parse custom reactions config' () {
+        given:
+        def session = Mock(Session) {
+            config >> [
+                slack: [
+                    bot: [token: 'xoxb-token', channel: 'C123456'],
+                    reactions: [enabled: true, onStart: 'tada', onSuccess: 'thumbsup', onError: 'fire']
+                ]
+            ]
+        }
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config != null
+        config.reactions.enabled == true
+        config.reactions.onStart == 'tada'
+        config.reactions.onSuccess == 'thumbsup'
+        config.reactions.onError == 'fire'
+    }
+
+    def 'should parse validateOnStartup default to true'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [slack: [
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890']
+        ]]
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config != null
+        config.validateOnStartup == true
+    }
+
+    def 'should parse validateOnStartup when set to false'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [slack: [
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890'],
+            validateOnStartup: false
+        ]]
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config != null
+        config.validateOnStartup == false
+    }
+
+    def 'should parse seqeraPlatform config with defaults'() {
+        given:
+        def session = Mock(Session) {
+            config >> [slack: [webhook: [url: 'https://hooks.slack.com/test']]]
+        }
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config.seqeraPlatform != null
+        config.seqeraPlatform.enabled == true
+    }
+
+    def 'should parse seqeraPlatform config with custom values'() {
+        given:
+        def session = Mock(Session) {
+            config >> [slack: [webhook: [url: 'https://hooks.slack.com/test'], seqeraPlatform: [enabled: false]]]
+        }
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config.seqeraPlatform != null
+        config.seqeraPlatform.enabled == false
+    }
+
+    def 'should throw exception for invalid bot token'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [
+            slack: [
+                bot: [
+                    token: 'invalid-token',
+                    channel: 'C123456'
+                ]
+            ]
+        ]
+
+        when:
+        SlackConfig.from(session)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.contains("Bot token must start with 'xoxb-' or 'xoxp-'")
+    }
+
+    def 'should throw exception for invalid bot channel format'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [
+            slack: [
+                bot: [
+                    token: 'xoxb-token',
+                    channel: 'Invalid Channel Name'
+                ]
+            ]
+        ]
+
+        when:
+        SlackConfig.from(session)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.contains("Invalid channel ID format")
     }
 
     def 'should parse per-event channel from onStart config'() {

@@ -199,6 +199,7 @@ class SlackObserverTest extends Specification {
                     channel: 'C123456',
                     useThreads: true
                 ],
+                validateOnStartup: false,
                 onComplete: [
                     enabled: true
                 ]
@@ -206,6 +207,7 @@ class SlackObserverTest extends Specification {
         ]
         def metadata = Mock(WorkflowMetadata)
         metadata.scriptName >> 'test.nf'
+        metadata.success >> true
         session.workflowMetadata >> metadata
         session.runName >> 'test-run'
 
@@ -217,8 +219,7 @@ class SlackObserverTest extends Specification {
         observer.onFlowComplete()
 
         then:
-        // Verify that getThreadTs was called to retrieve the thread timestamp
-        1 * mockBotSender.getThreadTs()
+        (1.._) * mockBotSender.getThreadTs()
     }
 
     def 'should not use thread timestamp when useThreads disabled'() {
@@ -233,13 +234,18 @@ class SlackObserverTest extends Specification {
                     channel: 'C123456',
                     useThreads: false
                 ],
+                validateOnStartup: false,
                 onComplete: [
                     enabled: true
+                ],
+                reactions: [
+                    enabled: false
                 ]
             ]
         ]
         def metadata = Mock(WorkflowMetadata)
         metadata.scriptName >> 'test.nf'
+        metadata.success >> true
         session.workflowMetadata >> metadata
         session.runName >> 'test-run'
 
@@ -251,7 +257,7 @@ class SlackObserverTest extends Specification {
         observer.onFlowComplete()
 
         then:
-        // Verify that getThreadTs was NOT called since threading is disabled
+        // Verify that getThreadTs was NOT called since threading is disabled and reactions are off
         0 * mockBotSender.getThreadTs()
     }
 
@@ -300,6 +306,7 @@ class SlackObserverTest extends Specification {
                      channel: 'C123456',
                      useThreads: true
                  ],
+                 validateOnStartup: false,
                  onError: [
                      enabled: true
                  ]
@@ -321,9 +328,9 @@ class SlackObserverTest extends Specification {
          when:
          observer.onFlowError(null, errorRecord)
 
-         then:
-         // Verify that getThreadTs was called for error messages too
-         1 * mockBotSender.getThreadTs()
+        then:
+        // Verify that getThreadTs was called for error messages and reactions
+        (1.._) * mockBotSender.getThreadTs()
      }
 
      def 'should upload configured files on flow complete'() {
@@ -347,6 +354,7 @@ class SlackObserverTest extends Specification {
          ]
          def metadata = Mock(WorkflowMetadata)
          metadata.scriptName >> 'test.nf'
+         metadata.success >> true
          session.workflowMetadata >> metadata
          session.runName >> 'test-run'
 
@@ -402,4 +410,596 @@ class SlackObserverTest extends Specification {
          1 * mockSender.sendMessage(_)
          1 * mockSender.uploadFile({ it.toString().endsWith('pipeline_report.html') }, _)
      }
+
+    def 'should track completed tasks in progress tracking'() {
+        given:
+        def observer = new SlackObserver()
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C123456'],
+            onStart: [enabled: false],
+            onProgress: [enabled: true, interval: '5m']
+        ])
+        def mockSender = Mock(BotSlackSender)
+        def mockBuilder = Mock(SlackMessageBuilder)
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(mockBuilder)
+        observer.onFlowCreate(Mock(Session) { getConfig() >> [:] })
+
+        when:
+        observer.onProcessComplete(null, null)
+        observer.onProcessComplete(null, null)
+
+        then:
+        observer.completedTasks.get() == 2
+    }
+
+    def 'should track cached tasks in progress tracking'() {
+        given:
+        def observer = new SlackObserver()
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C123456'],
+            onStart: [enabled: false],
+            onProgress: [enabled: true, interval: '5m']
+        ])
+        def mockSender = Mock(BotSlackSender)
+        def mockBuilder = Mock(SlackMessageBuilder)
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(mockBuilder)
+        observer.onFlowCreate(Mock(Session) { getConfig() >> [:] })
+
+        when:
+        observer.onProcessCached(null, null)
+
+        then:
+        observer.cachedTasks.get() == 1
+    }
+
+    def 'should track submitted tasks in progress tracking'() {
+        given:
+        def observer = new SlackObserver()
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C123456'],
+            onStart: [enabled: false],
+            onProgress: [enabled: true, interval: '5m']
+        ])
+        def mockSender = Mock(BotSlackSender)
+        def mockBuilder = Mock(SlackMessageBuilder)
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(mockBuilder)
+        observer.onFlowCreate(Mock(Session) { getConfig() >> [:] })
+
+        when:
+        observer.onProcessSubmit(null, null)
+        observer.onProcessSubmit(null, null)
+        observer.onProcessSubmit(null, null)
+
+        then:
+        observer.submittedTasks.get() == 3
+    }
+
+    def 'should not set up progress timer when disabled'() {
+        given:
+        def observer = new SlackObserver()
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C123456'],
+            onStart: [enabled: false],
+            onProgress: [enabled: false]
+        ])
+        def mockSender = Mock(BotSlackSender)
+        def mockBuilder = Mock(SlackMessageBuilder)
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(mockBuilder)
+        observer.onFlowCreate(Mock(Session) { getConfig() >> [:] })
+
+        expect:
+        !observer.progressEnabled
+    }
+
+     def 'should add start reaction when reactions enabled' () {
+         given:
+          def config = new SlackConfig([
+              enabled: true,
+              bot: [token: 'xoxb-test-token', channel: 'C123456'],
+              onStart: [enabled: true],
+              reactions: [enabled: true, onStart: 'rocket']
+          ])
+          def mockSender = Mock(BotSlackSender)
+          mockSender.getThreadTs() >> '1234567890.123456'
+          def mockBuilder = Mock(SlackMessageBuilder)
+          // buildWorkflowStartMessage takes (threadTs, channelOverride) - 2 args
+          mockBuilder.buildWorkflowStartMessage(_, _) >> '{}'
+          def observer = new SlackObserver()
+          observer.setConfig(config)
+          observer.setSender(mockSender)
+          observer.setMessageBuilder(mockBuilder)
+
+           when:
+           observer.onFlowCreate(Mock(Session) { getConfig() >> [:] })
+           observer.onFlowBegin()
+
+           then:
+           1 * mockSender.sendMessage(_)
+           1 * mockSender.addReaction('rocket', '1234567890.123456')
+     }
+
+     def 'should not add reaction when reactions disabled' () {
+         given:
+          def config = new SlackConfig([
+              enabled: true,
+              bot: [token: 'xoxb-test-token', channel: 'C123456'],
+              onStart: [enabled: true],
+              reactions: [enabled: false]
+          ])
+          def mockSender = Mock(BotSlackSender)
+          def mockBuilder = Mock(SlackMessageBuilder)
+          // buildWorkflowStartMessage takes (threadTs, channelOverride) - 2 args
+          mockBuilder.buildWorkflowStartMessage(_, _) >> '{}'
+          def observer = new SlackObserver()
+          observer.setConfig(config)
+          observer.setSender(mockSender)
+          observer.setMessageBuilder(mockBuilder)
+
+          when:
+          observer.onFlowCreate(Mock(Session) { getConfig() >> [:] })
+
+          then:
+          0 * mockSender.addReaction(_, _)
+     }
+
+    def 'should add success reaction on complete' () {
+        given:
+        def metadata = Mock(WorkflowMetadata)
+        metadata.success >> true
+        def mockSession = Mock(Session)
+        mockSession.workflowMetadata >> metadata
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C123456'],
+            reactions: [enabled: true, onSuccess: 'thumbsup']
+        ])
+        def mockSender = Mock(BotSlackSender)
+        mockSender.getThreadTs() >> '1234567890.123456'
+        def observer = new SlackObserver()
+        observer.setSession(mockSession)
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+         when:
+         observer.onFlowComplete()
+
+         then:
+         1 * mockSender.sendMessage(_)
+         1 * mockSender.addReaction('thumbsup', '1234567890.123456')
+     }
+
+     def 'should add error reaction on error' () {
+         given:
+         def config = new SlackConfig([
+             enabled: true,
+             bot: [token: 'xoxb-test-token', channel: 'C123456'],
+             reactions: [enabled: true, onError: 'x']
+         ])
+         def errorRecord = Mock(TraceRecord)
+         def mockSender = Mock(BotSlackSender)
+         mockSender.getThreadTs() >> '1234567890.123456'
+         def observer = new SlackObserver()
+         observer.setConfig(config)
+         observer.setSender(mockSender)
+         observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+         when:
+         observer.onFlowError(null, errorRecord)
+
+         then:
+         1 * mockSender.sendMessage(_)
+        1 * mockSender.addReaction('x', '1234567890.123456')
+    }
+
+    def 'should remove start reaction and add success reaction on complete'() {
+        given:
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890'],
+            onComplete: [enabled: false],
+            reactions: [enabled: true, onStart: 'rocket', onSuccess: 'white_check_mark']
+        ])
+        def mockSession = Mock(Session)
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.success >> true
+        mockSession.workflowMetadata >> mockMetadata
+        def mockSender = Mock(BotSlackSender)
+        mockSender.getThreadTs() >> '1234567890.123456'
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setSession(mockSession)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        and: 'simulate start reaction having been added'
+        observer.onFlowBegin()
+
+        when:
+        observer.onFlowComplete()
+
+        then:
+        1 * mockSender.removeReaction('rocket', '1234567890.123456')
+        1 * mockSender.addReaction('white_check_mark', '1234567890.123456')
+    }
+
+    def 'should not remove start reaction on complete when start was disabled'() {
+        given:
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890'],
+            onStart: [enabled: false],
+            onComplete: [enabled: false],
+            reactions: [enabled: true, onStart: 'rocket', onSuccess: 'white_check_mark']
+        ])
+        def mockSession = Mock(Session)
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.success >> true
+        mockSession.workflowMetadata >> mockMetadata
+        def mockSender = Mock(BotSlackSender)
+        mockSender.getThreadTs() >> '1234567890.123456'
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setSession(mockSession)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        when: 'complete without start reaction having been added'
+        observer.onFlowComplete()
+
+        then:
+        0 * mockSender.removeReaction('rocket', _)
+        1 * mockSender.addReaction('white_check_mark', '1234567890.123456')
+    }
+
+    def 'should remove start reaction and add error reaction on error'() {
+        given:
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890'],
+            onError: [enabled: false],
+            reactions: [enabled: true, onStart: 'rocket', onError: 'x']
+        ])
+        def mockSender = Mock(BotSlackSender)
+        mockSender.getThreadTs() >> '1234567890.123456'
+        def errorRecord = Mock(TraceRecord)
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        and: 'simulate start reaction having been added'
+        observer.onFlowBegin()
+
+        when:
+        observer.onFlowError(null, errorRecord)
+
+        then:
+        1 * mockSender.removeReaction('rocket', '1234567890.123456')
+        1 * mockSender.addReaction('x', '1234567890.123456')
+    }
+
+    def 'should call validate when validateOnStartup is enabled'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [:]
+        def observer = new SlackObserver()
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890'],
+            validateOnStartup: true,
+            onStart: [enabled: false]
+        ])
+        def mockSender = Mock(BotSlackSender)
+
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        when:
+        observer.onFlowCreate(session)
+
+        then:
+        1 * mockSender.validate() >> true
+    }
+
+    def 'should skip validation when validateOnStartup is disabled'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [:]
+        def observer = new SlackObserver()
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890'],
+            validateOnStartup: false,
+            onStart: [enabled: false]
+        ])
+        def mockSender = Mock(BotSlackSender)
+
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        when:
+        observer.onFlowCreate(session)
+
+        then:
+        0 * mockSender.validate()
+    }
+
+    def 'should warn but continue when validation fails'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [:]
+        def observer = new SlackObserver()
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C1234567890'],
+            validateOnStartup: true,
+            onStart: [enabled: false]
+        ])
+        def mockSender = Mock(BotSlackSender)
+        mockSender.validate() >> false
+
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        when:
+        observer.onFlowCreate(session)
+
+        then:
+        1 * mockSender.validate() >> false
+        0 * session.abort(_)
+    }
+
+    def 'should not send notification on cancelled workflow'() {
+        given:
+        def mockSender = Mock(BotSlackSender)
+        def mockMessageBuilder = Mock(SlackMessageBuilder)
+        mockSender.getThreadTs() >> '1234567890.123456'
+
+        def session = Mock(Session)
+        session.config >> [
+            slack: [
+                bot: [
+                    token: 'xoxb-token',
+                    channel: 'C123456'
+                ],
+                onStart: [
+                    enabled: false
+                ],
+                onComplete: [
+                    enabled: true
+                ],
+                onError: [
+                    enabled: true
+                ],
+                reactions: [
+                    enabled: true,
+                    onStart: 'rocket',
+                    onError: 'x'
+                ]
+            ]
+        ]
+        def metadata = Mock(WorkflowMetadata)
+        metadata.scriptName >> 'test.nf'
+        metadata.success >> false  // Workflow was cancelled/failed
+        session.workflowMetadata >> metadata
+        session.runName >> 'test-run'
+
+        def observer = new SlackObserver()
+        observer.onFlowCreate(session)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(mockMessageBuilder)
+
+        when:
+        observer.onFlowComplete()
+
+        then:
+        // Should NOT call any message builder methods
+        0 * mockMessageBuilder.buildWorkflowErrorMessage(_, _, _)
+        0 * mockMessageBuilder.buildWorkflowCompleteMessage(_, _)
+        0 * mockSender.sendMessage(_)
+        // Should remove reactions
+        1 * mockSender.removeReaction('rocket', '1234567890.123456')
+        1 * mockSender.removeReaction('x', '1234567890.123456')
+        noExceptionThrown()
+    }
+
+    def 'should send success notification on successful workflow completion'() {
+        given:
+        def mockSender = Mock(SlackSender)
+        def mockMessageBuilder = Mock(SlackMessageBuilder)
+
+        def session = Mock(Session)
+        session.config >> [
+            slack: [
+                webhook: [
+                    url: 'https://hooks.slack.com/services/TEST/TEST/TEST'
+                ],
+                onStart: [
+                    enabled: false
+                ],
+                onComplete: [
+                    enabled: true
+                ],
+                onError: [
+                    enabled: true
+                ]
+            ]
+        ]
+        def metadata = Mock(WorkflowMetadata)
+        metadata.scriptName >> 'test.nf'
+        metadata.success >> true  // Workflow completed successfully
+        session.workflowMetadata >> metadata
+        session.runName >> 'test-run'
+
+        def observer = new SlackObserver()
+        observer.onFlowCreate(session)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(mockMessageBuilder)
+
+        when:
+        observer.onFlowComplete()
+
+        then:
+        // Should call buildWorkflowCompleteMessage, not buildWorkflowErrorMessage
+        1 * mockMessageBuilder.buildWorkflowCompleteMessage(_, _)
+        0 * mockMessageBuilder.buildWorkflowErrorMessage(_, _, _)
+        1 * mockSender.sendMessage(_)
+        noExceptionThrown()
+    }
+
+    def 'should remove reactions when workflow cancelled even if notifications disabled'() {
+        given:
+        def mockSender = Mock(BotSlackSender)
+        def mockMessageBuilder = Mock(SlackMessageBuilder)
+        mockSender.getThreadTs() >> '1234567890.123456'
+
+        def session = Mock(Session)
+        session.config >> [
+            slack: [
+                bot: [
+                    token: 'xoxb-token',
+                    channel: 'C123456'
+                ],
+                onStart: [
+                    enabled: false
+                ],
+                onComplete: [
+                    enabled: false
+                ],
+                onError: [
+                    enabled: false  // Disabled
+                ],
+                reactions: [
+                    enabled: true,
+                    onStart: 'rocket'
+                ]
+            ]
+        ]
+        def metadata = Mock(WorkflowMetadata)
+        metadata.scriptName >> 'test.nf'
+        metadata.success >> false  // Workflow was cancelled
+        session.workflowMetadata >> metadata
+        session.runName >> 'test-run'
+
+        def observer = new SlackObserver()
+        observer.onFlowCreate(session)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(mockMessageBuilder)
+
+        when:
+        observer.onFlowComplete()
+
+        then:
+        // Should not send any message since onError is disabled
+        0 * mockMessageBuilder.buildWorkflowErrorMessage(_, _, _)
+        0 * mockMessageBuilder.buildWorkflowCompleteMessage(_, _)
+        0 * mockSender.sendMessage(_)
+        // Should still remove reactions
+        1 * mockSender.removeReaction('rocket', '1234567890.123456')
+        noExceptionThrown()
+    }
+
+    def 'should pass channel override to buildWorkflowStartMessage'() {
+        given:
+        def capturedChannel = null
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C123456'],
+            onStart: [enabled: true, channel: 'C-START-CHANNEL'],
+            validateOnStartup: false
+        ])
+        def mockSender = Mock(BotSlackSender)
+        def mockBuilder = Mock(SlackMessageBuilder)
+        mockBuilder.buildWorkflowStartMessage(_, _) >> { String threadTs, String ch ->
+            capturedChannel = ch
+            return '{}'
+        }
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(mockBuilder)
+
+        when:
+        observer.onFlowCreate(Mock(Session) { getConfig() >> [:] })
+
+        then:
+        capturedChannel == 'C-START-CHANNEL'
+    }
+
+    def 'should pass channel override to buildWorkflowCompleteMessage'() {
+        given:
+        def capturedChannel = null
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C123456'],
+            onStart: [enabled: false],
+            onComplete: [enabled: true, channel: 'C-COMPLETE-CHANNEL'],
+            validateOnStartup: false
+        ])
+        def mockSession = Mock(Session)
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.success >> true
+        mockSession.workflowMetadata >> mockMetadata
+        def mockSender = Mock(BotSlackSender)
+        def mockBuilder = Mock(SlackMessageBuilder)
+        mockBuilder.buildWorkflowCompleteMessage(_, _) >> { String threadTs, String ch ->
+            capturedChannel = ch
+            return '{}'
+        }
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setSession(mockSession)
+        observer.setMessageBuilder(mockBuilder)
+
+        when:
+        observer.onFlowComplete()
+
+        then:
+        capturedChannel == 'C-COMPLETE-CHANNEL'
+    }
+
+    def 'should pass channel override to buildWorkflowErrorMessage'() {
+        given:
+        def capturedChannel = null
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C123456'],
+            onStart: [enabled: false],
+            onError: [enabled: true, channel: 'C-ERROR-CHANNEL'],
+            validateOnStartup: false
+        ])
+        def mockSender = Mock(BotSlackSender)
+        def mockBuilder = Mock(SlackMessageBuilder)
+        mockBuilder.buildWorkflowErrorMessage(_, _, _) >> { TraceRecord trace, String threadTs, String ch ->
+            capturedChannel = ch
+            return '{}'
+        }
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(mockBuilder)
+
+        when:
+        observer.onFlowError(null, Mock(TraceRecord))
+
+        then:
+        capturedChannel == 'C-ERROR-CHANNEL'
+    }
 }

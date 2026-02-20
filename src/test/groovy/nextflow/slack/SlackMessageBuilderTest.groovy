@@ -599,6 +599,289 @@ class SlackMessageBuilderTest extends Specification {
         !json.containsKey('thread_ts')
     }
 
+    def 'should build progress update message'() {
+        when:
+        def message = messageBuilder.buildProgressUpdateMessage(15, 10, 3, 1, 300000L, '1234567890.123456')
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        json.blocks != null
+        json.blocks.size() > 0
+        json.thread_ts == '1234567890.123456'
+        json.blocks[0].type == 'section'
+    }
+
+    def 'should format elapsed time in progress message'() {
+        when:
+        def message = messageBuilder.buildProgressUpdateMessage(8, 5, 2, 0, 3661000L, null)
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        json.blocks != null
+        def text = json.blocks.collect { it.toString() }.join(' ')
+        text.contains('5')
+    }
+
+    def 'should include Seqera Platform button when watchUrl is available'() {
+        given:
+        def platformConfig = new SlackConfig([
+            webhook: 'https://hooks.slack.com/test',
+            seqeraPlatform: [enabled: true]
+        ])
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.scriptName >> 'test-workflow.nf'
+        def towerSession = Mock(Session)
+        towerSession.config >> [:]
+        towerSession.workflowMetadata >> mockMetadata
+        towerSession.runName >> 'crazy_einstein'
+        towerSession.uniqueId >> UUID.fromString('00000000-0000-0000-0000-000000000000')
+        def builder = Spy(new SlackMessageBuilder(platformConfig, towerSession))
+        builder.getTowerClientWatchUrl() >> 'https://cloud.seqera.io/orgs/myorg/workspaces/myws/watch/abc123'
+
+        when:
+        def message = builder.buildWorkflowStartMessage()
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        def actionsBlock = json.blocks.find { it.type == 'actions' }
+        actionsBlock != null
+        actionsBlock.elements[0].type == 'button'
+        actionsBlock.elements[0].url == 'https://cloud.seqera.io/orgs/myorg/workspaces/myws/watch/abc123'
+    }
+
+    def 'should not include Seqera Platform button when no TowerClient present'() {
+        when:
+        def message = messageBuilder.buildWorkflowStartMessage()
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        def actionsBlock = json.blocks.find { it.type == 'actions' }
+        actionsBlock == null
+    }
+
+    def 'should not include Seqera Platform button when watchUrl is null'() {
+        given:
+        def platformConfig = new SlackConfig([
+            webhook: 'https://hooks.slack.com/test',
+            seqeraPlatform: [enabled: true]
+        ])
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.scriptName >> 'test-workflow.nf'
+        def towerSession = Mock(Session)
+        towerSession.config >> [:]
+        towerSession.workflowMetadata >> mockMetadata
+        towerSession.runName >> 'crazy_einstein'
+        towerSession.uniqueId >> UUID.fromString('00000000-0000-0000-0000-000000000000')
+        def builder = Spy(new SlackMessageBuilder(platformConfig, towerSession))
+        builder.getTowerClientWatchUrl() >> null
+
+        when:
+        def message = builder.buildWorkflowStartMessage()
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        def actionsBlock = json.blocks.find { it.type == 'actions' }
+        actionsBlock == null
+    }
+
+    def 'should not include Seqera Platform button when seqeraPlatform is disabled'() {
+        given:
+        def disabledConfig = new SlackConfig([
+            webhook: 'https://hooks.slack.com/test',
+            seqeraPlatform: [enabled: false]
+        ])
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.scriptName >> 'test-workflow.nf'
+        def towerSession = Mock(Session)
+        towerSession.config >> [:]
+        towerSession.workflowMetadata >> mockMetadata
+        towerSession.runName >> 'crazy_einstein'
+        towerSession.uniqueId >> UUID.fromString('00000000-0000-0000-0000-000000000000')
+        def builder = Spy(new SlackMessageBuilder(disabledConfig, towerSession))
+        builder.getTowerClientWatchUrl() >> 'https://cloud.seqera.io/orgs/myorg/workspaces/myws/watch/abc123'
+
+        when:
+        def message = builder.buildWorkflowStartMessage()
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        def actionsBlock = json.blocks.find { it.type == 'actions' }
+        actionsBlock == null
+    }
+
+    // --- Config-level includeFields tests ---
+
+    def 'should filter start message fields with config-level includeFields'() {
+        given:
+        config = new SlackConfig([
+            enabled: true,
+            webhook: 'https://hooks.slack.com/services/TEST/TEST/TEST',
+            onStart: [
+                enabled: true,
+                includeCommandLine: true,
+                includeFields: ['runName']
+            ]
+        ])
+        messageBuilder = new SlackMessageBuilder(config, session)
+
+        when:
+        def message = messageBuilder.buildWorkflowStartMessage()
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        // Run Name should be present
+        def fieldsBlock = json.blocks.find { it.type == 'section' && it.fields }
+        fieldsBlock.fields.find { it.text.contains('Run Name') }
+
+        // Work Dir and Command Line should be absent
+        !json.blocks.any { it.type == 'section' && it.text?.text?.contains('Work Directory') }
+        !json.blocks.any { it.type == 'section' && it.text?.text?.contains('Command Line') }
+    }
+
+    def 'should filter complete message fields with config-level includeFields'() {
+        given:
+        config = new SlackConfig([
+            enabled: true,
+            webhook: 'https://hooks.slack.com/services/TEST/TEST/TEST',
+            onComplete: [
+                enabled: true,
+                includeResourceUsage: true,
+                includeFields: ['runName', 'duration']
+            ]
+        ])
+        def metadata = Mock(WorkflowMetadata)
+        metadata.scriptName >> 'test-workflow.nf'
+        metadata.duration >> Duration.of('1h')
+        metadata.stats >> null
+        session.workflowMetadata >> metadata
+        messageBuilder = new SlackMessageBuilder(config, session)
+
+        when:
+        def message = messageBuilder.buildWorkflowCompleteMessage()
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        def fieldsBlock = json.blocks.find { it.type == 'section' && it.fields }
+        def fields = fieldsBlock.fields
+        // These should be present
+        fields.find { it.text.contains('Run Name') }
+        fields.find { it.text.contains('Duration') }
+        // Status should be absent
+        !fields.find { it.text.contains('Status') }
+    }
+
+    def 'should show all default fields when includeFields is not set'() {
+        given:
+        config = new SlackConfig([
+            enabled: true,
+            webhook: 'https://hooks.slack.com/services/TEST/TEST/TEST',
+            onComplete: [
+                enabled: true
+            ]
+        ])
+        def metadata = Mock(WorkflowMetadata)
+        metadata.scriptName >> 'test-workflow.nf'
+        metadata.duration >> Duration.of('1h')
+        metadata.stats >> null
+        session.workflowMetadata >> metadata
+        messageBuilder = new SlackMessageBuilder(config, session)
+
+        when:
+        def message = messageBuilder.buildWorkflowCompleteMessage()
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        def fieldsBlock = json.blocks.find { it.type == 'section' && it.fields }
+        def fields = fieldsBlock.fields
+        // All default fields should be present
+        fields.find { it.text.contains('Run Name') }
+        fields.find { it.text.contains('Duration') }
+        fields.find { it.text.contains('Status') }
+    }
+
+    def 'should filter error message fields with config-level includeFields'() {
+        given:
+        config = new SlackConfig([
+            enabled: true,
+            webhook: 'https://hooks.slack.com/services/TEST/TEST/TEST',
+            onError: [
+                enabled: true,
+                includeFields: ['runName', 'errorMessage']
+            ]
+        ])
+        def errorSession = Mock(Session)
+        def metadata = Mock(WorkflowMetadata)
+        metadata.scriptName >> 'test-workflow.nf'
+        metadata.duration >> Duration.of('30m')
+        metadata.errorMessage >> 'Process failed with exit code 1'
+        errorSession.workflowMetadata >> metadata
+        errorSession.runName >> 'test-run'
+        errorSession.commandLine >> 'nextflow run test.nf'
+        def builder = new SlackMessageBuilder(config, errorSession)
+
+        def errorRecord = Mock(nextflow.trace.TraceRecord)
+        errorRecord.get('process') >> 'FAILED_PROCESS'
+
+        when:
+        def message = builder.buildWorkflowErrorMessage(errorRecord)
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        // Run Name should be present
+        def fieldsBlock = json.blocks.find { it.type == 'section' && it.fields }
+        fieldsBlock.fields.find { it.text.contains('Run Name') }
+
+        // Error message should be present
+        def errorBlock = json.blocks.find { it.type == 'section' && it.text?.text?.contains('Error Message') }
+        errorBlock != null
+
+        // Duration, Status, Failed Process should be absent
+        !fieldsBlock.fields.find { it.text.contains('Duration') }
+        !fieldsBlock.fields.find { it.text.contains('Status') }
+        !fieldsBlock.fields.find { it.text.contains('Failed Process') }
+    }
+
+    def 'should include tasks field in complete message when in includeFields'() {
+        given:
+        config = new SlackConfig([
+            enabled: true,
+            webhook: 'https://hooks.slack.com/services/TEST/TEST/TEST',
+            onComplete: [
+                enabled: true,
+                includeResourceUsage: false,
+                includeFields: ['runName', 'tasks']
+            ]
+        ])
+        def stats = Mock(nextflow.trace.WorkflowStats)
+        stats.succeedCount >> 10
+        stats.cachedCount >> 2
+        stats.failedCount >> 1
+        def metadata = Mock(WorkflowMetadata)
+        metadata.scriptName >> 'test-workflow.nf'
+        metadata.duration >> Duration.of('1h')
+        metadata.stats >> stats
+
+        def testSession = Mock(Session)
+        testSession.workflowMetadata >> metadata
+        testSession.runName >> 'test-run'
+        testSession.commandLine >> 'nextflow run test.nf'
+        messageBuilder = new SlackMessageBuilder(config, testSession)
+
+        when:
+        def message = messageBuilder.buildWorkflowCompleteMessage()
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        def fieldsBlock = json.blocks.find { it.type == 'section' && it.fields }
+        def fields = fieldsBlock.fields
+        fields.find { it.text.contains('Run Name') }
+        fields.find { it.text.contains('Tasks') }
+        !fields.find { it.text.contains('Duration') }
+        !fields.find { it.text.contains('Status') }
+    }
+
+    // --- Per-event channel routing tests ---
+
     def 'should use channel override in start message when provided'() {
         when:
         def message = messageBuilder.buildWorkflowStartMessage(null, '#alerts')

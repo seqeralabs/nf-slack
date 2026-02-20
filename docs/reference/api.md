@@ -4,7 +4,7 @@ Complete API reference for nf-slack plugin configuration options and functions.
 
 > **Quick Links:**
 >
-> - [Usage Guide](../usage/custom-messages.md) - Learn how to send custom messages
+> - [Usage Guide](../usage/guide.md) - Learn how to send custom messages
 > - [Examples](../examples/gallery.md) - See practical examples
 
 ---
@@ -13,15 +13,16 @@ Complete API reference for nf-slack plugin configuration options and functions.
 
 ### `slack`
 
-| Property     | Type    | Default                                    | Required | Description                                                        |
-| ------------ | ------- | ------------------------------------------ | -------- | ------------------------------------------------------------------ |
-| `enabled`    | Boolean | `true`                                     | No       | Master switch to enable/disable the plugin                         |
-| `bot`        | Closure | -                                          | No\*     | Bot configuration block (see [`slack.bot`](#slackbot))             |
-| `webhook`    | Closure | -                                          | No\*     | Webhook configuration block (see [`slack.webhook`](#slackwebhook)) |
-| `useThreads` | Boolean | `false`                                    | No       | Group all notifications in a single thread (Bot only)              |
-| `onStart`    | Closure | See [`slack.onStart`](#slackonstart)       | No       | Configuration for workflow start notifications                     |
-| `onComplete` | Closure | See [`slack.onComplete`](#slackoncomplete) | No       | Configuration for workflow completion notifications                |
-| `onError`    | Closure | See [`slack.onError`](#slackonerror)       | No       | Configuration for workflow error notifications                     |
+| Property            | Type    | Default                                    | Required | Description                                                        |
+| ------------------- | ------- | ------------------------------------------ | -------- | ------------------------------------------------------------------ |
+| `enabled`           | Boolean | `true`                                     | No       | Master switch to enable/disable the plugin                         |
+| `bot`               | Closure | -                                          | No\*     | Bot configuration block (see [`slack.bot`](#slackbot))             |
+| `webhook`           | Closure | -                                          | No\*     | Webhook configuration block (see [`slack.webhook`](#slackwebhook)) |
+| `useThreads`        | Boolean | `false`                                    | No       | Group all notifications in a single thread (Bot only)              |
+| `onStart`           | Closure | See [`slack.onStart`](#slackonstart)       | No       | Configuration for workflow start notifications                     |
+| `onComplete`        | Closure | See [`slack.onComplete`](#slackoncomplete) | No       | Configuration for workflow completion notifications                |
+| `onError`           | Closure | See [`slack.onError`](#slackonerror)       | No       | Configuration for workflow error notifications                     |
+| `validateOnStartup` | Boolean | `true`                                     | No       | Validate Slack connection credentials on pipeline startup          |
 
 \*Either `webhook` or `bot` is required. If neither is configured, the plugin will automatically disable itself.
 
@@ -80,13 +81,13 @@ Configuration for workflow start notifications.
 
 #### Properties
 
-| Property             | Type          | Default                   | Description                                         |
-| -------------------- | ------------- | ------------------------- | --------------------------------------------------- |
-| `enabled`            | Boolean       | `true`                    | Send notification when workflow starts              |
-| `message`            | String or Map | `'🚀 *Pipeline started*'` | Start notification message                          |
-| `includeCommandLine` | Boolean       | `true`                    | Include command line in message                     |
-| `showFooter`         | Boolean       | `true`                    | Show timestamp footer in message                    |
-| `channel`            | String        | `null`                    | Override channel for start notifications (Bot only) |
+| Property             | Type          | Default                   | Required | Description                                            |
+| -------------------- | ------------- | ------------------------- | -------- | ------------------------------------------------------ |
+| `enabled`            | Boolean       | `true`                    | No       | Send notification when workflow starts                 |
+| `message`            | String or Map | `'🚀 *Pipeline started*'` | No       | Start notification message                             |
+| `includeCommandLine` | Boolean       | `true`                    | No       | Include command line in message                        |
+| `showFooter`         | Boolean       | `true`                    | No       | Show timestamp footer in message                       |
+| `channel`            | String        | `null`                    | No       | Override channel for start notifications (Bot only)    |
 
 #### Message Available Fields
 
@@ -119,17 +120,19 @@ Configuration for workflow completion notifications.
 
 #### Properties
 
-| Property               | Type           | Default                                  | Description                                                   |
-| ---------------------- | -------------- | ---------------------------------------- | ------------------------------------------------------------- |
-| `enabled`              | Boolean        | `true`                                   | Send notification when workflow completes                     |
-| `message`              | String or Map  | `'✅ *Pipeline completed successfully*'` | Completion notification message                               |
-| `includeCommandLine`   | Boolean        | `true`                                   | Include command line in message                               |
-| `includeResourceUsage` | Boolean        | `true`                                   | Include task statistics and resource usage                    |
-| `showFooter`           | Boolean        | `true`                                   | Show timestamp footer in message                              |
-| `files`                | `List<String>` | `[]`                                     | File paths to upload after completion notification (Bot only) |
-| `channel`              | String         | `null`                                   | Override channel for completion notifications (Bot only)      |
+| Property               | Type           | Default                                  | Required | Description                                                       |
+| ---------------------- | -------------- | ---------------------------------------- | -------- | ----------------------------------------------------------------- |
+| `enabled`              | Boolean        | `true`                                   | No       | Send notification when workflow completes                         |
+| `message`              | String or Map  | `'✅ *Pipeline completed successfully*'` | No       | Completion notification message                                   |
+| `includeCommandLine`   | Boolean        | `true`                                   | No       | Include command line in message                                   |
+| `includeResourceUsage` | Boolean        | `true`                                   | No       | Include task statistics and resource usage                        |
+| `showFooter`           | Boolean        | `true`                                   | No       | Show timestamp footer in message                                  |
+| `files`                | `List<String>` | `[]`                                     | No       | File paths to upload after completion notification (Bot only)     |
+| `channel`              | String         | `null`                                   | No       | Override channel for completion notifications (Bot only)          |
 
-> [!NOTE] > `includeResourceUsage` is **only available** in the `onComplete` scope.
+<!-- prettier-ignore -->
+!!! note
+    `includeResourceUsage` is **only available** in the `onComplete` scope.
 
 #### Message Available Fields
 
@@ -164,19 +167,39 @@ Configuration for workflow error notifications.
 
 #### Properties
 
-| Property             | Type           | Default                  | Description                                              |
-| -------------------- | -------------- | ------------------------ | -------------------------------------------------------- |
-| `enabled`            | Boolean        | `true`                   | Send notification when workflow fails                    |
-| `message`            | String or Map  | `'❌ *Pipeline failed*'` | Error notification message                               |
-| `includeCommandLine` | Boolean        | `true`                   | Include command line in message                          |
-| `showFooter`         | Boolean        | `true`                   | Show timestamp footer in message                         |
-| `files`              | `List<String>` | `[]`                     | File paths to upload after error notification (Bot only) |
-| `channel`            | String         | `null`                   | Override channel for error notifications (Bot only)      |
+| Property             | Type           | Default                  | Required | Description                                                  |
+| -------------------- | -------------- | ------------------------ | -------- | ------------------------------------------------------------ |
+| `enabled`            | Boolean        | `true`                   | No       | Send notification when workflow fails                        |
+| `message`            | String or Map  | `'❌ *Pipeline failed*'` | No       | Error notification message                                   |
+| `includeCommandLine` | Boolean        | `true`                   | No       | Include command line in message                              |
+| `showFooter`         | Boolean        | `true`                   | No       | Show timestamp footer in message                             |
+| `files`              | `List<String>` | `[]`                     | No       | File paths to upload after error notification (Bot only)     |
+| `channel`            | String         | `null`                   | No       | Override channel for error notifications (Bot only)          |
+
+### `slack.seqeraPlatform`
+
+| Property  | Type      | Default | Description                                               |
+| --------- | --------- | ------- | --------------------------------------------------------- |
+| `enabled` | `Boolean` | `true`  | Enable Seqera Platform deep link buttons in notifications |
+
+---
 
 #### Message Available Fields
 
 - `runName` - Workflow run name
 - `status` - Error status
+
+### `slack.reactions`
+
+| Property    | Type      | Default              | Description                                 |
+| ----------- | --------- | -------------------- | ------------------------------------------- |
+| `enabled`   | `Boolean` | `false`              | Enable emoji reactions on the start message |
+| `onStart`   | `String`  | `'rocket'`           | Emoji reaction added when pipeline starts   |
+| `onSuccess` | `String`  | `'white_check_mark'` | Emoji reaction on successful completion     |
+| `onError`   | `String`  | `'x'`                | Emoji reaction on pipeline error            |
+
+> Reactions require a bot token. They are silently skipped when using webhooks.
+
 - `duration` - Time before failure
 - `commandLine` - Full Nextflow command
 - `errorMessage` - Error details
@@ -197,6 +220,15 @@ onError {
     ]
 }
 ```
+
+---
+
+### `slack.onProgress`
+
+| Property   | Type      | Default | Description                                                                        |
+| ---------- | --------- | ------- | ---------------------------------------------------------------------------------- |
+| `enabled`  | `Boolean` | `false` | Enable periodic progress update messages                                           |
+| `interval` | `String`  | `'5m'`  | Update interval. Supports time suffixes: `s` (seconds), `m` (minutes), `h` (hours) |
 
 ---
 

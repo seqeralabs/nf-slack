@@ -81,6 +81,18 @@ class WebhookSlackSender implements SlackSender {
     }
 
     /**
+     * Webhook connections have limited validation.
+     * Token and channel checks require a bot token.
+     *
+     * @return true (webhooks are validated implicitly on first message)
+     */
+    @Override
+    boolean validate() {
+        log.info "Slack plugin: Webhook connections have limited validation - token and channel checks are not available"
+        return true
+    }
+
+    /**
      * File upload is not supported via webhooks.
      * Logs a warning and returns without uploading.
      *

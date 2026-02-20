@@ -277,4 +277,109 @@ class BotSlackSenderTest extends Specification {
          cleanup:
          tempFile?.delete()
      }
+
+    def 'should call updateMessage gracefully when API is unreachable'() {
+        given:
+        def sender = new BotSlackSender('xoxb-test-token', 'C123456')
+
+        when:
+        sender.updateMessage('{"text":"progress update"}', '1234567890.123456')
+
+        then:
+        noExceptionThrown()
+    }
+
+    def 'should add reaction gracefully when API unreachable' () {
+        given:
+        def sender = new BotSlackSender('xoxb-test-token', 'C123456') {
+            @Override
+            protected void postReaction(String emoji, String messageTs) {
+                throw new ConnectException('Connection refused')
+            }
+        }
+
+        when:
+        sender.addReaction('white_check_mark', '1234567890.123456')
+
+        then:
+        noExceptionThrown()
+    }
+
+    def 'should call postReaction with correct parameters' () {
+        given:
+        def capturedEmoji = null
+        def capturedTs = null
+        def sender = new BotSlackSender('xoxb-test-token', 'C123456') {
+            @Override
+            protected void postReaction(String emoji, String messageTs) {
+                capturedEmoji = emoji
+                capturedTs = messageTs
+            }
+        }
+
+         when:
+         sender.addReaction('rocket', '1234567890.123456')
+
+        then:
+        capturedEmoji == 'rocket'
+        capturedTs == '1234567890.123456'
+     }
+
+    def 'should remove reaction gracefully when API unreachable' () {
+        given:
+        def sender = new BotSlackSender('xoxb-test-token', 'C123456') {
+            @Override
+            protected void deleteReaction(String emoji, String messageTs) {
+                throw new ConnectException('Connection refused')
+            }
+        }
+
+        when:
+        sender.removeReaction('rocket', '1234567890.123456')
+
+        then:
+        noExceptionThrown()
+    }
+
+    def 'should call deleteReaction with correct parameters' () {
+        given:
+        def capturedEmoji = null
+        def capturedTs = null
+        def sender = new BotSlackSender('xoxb-test-token', 'C123456') {
+            @Override
+            protected void deleteReaction(String emoji, String messageTs) {
+                capturedEmoji = emoji
+                capturedTs = messageTs
+            }
+        }
+
+        when:
+        sender.removeReaction('rocket', '1234567890.123456')
+
+        then:
+        capturedEmoji == 'rocket'
+        capturedTs == '1234567890.123456'
+    }
+
+    def 'should handle non-200 HTTP response from postReaction without throwing' () {
+        given:
+        def sender = new BotSlackSender('xoxb-test-token', 'C123456')
+
+        when:
+        sender.addReaction('rocket', '1234567890.123456')
+
+        then:
+        noExceptionThrown()
+    }
+
+    def 'should return false when validate hits unreachable endpoint'() {
+        given:
+        def sender = new BotSlackSender('xoxb-test-token', 'C1234567890')
+
+        when:
+        def result = sender.validate()
+
+        then:
+        result == false
+    }
 }

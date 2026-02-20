@@ -47,4 +47,41 @@ interface SlackSender {
      *   - threadTs (String): Thread timestamp for threading
      */
     void uploadFile(Path filePath, Map options)
+
+    /**
+     * Update an existing message in Slack (default: no-op for implementations that don't support it)
+     */
+    default void updateMessage(String message, String messageTs) {
+        // No-op by default - only BotSlackSender supports message updates
+    }
+
+    /**
+     * Add an emoji reaction to a message. Default no-op for senders that don't support reactions.
+     *
+     * @param emoji Emoji name without colons (e.g., 'white_check_mark')
+     * @param messageTs Timestamp of the message to react to
+     */
+    default void addReaction(String emoji, String messageTs) {
+        // No-op by default - only BotSlackSender supports reactions
+    }
+
+    /**
+     * Remove an emoji reaction from a message. Default no-op for senders that don't support reactions.
+     *
+     * @param emoji Emoji name without colons (e.g., 'rocket')
+     * @param messageTs Timestamp of the message to remove reaction from
+     */
+    default void removeReaction(String emoji, String messageTs) {
+        // No-op by default - only BotSlackSender supports reactions
+    }
+
+    /**
+     * Validate the Slack connection.
+     * Returns true if the connection is valid, false otherwise.
+     *
+     * @return true if connection is valid
+     */
+    default boolean validate() {
+        return true
+    }
 }

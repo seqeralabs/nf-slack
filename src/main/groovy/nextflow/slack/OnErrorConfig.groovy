@@ -62,6 +62,13 @@ class OnErrorConfig {
     final List<String> files
 
     /**
+     * List of workflow metadata field names to include in the notification.
+     * When set, only these fields are shown. When empty/null, all default fields are shown.
+     * Supported: runName, duration, status, failedProcess, errorMessage, commandLine, workDir
+     */
+    final List<String> includeFields
+
+    /**
      * Optional channel override for error notifications (bot token only)
      */
     final String channel
@@ -77,6 +84,7 @@ class OnErrorConfig {
         this.includeCommandLine = config?.includeCommandLine != null ? config.includeCommandLine as boolean : true
         this.showFooter = config?.showFooter != null ? config.showFooter as boolean : true
         this.files = config?.files != null ? (config.files as List<String>) : []
+        this.includeFields = config?.includeFields != null ? (config.includeFields as List<String>) : []
         this.channel = config?.channel as String
     }
 

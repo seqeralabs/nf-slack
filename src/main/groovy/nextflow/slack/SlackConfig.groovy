@@ -84,6 +84,12 @@ class SlackConfig {
     final boolean useThreads
 
     /**
+     * Validate Slack connection on startup (default: true)
+     * Calls auth.test to verify token and authentication
+     */
+    final boolean validateOnStartup
+
+    /**
      * Configuration for workflow start notifications
      */
     final OnStartConfig onStart
@@ -99,6 +105,21 @@ class SlackConfig {
     final OnErrorConfig onError
 
     /**
+     * Configuration for progress updates during workflow execution
+     */
+    final OnProgressConfig onProgress
+
+    /**
+     * Configuration for emoji reactions on messages
+     */
+    final ReactionsConfig reactions
+
+    /**
+     * Configuration for Seqera Platform deep links
+     */
+    final SeqeraPlatformConfig seqeraPlatform
+
+    /**
      * Private constructor - use from() factory method
      */
     private SlackConfig(Map config) {
@@ -107,10 +128,14 @@ class SlackConfig {
         def botConfig = config.bot as Map
         this.botToken = botConfig?.token as String
         this.botChannel = botConfig?.channel as String
-        this.useThreads = botConfig?.useThreads != null ? botConfig.useThreads as boolean : false
+        this.useThreads = botConfig?.useThreads != null ? botConfig.useThreads as boolean : true
+        this.validateOnStartup = config.validateOnStartup != null ? config.validateOnStartup as boolean : true
         this.onStart = new OnStartConfig(config.onStart as Map)
         this.onComplete = new OnCompleteConfig(config.onComplete as Map)
         this.onError = new OnErrorConfig(config.onError as Map)
+        this.onProgress = new OnProgressConfig(config.onProgress as Map)
+        this.reactions = new ReactionsConfig(config.reactions as Map)
+        this.seqeraPlatform = new SeqeraPlatformConfig(config.seqeraPlatform as Map)
     }
 
     /**
@@ -128,6 +153,9 @@ class SlackConfig {
             log.debug "Slack plugin: Explicitly disabled in configuration"
             return null
         }
+
+        def validateOnStartup = session.config?.navigate('slack.validateOnStartup')
+        if (validateOnStartup != null) config.validateOnStartup = validateOnStartup
 
         // Get webhook URL from nested structure
         def webhook = getWebhookUrl(session)
@@ -153,9 +181,10 @@ class SlackConfig {
                 log.warn "Slack plugin: You are using a User Token (xoxp-). It is recommended to use a Bot Token (xoxb-) for better security and granular permissions."
             }
 
-            // Validate channel format (basic check)
+            // Validate channel is present
             if (!botChannel) {
-                throw new IllegalArgumentException("Slack plugin: Bot channel is required when using bot token")
+                log.warn "Slack plugin: Bot channel is required when using bot token — plugin will be disabled"
+                return null
             }
             // Basic alphanumeric check for channel ID (allow hyphens/underscores for names)
             // Also allow # for channel names

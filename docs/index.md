@@ -1,151 +1,60 @@
 # nf-slack
 
-Get Slack notifications for your Nextflow workflows - automatically notified when pipelines start, complete, or fail.
+Slack notifications for your Nextflow workflows. Get notified when pipelines start, complete, or fail — with no changes to your pipeline code.
 
-![Default Slack notification](images/nf-slack-00.png)
+![Default notifications](images/nf-slack-00.png)
 
 ## Features
 
-- 🚀 **Automatic Notifications**: Get notified when workflows start, complete, or fail
-- 💬 **Custom Messages**: Send custom messages from within your workflow scripts
-- 📎 **File Uploads** — Share plots, reports, and files directly to Slack
-- 🤖 **Bot & Webhook Support**: Supports both bot and webhook authentication
-- 🧵 **Threading**: Keep channels clean by threading workflow notifications (Bot only)
-- 🎨 **Rich Formatting**: Beautiful Slack messages with colors and custom fields
-- ⚙️ **Highly Configurable**: Control what notifications are sent and when
+- **Automatic notifications** — workflow start, completion, and error events
+- **Custom messages and file uploads** from within your pipeline code
+- **Threading, reactions, and progress updates** to keep channels organized
+- **Seqera Platform integration** — one-click navigation to your runs
 
 ## Quick Start
 
-Get started in just 3 simple steps:
-
-1. **[Set up a Bot User](getting-started/bot-setup.md)** - Create a Slack App and Bot User (Recommended)
-2. **[Configure your pipeline](getting-started/quick-start.md)** - Add the plugin to your `nextflow.config`
-3. **Run your workflow** - That's it! Notifications will be sent automatically
-
-[Get Started →](getting-started/quick-start.md){ .md-button .md-button--primary }
-
-## What You Get
-
-Once configured, you'll automatically receive Slack messages for:
-
-- 🚀 **Pipeline starts** - Know when your workflow begins
-- ✅ **Successful completions** - Celebrate when pipelines finish
-- ❌ **Failures** - Get alerted immediately when something goes wrong
-
-Each message includes relevant details like run name, duration, and error information.
-
-## Basic Example
-
-Add to your `nextflow.config`:
+**1. Add the plugin** to your `nextflow.config`:
 
 ```groovy
 plugins {
-    id 'nf-slack@0.4.0'
+    id 'nf-slack@0.5.1'
 }
 
 slack {
     enabled = true
     bot {
         token = 'xoxb-your-bot-token'
-        channel = 'general'
+        channel = 'pipeline-notifications'
     }
 }
 ```
 
-That's it! Your workflow will now send notifications to Slack.
+**2. Run your pipeline** — that's it! You'll get Slack notifications automatically.
 
-## Customize Your Notifications
+<!-- prettier-ignore -->
+!!! tip "Need help setting up Slack?"
+    See the **[Setup Guide](getting-started/setup.md)** for step-by-step instructions on creating a Slack app and choosing between Bot and Webhook modes.
 
-### Choose Which Events to Notify
+## What Can You Do?
 
-```groovy
-slack {
-    enabled = true
-    bot {
-        token = 'xoxb-your-bot-token'
-        channel = 'general'
-    }
+| Feature                     | Example                              | Guide                                                   |
+| --------------------------- | ------------------------------------ | ------------------------------------------------------- |
+| Control which events notify | `onStart.enabled = false`            | [Usage Guide](usage/guide.md#enable-or-disable-events)  |
+| Customize message text      | `onComplete.message = 'Done!'`       | [Usage Guide](usage/guide.md#custom-text)               |
+| Thread notifications        | `useThreads = true`                  | [Usage Guide](usage/guide.md#threading)                 |
+| Upload files on completion  | `onComplete.files = ['report.html']` | [Usage Guide](usage/guide.md#file-uploads)              |
+| Send messages from code     | `slackMessage('Hello!')`             | [Usage Guide](usage/guide.md#custom-messages-from-code) |
+| Upload files from code      | `slackFileUpload('results.csv')`     | [Usage Guide](usage/guide.md#upload-a-file)             |
 
-    onStart.enabled = false     // Do not notify when pipeline starts
-    onComplete.enabled = true   // Notify on successful completion
-    onError.enabled = true      // Notify on failures
-}
-```
+## Documentation
 
-![Selective notifications](images/nf-slack-01.png)
-
-### Customize Message Text
-
-```groovy
-slack {
-    bot {
-        token = 'xoxb-your-bot-token'
-        channel = 'general'
-    }
-
-    onStart {
-        message = '🎬 *My analysis pipeline is starting!*'
-    }
-
-    onComplete {
-        message = '🎉 *Analysis completed successfully!*'
-    }
-
-    onError {
-        message = '💥 *Pipeline encountered an error!*'
-    }
-}
-```
-
-![Custom messages](images/nf-slack-02.png)
-
-### Send Custom Messages from Your Workflow
-
-```groovy
-include { slackMessage } from 'plugin/nf-slack'
-
-params.sample_id = "SAMPLE_001"
-
-workflow {
-    slackMessage("🔬 Starting analysis for sample ${params.sample_id}")
-
-    // Your workflow processes here
-
-    slackMessage("✅ Analysis complete!")
-}
-```
-
-![Custom workflow messages](images/nf-slack-04.png)
-
-### Upload Files
-
-```groovy
-slack {
-    bot {
-        token = 'xoxb-your-bot-token'
-        channel = 'pipeline-results'
-    }
-
-    onComplete {
-        files = ['results/multiqc_report.html']
-    }
-}
-```
-
-## Learn More
-
-- **[Installation Guide](getting-started/installation.md)** - Set up Bot User or Webhook
-- **[Quick Start](getting-started/quick-start.md)** - Configure your first notification
-- **[Usage Guide](usage/automatic-notifications.md)** - Learn all the features
-- **[Examples Gallery](examples/gallery.md)** - 9 progressive examples with screenshots
-- **[API Reference](reference/api.md)** - Complete configuration options
+- **[Setup Guide](getting-started/setup.md)** — Install the plugin and configure Slack
+- **[Usage Guide](usage/guide.md)** — All features and configuration options
+- **[Examples](examples/gallery.md)** — Runnable examples with screenshots
+- **[API Reference](reference/api.md)** — Complete property and function reference
 
 ## Support
 
-- 🐛 [Report bugs](https://github.com/seqeralabs/nf-slack/issues)
-- 💡 [Request features](https://github.com/seqeralabs/nf-slack/issues)
-- 📖 [Read the docs](https://seqeralabs.github.io/nf-slack/)
-
-## License
-
-Copyright 2025, Seqera Labs. Licensed under the Apache License, Version 2.0.
+- [Report bugs](https://github.com/seqeralabs/nf-slack/issues)
+- [Request features](https://github.com/seqeralabs/nf-slack/issues)
+- [Nextflow Slack](https://www.nextflow.io/slack.html)
