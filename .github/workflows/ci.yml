@@ -40,7 +40,7 @@ jobs:
           distribution: "temurin"
 
       - name: Setup Nextflow ${{ matrix.nextflow_version }}
-        uses: nf-core/setup-nextflow@6c2e22b4d901f0c42ca66c5069f8026df026d165 # v2
+        uses: nf-core/setup-nextflow@6c2e22b4d901f0c42ca66c5069f8026df026d165 # v2.1.4
         with:
           version: "${{ matrix.nextflow_version }}"
 
