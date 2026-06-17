@@ -14,7 +14,7 @@ Get Slack notifications for your Nextflow workflows — automatically notified w
 - **Threading, Reactions, and Progress Updates** — Keep channels organized
 - **Seqera Platform Integration** — One-click navigation to your runs
 
-## Quick Start
+## Get Started
 
 Add to your `nextflow.config`:
 
@@ -34,7 +34,7 @@ slack {
 
 Run your pipeline — you'll get Slack notifications automatically:
 
-![Default notifications](./docs/images/nf-slack-00.png)
+![Default notifications](https://raw.githubusercontent.com/seqeralabs/nf-slack/main/docs/images/nf-slack-00.png)
 
 See the [Setup Guide](https://seqeralabs.github.io/nf-slack/latest/getting-started/setup/) for bot and webhook configuration options.
 
@@ -45,6 +45,40 @@ See the [Setup Guide](https://seqeralabs.github.io/nf-slack/latest/getting-start
 - **[Examples](https://seqeralabs.github.io/nf-slack/latest/examples/gallery/)** — Copy-paste configuration examples
 - **[API Reference](https://seqeralabs.github.io/nf-slack/latest/reference/api/)** — All configuration options
 - **[Contributing](docs/CONTRIBUTING.md)** — Development setup and guidelines
+
+## Examples
+
+Here are a few common configurations to get you started:
+
+**Basic bot notifications:**
+
+```groovy
+slack {
+    enabled = true
+    bot {
+        token = 'xoxb-your-bot-token'
+        channel = 'pipeline-results'
+    }
+}
+```
+
+**Threaded messages with start, complete, and error events:**
+
+```groovy
+slack {
+    enabled = true
+    bot {
+        token = 'xoxb-your-bot-token'
+        channel = 'pipeline-results'
+    }
+    useThreads = true
+    onStart.send = true
+    onComplete.send = true
+    onError.send = true
+}
+```
+
+See the [Examples Gallery](https://seqeralabs.github.io/nf-slack/latest/examples/gallery/) for more copy-paste configurations.
 
 ## Support
 
