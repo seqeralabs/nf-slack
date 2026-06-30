@@ -638,6 +638,11 @@ class SlackMessageBuilder {
             ]
         }
 
+        def seqeraUrl = getSeqeraPlatformUrl()
+        if (seqeraUrl) {
+            blocks << createSeqeraPlatformButton(seqeraUrl)
+        }
+
         return createMessagePayload(blocks, threadTs)
     }
 

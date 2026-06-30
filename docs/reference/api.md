@@ -229,6 +229,34 @@ onError {
 
 ---
 
+### `slack.onTaskComplete`
+
+Per-task notifications when individual processes finish. **Defaults to `enabled = false`** — you must set `enabled = true` explicitly.
+
+| Property            | Type      | Default | Description                                         |
+| ------------------- | --------- | ------- | --------------------------------------------------- |
+| `enabled`           | `Boolean` | `false` | Enable per-task completion notifications            |
+| `throttleInterval`  | `String`  | `'30s'` | Minimum time between per-task notifications         |
+| `onFirstFailure`    | `Boolean` | `false` | Notify on the first task failure in the workflow    |
+| `withName:<regex>`  | `Map`     | -       | Selector for process names (supports `!` negation)  |
+| `withLabel:<regex>` | `Map`     | -       | Selector for process labels (supports `!` negation) |
+
+Selector maps support `enabled` (default `true`) and `minDuration` (e.g. `'10m'`).
+
+#### Example
+
+```groovy
+onTaskComplete {
+    enabled = true
+    throttleInterval = '30s'
+    onFirstFailure = true
+    'withName:ALIGN.*' { enabled = true; minDuration = '10m' }
+    'withLabel:gpu' { enabled = true }
+}
+```
+
+---
+
 ### `slack.<scope>.message (String)`
 
 Use a string for quick, simple message customization. Supports Slack markdown (`*bold*`, `_italic_`, `` `code` ``), emojis, and newlines (`\n`).

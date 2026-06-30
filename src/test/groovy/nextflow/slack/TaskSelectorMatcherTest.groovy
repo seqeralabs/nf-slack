@@ -27,5 +27,13 @@ class TaskSelectorMatcherTest extends Specification {
         ['short']           | 'long_running'  | false
         ['short', 'batch']  | 'batch'         | true
         ['short']           | '!batch'        | true
+        []                  | '!gpu'          | false
+        ['gpu']             | '!gpu'          | false
+    }
+
+    def 'should treat invalid regex patterns as non-matching'() {
+        expect:
+        !TaskSelectorMatcher.matchesName('ALIGN', 'ALIGN[BAD')
+        !TaskSelectorMatcher.matchesLabels(['gpu'], 'gpu[BAD')
     }
 }

@@ -75,18 +75,28 @@ class TaskSelectorMatcher {
         if (!name || !pattern) return false
         final isNegated = pattern.startsWith('!')
         if (isNegated) pattern = pattern.substring(1).trim()
-        return Pattern.compile(pattern).matcher(name).matches() ^ isNegated
+        try {
+            return Pattern.compile(pattern).matcher(name).matches() ^ isNegated
+        }
+        catch (java.util.regex.PatternSyntaxException e) {
+            return false
+        }
     }
 
     static boolean matchesLabels(List<String> labels, String pattern) {
         if (!pattern) return false
         final isNegated = pattern.startsWith('!')
         if (isNegated) pattern = pattern.substring(1).trim()
-        final regex = Pattern.compile(pattern)
-        for (String label : labels ?: Collections.<String>emptyList()) {
-            if (regex.matcher(label).matches()) return !isNegated
+        try {
+            final regex = Pattern.compile(pattern)
+            for (String label : labels ?: Collections.<String>emptyList()) {
+                if (regex.matcher(label).matches()) return !isNegated
+            }
+            return isNegated && !(labels ?: Collections.<String>emptyList()).isEmpty()
         }
-        return isNegated
+        catch (java.util.regex.PatternSyntaxException e) {
+            return false
+        }
     }
 }
 
