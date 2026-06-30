@@ -211,9 +211,18 @@ class SlackMessageBuilder {
             if (target instanceof Map) {
                 return (target as Map).get(propertyName) as String
             }
-            def field = target.class.getDeclaredField(propertyName)
-            field.accessible = true
-            return field.get(target) as String
+            Class clazz = target.class
+            while (clazz) {
+                try {
+                    def field = clazz.getDeclaredField(propertyName)
+                    field.accessible = true
+                    return field.get(target) as String
+                }
+                catch (NoSuchFieldException ignored) {
+                    clazz = clazz.superclass
+                }
+            }
+            return org.codehaus.groovy.runtime.InvokerHelper.getPropertySafe(target, propertyName) as String
         }
         catch (Exception ignored) {
             return null

@@ -827,6 +827,56 @@ class SlackMessageBuilderTest extends Specification {
         actionsBlock.elements[0].url == 'https://cloud.seqera.io/orgs/myorg/workspaces/myws/watch/abc123'
     }
 
+    def 'should not include Seqera Platform button in complete message when watchUrl is null'() {
+        given:
+        def platformConfig = new SlackConfig([
+            webhook: 'https://hooks.slack.com/test',
+            seqeraPlatform: [enabled: true]
+        ])
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.scriptName >> 'test-workflow.nf'
+        mockMetadata.duration >> Duration.of('1h')
+        mockMetadata.stats >> null
+        def towerSession = Mock(Session)
+        towerSession.config >> [:]
+        towerSession.workflowMetadata >> mockMetadata
+        towerSession.runName >> 'crazy_einstein'
+        towerSession.uniqueId >> UUID.fromString('00000000-0000-0000-0000-000000000000')
+        def builder = Spy(new SlackMessageBuilder(platformConfig, towerSession))
+        builder.getTowerClientWatchUrl() >> null
+
+        when:
+        def message = builder.buildWorkflowCompleteMessage()
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        json.blocks.find { it.type == 'actions' } == null
+    }
+
+    def 'should not include Seqera Platform button in progress update when watchUrl is null'() {
+        given:
+        def platformConfig = new SlackConfig([
+            webhook: 'https://hooks.slack.com/test',
+            seqeraPlatform: [enabled: true]
+        ])
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.scriptName >> 'test-workflow.nf'
+        def towerSession = Mock(Session)
+        towerSession.config >> [:]
+        towerSession.workflowMetadata >> mockMetadata
+        towerSession.runName >> 'crazy_einstein'
+        towerSession.uniqueId >> UUID.fromString('00000000-0000-0000-0000-000000000000')
+        def builder = Spy(new SlackMessageBuilder(platformConfig, towerSession))
+        builder.getTowerClientWatchUrl() >> null
+
+        when:
+        def message = builder.buildProgressUpdateMessage(10, 5, 2, 0, 60000L, null)
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        json.blocks.find { it.type == 'actions' } == null
+    }
+
     def 'should include Seqera Platform button in progress update when watchUrl is available'() {
         given:
         def platformConfig = new SlackConfig([
