@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Raised minimum supported Nextflow version to 25.10.0; CI now tests 25.10 and 26.04 ([#72](https://github.com/seqeralabs/nf-slack/pull/72))
+
 ## [0.5.1] - 2026-02-19
 
 ### Fixed
