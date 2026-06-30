@@ -313,8 +313,9 @@ class SlackObserver implements TraceObserver {
      * since replies would go to a different conversation.
      */
     private boolean shouldUseThread(String eventChannel) {
-        if (!eventChannel) return true
-        return eventChannel == config.botChannel
+        def startChannel = config.onStart.channel ?: config.botChannel
+        def effectiveEventChannel = eventChannel ?: config.botChannel
+        return effectiveEventChannel == startChannel
     }
 
     /**

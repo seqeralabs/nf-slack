@@ -1002,4 +1002,109 @@ class SlackObserverTest extends Specification {
         then:
         capturedChannel == 'C-ERROR-CHANNEL'
     }
+
+    def 'should use threading when complete message uses same channel as start'() {
+        given:
+        def capturedThreadTs = null
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: '#general'],
+            onStart: [enabled: false],
+            onComplete: [enabled: true],
+            useThreads: true,
+            validateOnStartup: false
+        ])
+        def mockSession = Mock(Session)
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.success >> true
+        mockSession.workflowMetadata >> mockMetadata
+        def mockSender = Mock(BotSlackSender)
+        mockSender.getThreadTs() >> '1234567890.123456'
+        def mockBuilder = Mock(SlackMessageBuilder)
+        mockBuilder.buildWorkflowCompleteMessage(_, _) >> { String threadTs, String ch ->
+            capturedThreadTs = threadTs
+            return '{}'
+        }
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setSession(mockSession)
+        observer.setMessageBuilder(mockBuilder)
+
+        when:
+        observer.onFlowComplete()
+
+        then:
+        capturedThreadTs == '1234567890.123456'
+    }
+
+    def 'should not use threading when start channel override differs from complete channel'() {
+        given:
+        def capturedThreadTs = 'unset'
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: '#general'],
+            onStart: [enabled: false, channel: '#deployments'],
+            onComplete: [enabled: true],
+            useThreads: true,
+            validateOnStartup: false
+        ])
+        def mockSession = Mock(Session)
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.success >> true
+        mockSession.workflowMetadata >> mockMetadata
+        def mockSender = Mock(BotSlackSender)
+        mockSender.getThreadTs() >> '1234567890.123456'
+        def mockBuilder = Mock(SlackMessageBuilder)
+        mockBuilder.buildWorkflowCompleteMessage(_, _) >> { String threadTs, String ch ->
+            capturedThreadTs = threadTs
+            return '{}'
+        }
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setSession(mockSession)
+        observer.setMessageBuilder(mockBuilder)
+
+        when:
+        observer.onFlowComplete()
+
+        then:
+        capturedThreadTs == null
+    }
+
+    def 'should use threading when complete channel override matches start channel override'() {
+        given:
+        def capturedThreadTs = null
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: '#general'],
+            onStart: [enabled: false, channel: '#deployments'],
+            onComplete: [enabled: true, channel: '#deployments'],
+            useThreads: true,
+            validateOnStartup: false
+        ])
+        def mockSession = Mock(Session)
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.success >> true
+        mockSession.workflowMetadata >> mockMetadata
+        def mockSender = Mock(BotSlackSender)
+        mockSender.getThreadTs() >> '1234567890.123456'
+        def mockBuilder = Mock(SlackMessageBuilder)
+        mockBuilder.buildWorkflowCompleteMessage(_, _) >> { String threadTs, String ch ->
+            capturedThreadTs = threadTs
+            return '{}'
+        }
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setSession(mockSession)
+        observer.setMessageBuilder(mockBuilder)
+
+        when:
+        observer.onFlowComplete()
+
+        then:
+        capturedThreadTs == '1234567890.123456'
+    }
 }
