@@ -12,10 +12,11 @@ on:
       nextflow_version:
         description: "Nextflow version to test"
         required: false
-        default: "25.10"
+        default: "26.04"
         type: choice
         options:
           - "25.10"
+          - "26.04"
       java_version:
         description: "Java version to use"
         required: false
