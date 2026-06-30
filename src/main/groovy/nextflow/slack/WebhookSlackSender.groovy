@@ -35,6 +35,7 @@ class WebhookSlackSender implements SlackSender {
 
     private final String webhookUrl
     private final Set<String> loggedErrors = Collections.synchronizedSet(new HashSet<String>())
+    private final Set<String> loggedWarnings = Collections.synchronizedSet(new HashSet<String>())
 
     /**
      * Create a new WebhookSlackSender with the given webhook URL
@@ -51,6 +52,8 @@ class WebhookSlackSender implements SlackSender {
     @Override
     void sendMessage(String message) {
         try {
+            warnIfUnresolvedMentions(message)
+
             def url = new URL(webhookUrl)
             def connection = url.openConnection() as HttpURLConnection
             connection.requestMethod = 'POST'
@@ -102,5 +105,15 @@ class WebhookSlackSender implements SlackSender {
     @Override
     void uploadFile(Path filePath, Map options) {
         log.warn "Slack plugin: File upload is not supported with webhooks. Please configure a bot token to upload files."
+    }
+
+    private void warnIfUnresolvedMentions(String message) {
+        if (!SlackMentionResolver.hasResolvableMentions(message)) {
+            return
+        }
+        def warning = 'Slack plugin: Display-name @mentions require a bot token (users:read scope) and are not resolved with webhooks'
+        if (loggedWarnings.add(warning)) {
+            log.warn warning
+        }
     }
 }

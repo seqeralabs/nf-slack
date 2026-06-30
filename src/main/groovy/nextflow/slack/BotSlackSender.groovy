@@ -52,6 +52,7 @@ class BotSlackSender implements SlackSender {
 
     private final String botToken
     private final String channelId
+    private final SlackMentionResolver mentionResolver
     private final Set<String> loggedErrors = Collections.synchronizedSet(new HashSet<String>())
     private String threadTs  // Store the thread timestamp for threaded conversations
     private String resolvedChannelId  // Channel ID resolved from Slack API response
@@ -65,6 +66,7 @@ class BotSlackSender implements SlackSender {
     BotSlackSender(String botToken, String channelId) {
         this.botToken = botToken
         this.channelId = channelId
+        this.mentionResolver = new SlackMentionResolver(botToken)
     }
 
     /**
@@ -75,8 +77,8 @@ class BotSlackSender implements SlackSender {
     @Override
     void sendMessage(String message) {
         try {
-            // Message is already formatted by SlackMessageBuilder with channel ID
-            postToSlack(message)
+            def resolvedMessage = mentionResolver.resolveInJson(message)
+            postToSlack(resolvedMessage)
 
         } catch (Exception e) {
             def errorMsg = "Slack plugin: Error sending bot message: ${e.message}".toString()
@@ -419,7 +421,8 @@ class BotSlackSender implements SlackSender {
     @Override
     void updateMessage(String message, String messageTs) {
         try {
-            postUpdate(message, messageTs)
+            def resolvedMessage = mentionResolver.resolveInJson(message)
+            postUpdate(resolvedMessage, messageTs)
         } catch (Exception e) {
             def errorMsg = "Slack plugin: Error updating message: ${e.message}".toString()
             if (loggedErrors.add(errorMsg)) {
