@@ -109,6 +109,8 @@ class SlackConfig {
      */
     final OnProgressConfig onProgress
 
+    final OnTaskCompleteConfig onTaskComplete
+
     /**
      * Configuration for emoji reactions on messages
      */
@@ -134,6 +136,7 @@ class SlackConfig {
         this.onComplete = new OnCompleteConfig(config.onComplete as Map)
         this.onError = new OnErrorConfig(config.onError as Map)
         this.onProgress = new OnProgressConfig(config.onProgress as Map)
+        this.onTaskComplete = new OnTaskCompleteConfig(config.onTaskComplete as Map)
         this.reactions = new ReactionsConfig(config.reactions as Map)
         this.seqeraPlatform = new SeqeraPlatformConfig(config.seqeraPlatform as Map)
     }

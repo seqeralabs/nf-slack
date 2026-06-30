@@ -879,4 +879,27 @@ class SlackMessageBuilderTest extends Specification {
         !fields.find { it.text.contains('Duration') }
         !fields.find { it.text.contains('Status') }
     }
+
+    def 'should build task complete message with task metadata'() {
+        given:
+        def trace = Mock(nextflow.trace.TraceRecord)
+        trace.get('process') >> 'STAR_ALIGN'
+        trace.get('exit') >> '0'
+        trace.get('realtime') >> Duration.of('1h 15m')
+        trace.get('peak_rss') >> '8 GB'
+        trace.get('%cpu') >> '95.0'
+        trace.get('workdir') >> '/work/abc123'
+
+        when:
+        def message = messageBuilder.buildTaskCompleteMessage(trace)
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        json.blocks[0].text.text.contains('Task completed')
+        def fields = json.blocks.find { it.type == 'section' && it.fields }.fields
+        fields.find { it.text.contains('STAR_ALIGN') }
+        fields.find { it.text.contains('Success') }
+        fields.find { it.text.contains('1h 15m') }
+        fields.find { it.text.contains('8 GB') }
+    }
 }

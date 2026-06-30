@@ -59,6 +59,10 @@ class SlackObserver implements TraceObserver {
     private final AtomicLong lastUpdateTime = new AtomicLong(0)
     private Timer pendingUpdateTimer
     private boolean startReactionAdded = false
+    private boolean taskNotificationsEnabled
+    private long taskThrottleIntervalMs
+    private final AtomicLong lastTaskNotificationTime = new AtomicLong(0)
+    private boolean firstTaskFailureNotified = false
 
     /**
      * Called when the workflow is created
@@ -113,6 +117,12 @@ class SlackObserver implements TraceObserver {
             sendProgressUpdate()
             log.debug "Slack plugin: Progress updates enabled (min interval: ${config.onProgress.interval})"
         }
+
+        if (config.onTaskComplete?.isActive()) {
+            taskNotificationsEnabled = true
+            taskThrottleIntervalMs = config.onTaskComplete.getThrottleIntervalMillis()
+            log.debug "Slack plugin: Per-task notifications enabled (throttle: ${config.onTaskComplete.throttleInterval})"
+        }
     }
 
     @Override
@@ -124,7 +134,11 @@ class SlackObserver implements TraceObserver {
     @Override
     void onProcessComplete(TaskHandler handler, TraceRecord trace) {
         completedTasks.incrementAndGet()
+        if (TaskNotificationMatcher.isTaskFailure(trace)) {
+            failedTasks.incrementAndGet()
+        }
         scheduleProgressUpdateIfNeeded()
+        maybeSendTaskCompleteNotification(handler, trace)
     }
 
     @Override
@@ -150,9 +164,12 @@ class SlackObserver implements TraceObserver {
         scheduleSeqeraPlatformButtonUpdate()
     }
 
+    private static final long SEQERA_BUTTON_POLL_INTERVAL_MS = 2000L
+    private static final int SEQERA_BUTTON_MAX_ATTEMPTS = 15
+
     /**
      * Schedule an async update to add the Seqera Platform button to the start message.
-     * Waits briefly for TowerClient (a V2 observer) to set its watchUrl during onFlowBegin.
+     * Polls until the watch URL is available or max attempts is reached.
      */
     private void scheduleSeqeraPlatformButtonUpdate() {
         if (!config.seqeraPlatform?.enabled) return
@@ -160,19 +177,28 @@ class SlackObserver implements TraceObserver {
         def messageTs = (sender as BotSlackSender).getThreadTs()
         if (!messageTs) return
 
+        scheduleSeqeraPlatformButtonUpdateAttempt(messageTs, 0)
+    }
+
+    private void scheduleSeqeraPlatformButtonUpdateAttempt(String messageTs, int attempt) {
+        long delay = attempt == 0 ? 1000L : SEQERA_BUTTON_POLL_INTERVAL_MS
         new Timer('slack-seqera-button', true).schedule(new TimerTask() {
             @Override
             void run() {
                 try {
-                    def startMessage = messageBuilder.buildWorkflowStartMessage()
-                    sender.updateMessage(startMessage, messageTs)
-                    log.debug "Slack plugin: Updated start message with Seqera Platform button"
+                    if (messageBuilder.getTowerClientWatchUrl()) {
+                        def startMessage = messageBuilder.buildWorkflowStartMessage()
+                        sender.updateMessage(startMessage, messageTs)
+                        log.debug "Slack plugin: Updated start message with Seqera Platform button"
+                    } else if (attempt + 1 < SEQERA_BUTTON_MAX_ATTEMPTS) {
+                        scheduleSeqeraPlatformButtonUpdateAttempt(messageTs, attempt + 1)
+                    }
                 }
                 catch (Exception e) {
                     log.debug "Slack plugin: Failed to update start message with Seqera Platform button: ${e.message}"
                 }
             }
-        }, 3000L)
+        }, delay)
     }
 
     /**
@@ -416,6 +442,31 @@ class SlackObserver implements TraceObserver {
                 pendingUpdateTimer.cancel()
                 pendingUpdateTimer = null
             }
+        }
+    }
+
+    private void maybeSendTaskCompleteNotification(TaskHandler handler, TraceRecord trace) {
+        if (!taskNotificationsEnabled || !isConfigured() || !trace) return
+
+        def taskConfig = config.onTaskComplete
+        if (!TaskNotificationMatcher.shouldNotify(taskConfig, handler, trace, firstTaskFailureNotified)) return
+
+        long now = System.currentTimeMillis()
+        if (lastTaskNotificationTime.get() > 0 && (now - lastTaskNotificationTime.get()) < taskThrottleIntervalMs) {
+            log.debug "Slack plugin: Skipping per-task notification (throttled)"
+            return
+        }
+
+        try {
+            def threadTs = getThreadTsIfEnabled()
+            sender.sendMessage(messageBuilder.buildTaskCompleteMessage(trace, threadTs))
+            lastTaskNotificationTime.set(now)
+            if (taskConfig.onFirstFailure && TaskNotificationMatcher.isTaskFailure(trace)) {
+                firstTaskFailureNotified = true
+            }
+            log.debug "Slack plugin: Sent per-task completion notification for ${trace.get('process')}"
+        } catch (Exception e) {
+            log.debug "Slack plugin: Failed to send per-task notification: ${e.message}"
         }
     }
 }

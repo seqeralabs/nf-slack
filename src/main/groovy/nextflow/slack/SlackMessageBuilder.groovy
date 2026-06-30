@@ -607,6 +607,40 @@ class SlackMessageBuilder {
         return new JsonBuilder(message).toPrettyString()
     }
 
+    String buildTaskCompleteMessage(TraceRecord trace, String threadTs = null) {
+        def processName = trace.get('process')?.toString() ?: 'Unknown process'
+        def duration = trace.get('realtime') ?: trace.get('duration')
+        def durationText = duration ? duration.toString() : '-'
+        def exitStatus = trace.get('exit')?.toString() ?: '-'
+        def peakMemory = trace.get('peak_rss')?.toString() ?: '-'
+        def peakCpu = trace.get('%cpu')?.toString() ?: '-'
+        def workDir = trace.get('workdir')?.toString() ?: '-'
+        def failed = exitStatus && exitStatus != '0' && exitStatus != '-'
+
+        def blocks = []
+        blocks << createHeaderSection(failed ? '❌ *Task failed*' : '✅ *Task completed*')
+
+        List<Map> fields = []
+        fields << createMarkdownField('Process', "`${processName}`")
+        fields << createMarkdownField('Status', failed ? '❌ Failed' : '✅ Success')
+        fields << createMarkdownField('Duration', durationText)
+        fields << createMarkdownField('Exit', exitStatus)
+        fields << createMarkdownField('Peak Memory', peakMemory)
+        fields << createMarkdownField('Peak CPU', peakCpu)
+
+        blocks << createDivider()
+        blocks << createFieldsSection(fields)
+
+        if (workDir != '-') {
+            blocks << [
+                type: 'section',
+                text: [type: 'mrkdwn', text: "*Work Directory*\n`${workDir}`"]
+            ]
+        }
+
+        return createMessagePayload(blocks, threadTs)
+    }
+
     /**
      * Build a progress update message showing workflow execution status.
      * Includes the original start message content with progress stats appended below.
