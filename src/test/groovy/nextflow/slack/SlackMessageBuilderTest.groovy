@@ -709,6 +709,36 @@ class SlackMessageBuilderTest extends Specification {
         actionsBlock == null
     }
 
+    def 'should read TowerClient watchUrl from observers list (Nextflow 24.10)'() {
+        given:
+        def gcl = new GroovyClassLoader(this.class.classLoader)
+        def towerClass = gcl.parseClass('''
+            package io.seqera.tower.plugin
+            class TowerClient {
+                private String watchUrl = 'https://cloud.seqera.io/orgs/myorg/workspaces/myws/watch/abc123'
+            }
+        ''')
+        def towerClient = towerClass.newInstance()
+        def sessionClass = gcl.parseClass('''
+            import nextflow.Session
+            class FakeSession extends Session {
+                java.util.List observers
+                FakeSession() { super([:]) }
+            }
+        ''')
+        def session = sessionClass.newInstance()
+        session.observers = [towerClient]
+
+        def platformConfig = new SlackConfig([
+            webhook: 'https://hooks.slack.com/test',
+            seqeraPlatform: [enabled: true]
+        ])
+        def builder = new SlackMessageBuilder(platformConfig, session as Session)
+
+        expect:
+        builder.getTowerClientWatchUrl() == 'https://cloud.seqera.io/orgs/myorg/workspaces/myws/watch/abc123'
+    }
+
     def 'should read TowerClient watchUrl from observersV1 list (Nextflow 25.10+)'() {
         given:
         def gcl = new GroovyClassLoader(this.class.classLoader)

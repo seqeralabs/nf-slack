@@ -171,7 +171,7 @@ class SlackMessageBuilder {
      *
      * Prefers workflow metadata populated by nf-tower during onFlowBegin. Falls
      * back to reading the private {@code watchUrl} field from TowerClient or
-     * TowerObserver (Nextflow 25.10+) via reflection on {@code observersV1} and
+     * TowerObserver via reflection on {@code observers}, {@code observersV1}, and
      * {@code observersV2}.
      */
     // Package-private for testability (Spock Spy cannot stub private methods)
@@ -221,10 +221,10 @@ class SlackMessageBuilder {
     }
 
     /**
-     * Find TowerClient or TowerObserver in Nextflow 25.10+ session observer lists.
+     * Find TowerClient or TowerObserver in any Nextflow session observer list.
      */
     private Object findTowerObserver() {
-        for (String fieldName : ['observersV1', 'observersV2']) {
+        for (String fieldName : ['observers', 'observersV1', 'observersV2']) {
             try {
                 def observersField = session.class.getDeclaredField(fieldName)
                 observersField.accessible = true
