@@ -87,4 +87,4 @@ See the [Examples Gallery](https://seqeralabs.github.io/nf-slack/latest/examples
 
 ## License
 
-Copyright 2025, Seqera Labs. Licensed under the Apache License, Version 2.0.
+Copyright 2025-2026, Seqera Labs. Licensed under the Apache License, Version 2.0.
