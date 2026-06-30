@@ -1,5 +1,5 @@
 /*
- * Copyright 2025, Seqera Labs
+ * Copyright 2025-2026, Seqera Labs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import groovy.util.logging.Slf4j
  * Resolves Slack @mentions by display name to internal user/subteam IDs.
  *
  * Only used with bot tokens (requires users:read and usergroups:read scopes).
- * User and usergroup lists are cached for the lifetime of the resolver instance.
  *
  * @author Adam Talbot <adam.talbot@seqera.io>
  */
@@ -45,11 +44,8 @@ class SlackMentionResolver {
         ~/<!subteam\^(?!S[A-Z0-9]+(?:\|[^>]+)?>)([^>|]+)(?:\|[^>]+)?>/
 
     private final String botToken
-    private volatile List<Map> cachedUsers
-    private volatile List<Map> cachedUsergroups
-    private final Object usersCacheLock = new Object()
-    private final Object usergroupsCacheLock = new Object()
-    private final Set<String> loggedWarnings = Collections.synchronizedSet(new HashSet<String>())
+    private List<Map> users
+    private List<Map> usergroups
 
     SlackMentionResolver(String botToken) {
         this.botToken = botToken
@@ -76,6 +72,14 @@ class SlackMentionResolver {
             return text
         }
         return resolveSubteamMentions(resolveUserMentions(text))
+    }
+
+    private String resolveUserMentions(String text) {
+        return replaceMentions(text, USER_MENTION_PATTERN) { String name -> resolveUserId(name) } { String id -> "<@${id}>" }
+    }
+
+    private String resolveSubteamMentions(String text) {
+        return replaceMentions(text, SUBTEAM_MENTION_PATTERN) { String name -> resolveSubteamId(name) } { String id -> "<!subteam^${id}>" }
     }
 
     static boolean hasResolvableMentions(String text) {
@@ -111,38 +115,23 @@ class SlackMentionResolver {
         }
     }
 
-    private String resolveUserMentions(String text) {
-        def matcher = USER_MENTION_PATTERN.matcher(text)
+    private String replaceMentions(
+        String text,
+        java.util.regex.Pattern pattern,
+        Closure<String> resolveId,
+        Closure<String> formatMention
+    ) {
+        def matcher = pattern.matcher(text)
         if (!matcher.find()) {
             return text
         }
 
-        ensureUsersLoaded()
         def buffer = new StringBuffer()
         matcher.reset()
         while (matcher.find()) {
-            def displayName = matcher.group(1)
-            def userId = resolveUserId(displayName)
-            String replacement = userId ? "<@${userId}>" : matcher.group(0)
-            matcher.appendReplacement(buffer, java.util.regex.Matcher.quoteReplacement(replacement))
-        }
-        matcher.appendTail(buffer)
-        return buffer.toString()
-    }
-
-    private String resolveSubteamMentions(String text) {
-        def matcher = SUBTEAM_MENTION_PATTERN.matcher(text)
-        if (!matcher.find()) {
-            return text
-        }
-
-        ensureUsergroupsLoaded()
-        def buffer = new StringBuffer()
-        matcher.reset()
-        while (matcher.find()) {
-            def teamName = matcher.group(1)
-            def subteamId = resolveSubteamId(teamName)
-            String replacement = subteamId ? "<!subteam^${subteamId}>" : matcher.group(0)
+            def name = matcher.group(1)
+            def id = resolveId.call(name)
+            String replacement = id ? formatMention.call(id) : matcher.group(0)
             matcher.appendReplacement(buffer, java.util.regex.Matcher.quoteReplacement(replacement))
         }
         matcher.appendTail(buffer)
@@ -161,12 +150,12 @@ class SlackMentionResolver {
                 return matches[0]
             }
             if (matches.size() > 1) {
-                warnOnce("Slack plugin: Ambiguous @mention '<@${query}>': multiple users match ${describeMatches(matches)} — leaving unresolved")
+                log.warn "Slack plugin: Ambiguous @mention '<@${query}>': multiple users match — leaving unresolved"
                 return null
             }
         }
 
-        warnOnce("Slack plugin: Could not resolve @mention '<@${query}>' — no matching Slack user found")
+        log.warn "Slack plugin: Could not resolve @mention '<@${query}>' — no matching Slack user found"
         return null
     }
 
@@ -182,18 +171,18 @@ class SlackMentionResolver {
                 return matches[0]
             }
             if (matches.size() > 1) {
-                warnOnce("Slack plugin: Ambiguous subteam mention '<!subteam^${query}>': multiple groups match ${describeMatches(matches)} — leaving unresolved")
+                log.warn "Slack plugin: Ambiguous subteam mention '<!subteam^${query}>' — leaving unresolved"
                 return null
             }
         }
 
-        warnOnce("Slack plugin: Could not resolve subteam mention '<!subteam^${query}>' — no matching Slack user group found")
+        log.warn "Slack plugin: Could not resolve subteam mention '<!subteam^${query}>' — no matching Slack user group found"
         return null
     }
 
     private List<String> findUsersMatchingField(String field, String normalizedQuery) {
         def matches = [] as List<String>
-        for (Map user : cachedUsers) {
+        for (Map user : getUsers()) {
             def value = getUserField(user, field)
             if (value && normalize(value) == normalizedQuery) {
                 matches << (user.id as String)
@@ -204,9 +193,9 @@ class SlackMentionResolver {
 
     private List<String> findUsergroupsMatchingField(String field, String normalizedQuery) {
         def matches = [] as List<String>
-        for (Map group : cachedUsergroups) {
+        for (Map group : getUsergroups()) {
             def raw = group[field] as String
-            def value = field == 'handle' ? stripAtPrefix(raw) : raw
+            def value = field == 'handle' && raw?.startsWith('@') ? raw.substring(1) : raw
             if (value && normalize(value) == normalizedQuery) {
                 matches << (group.id as String)
             }
@@ -219,95 +208,70 @@ class SlackMentionResolver {
             return user.name as String
         }
         def profile = user.profile as Map
-        if (!profile) {
-            return null
-        }
-        return profile[field] as String
+        return profile ? profile[field] as String : null
     }
 
     private static String normalize(String value) {
         return value?.trim()?.toLowerCase()
     }
 
-    private static String stripAtPrefix(String value) {
-        return value?.startsWith('@') ? value.substring(1) : value
+    private List<Map> getUsers() {
+        if (users == null) {
+            users = fetchAllUsers()
+        }
+        return users
     }
 
-    private static String describeMatches(List<String> ids) {
-        return ids.collect { "'${it}'" }.join(', ')
-    }
-
-    private void warnOnce(String message) {
-        if (loggedWarnings.add(message)) {
-            log.warn message
+    private List<Map> getUsergroups() {
+        if (usergroups == null) {
+            usergroups = fetchUsergroups()
         }
-    }
-
-    private void ensureUsersLoaded() {
-        if (cachedUsers != null) {
-            return
-        }
-        synchronized (usersCacheLock) {
-            if (cachedUsers != null) {
-                return
-            }
-            cachedUsers = fetchAllUsers()
-        }
-    }
-
-    private void ensureUsergroupsLoaded() {
-        if (cachedUsergroups != null) {
-            return
-        }
-        synchronized (usergroupsCacheLock) {
-            if (cachedUsergroups != null) {
-                return
-            }
-            cachedUsergroups = fetchUsergroups()
-        }
+        return usergroups
     }
 
     private List<Map> fetchAllUsers() {
-        def users = [] as List<Map>
+        def result = [] as List<Map>
         String cursor = null
 
         while (true) {
-            Map page = fetchUsersPage(cursor)
-            if (!page) {
-                if (users.isEmpty()) {
-                    warnOnce('Slack plugin: Could not load Slack users for @mention resolution (requires users:read scope)')
+            def query = cursor ? "?cursor=${URLEncoder.encode(cursor, 'UTF-8')}&limit=200" : '?limit=200'
+            def response = apiGet("${USERS_LIST_URL}${query}")
+            if (!response) {
+                if (result.isEmpty()) {
+                    log.warn 'Slack plugin: Could not load Slack users for @mention resolution (requires users:read scope)'
                 }
                 break
             }
 
-            def members = page.members as List<Map> ?: []
-            for (Map member : members) {
-                if (member.deleted) {
-                    continue
+            for (Map member : (response.members as List<Map> ?: [])) {
+                if (!member.deleted && !member.is_bot) {
+                    result << member
                 }
-                if (member.is_bot) {
-                    continue
-                }
-                users << member
             }
 
-            def metadata = page.response_metadata as Map
-            def nextCursor = metadata?.get('next_cursor') as String
+            def nextCursor = (response.response_metadata as Map)?.get('next_cursor') as String
             if (!nextCursor) {
                 break
             }
             cursor = nextCursor
         }
 
-        return users
+        return result
     }
 
-    protected Map fetchUsersPage(String cursor) {
+    protected List<Map> fetchUsergroups() {
+        def response = apiGet(USERGROUPS_LIST_URL)
+        if (!response) {
+            log.warn 'Slack plugin: Could not load Slack user groups for subteam mention resolution (requires usergroups:read scope)'
+            return [] as List<Map>
+        }
+        return (response.usergroups as List<Map>) ?: [] as List<Map>
+    }
+
+    protected Map apiGet(String apiUrl) {
         HttpURLConnection connection = null
         try {
-            def query = cursor ? "?cursor=${URLEncoder.encode(cursor, 'UTF-8')}&limit=200" : '?limit=200'
-            def url = new URL("${USERS_LIST_URL}${query}")
-            connection = url.openConnection() as HttpURLConnection
+            connection = new URL(apiUrl).openConnection() as HttpURLConnection
             connection.requestMethod = 'GET'
             connection.setRequestProperty('Authorization', "Bearer ${botToken}")
 
@@ -319,39 +283,8 @@ class SlackMentionResolver {
             return response.ok ? response : null
         }
         catch (Exception e) {
-            log.debug "Slack plugin: Error fetching users.list: ${e.message}"
+            log.debug "Slack plugin: Slack API GET ${apiUrl} failed: ${e.message}"
             return null
-        }
-        finally {
-            connection?.disconnect()
-        }
-    }
-
-    protected List<Map> fetchUsergroups() {
-        HttpURLConnection connection = null
-        try {
-            def url = new URL(USERGROUPS_LIST_URL)
-            connection = url.openConnection() as HttpURLConnection
-            connection.requestMethod = 'GET'
-            connection.setRequestProperty('Authorization', "Bearer ${botToken}")
-
-            if (connection.responseCode != 200) {
-                warnOnce('Slack plugin: Could not load Slack user groups for subteam mention resolution (requires usergroups:read scope)')
-                return [] as List<Map>
-            }
-
-            def response = new JsonSlurper().parseText(connection.inputStream.text) as Map
-            if (!response.ok) {
-                warnOnce("Slack plugin: Could not load Slack user groups: ${response.error}")
-                return [] as List<Map>
-            }
-
-            return (response.usergroups as List<Map>) ?: [] as List<Map>
-        }
-        catch (Exception e) {
-            log.debug "Slack plugin: Error fetching usergroups.list: ${e.message}"
-            warnOnce('Slack plugin: Could not load Slack user groups for subteam mention resolution')
-            return [] as List<Map>
         }
         finally {
             connection?.disconnect()

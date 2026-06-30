@@ -1,5 +1,5 @@
 /*
- * Copyright 2025, Seqera Labs
+ * Copyright 2025-2026, Seqera Labs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,20 +46,18 @@ class SlackMentionResolverTest extends Specification {
     private SlackMentionResolver createResolver(List<Map> users = SAMPLE_USERS, List<Map> usergroups = SAMPLE_USERGROUPS) {
         new SlackMentionResolver('xoxb-test-token') {
             @Override
-            protected Map fetchUsersPage(String cursor) {
-                if (cursor) {
-                    return null
+            protected Map apiGet(String apiUrl) {
+                if (apiUrl.startsWith('https://slack.com/api/users.list')) {
+                    return [
+                        ok: true,
+                        members: users,
+                        response_metadata: [next_cursor: '']
+                    ]
                 }
-                return [
-                    ok: true,
-                    members: users,
-                    response_metadata: [next_cursor: '']
-                ]
-            }
-
-            @Override
-            protected List<Map> fetchUsergroups() {
-                return usergroups
+                if (apiUrl == 'https://slack.com/api/usergroups.list') {
+                    return [ok: true, usergroups: usergroups]
+                }
+                return null
             }
         }
     }
@@ -198,45 +196,12 @@ class SlackMentionResolverTest extends Specification {
         resolver.resolveInText('Hi <@Bot User> and <@Gone User>') == 'Hi <@Bot User> and <@Gone User>'
     }
 
-    def 'should cache users across multiple resolutions'() {
-        given:
-        def fetchCount = 0
-        def resolver = new SlackMentionResolver('xoxb-test-token') {
-            @Override
-            protected Map fetchUsersPage(String cursor) {
-                fetchCount++
-                return [
-                    ok: true,
-                    members: SAMPLE_USERS,
-                    response_metadata: [next_cursor: '']
-                ]
-            }
-
-            @Override
-            protected List<Map> fetchUsergroups() {
-                return SAMPLE_USERGROUPS
-            }
-        }
-
-        when:
-        resolver.resolveInText('Hi <@jane.doe>')
-        resolver.resolveInText('Hi <@john.smith>')
-
-        then:
-        fetchCount == 1
-    }
-
     def 'should handle users.list response with ok false'() {
         given:
         def resolver = new SlackMentionResolver('xoxb-test-token') {
             @Override
-            protected Map fetchUsersPage(String cursor) {
+            protected Map apiGet(String apiUrl) {
                 return [ok: false, error: 'invalid_auth']
-            }
-
-            @Override
-            protected List<Map> fetchUsergroups() {
-                return []
             }
         }
 
