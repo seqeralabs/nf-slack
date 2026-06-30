@@ -36,10 +36,7 @@ class SlackMentionResolver {
     private static final java.util.regex.Pattern SLACK_USER_ID = ~/^[UW][A-Z0-9]{4,}(\|.+)?$/
 
     private static final String USERS_READ_SCOPE_HELP =
-        'Display-name @mentions require the users:read bot scope. ' +
-        'In your Slack app (https://api.slack.com/apps): OAuth & Permissions → Bot Token Scopes → add users:read → ' +
-        'Reinstall to Workspace → update SLACK_BOT_TOKEN with the new token. ' +
-        'See docs/getting-started/setup.md'
+        'Add users:read under Bot Token Scopes and reinstall the app (https://api.slack.com/apps)'
 
     private final String botToken
     private List<Map> users
@@ -274,16 +271,16 @@ class SlackMentionResolver {
         usersListErrorLogged = true
 
         if (error == 'missing_scope') {
-            log.warn "Slack plugin: Cannot resolve @mentions — bot token is missing the users:read permission. ${USERS_READ_SCOPE_HELP}"
+            log.warn "Slack plugin: Cannot resolve @mentions — missing users:read scope. ${USERS_READ_SCOPE_HELP}"
         }
         else if (error == 'not_authed' || error == 'invalid_auth') {
-            log.warn "Slack plugin: Cannot resolve @mentions — bot token is invalid (${error}). Check SLACK_BOT_TOKEN and reinstall the app if you recently changed scopes."
+            log.warn "Slack plugin: Cannot resolve @mentions — invalid bot token (${error})"
         }
         else if (error == 'request_failed' || error?.startsWith('http_') || error?.startsWith('request_failed:')) {
-            log.warn "Slack plugin: Cannot load workspace users for @mention resolution (${error}). If you use display-name mentions, ensure the bot has users:read. ${USERS_READ_SCOPE_HELP}"
+            log.warn "Slack plugin: Cannot load users for @mentions (${error}). ${USERS_READ_SCOPE_HELP}"
         }
         else {
-            log.warn "Slack plugin: users.list failed (${error ?: 'unknown error'}) — @mentions will not be resolved. ${USERS_READ_SCOPE_HELP}"
+            log.warn "Slack plugin: users.list failed (${error ?: 'unknown'}) — @mentions not resolved. ${USERS_READ_SCOPE_HELP}"
         }
     }
 }

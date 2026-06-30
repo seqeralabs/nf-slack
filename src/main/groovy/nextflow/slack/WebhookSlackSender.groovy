@@ -111,7 +111,7 @@ class WebhookSlackSender implements SlackSender {
         if (!SlackMentionResolver.hasResolvableMentions(message)) {
             return
         }
-        def warning = 'Slack plugin: Display-name @mentions require a bot token with the users:read scope (OAuth & Permissions → Bot Token Scopes → add users:read → Reinstall to Workspace). Webhooks cannot resolve mentions.'
+        def warning = 'Slack plugin: Display-name @mentions need a bot token with users:read scope. Webhooks cannot resolve mentions.'
         if (loggedWarnings.add(warning)) {
             log.warn warning
         }
