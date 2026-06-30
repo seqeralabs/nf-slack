@@ -912,4 +912,95 @@ class SlackObserverTest extends Specification {
         1 * mockSender.removeReaction('rocket', '1234567890.123456')
         noExceptionThrown()
     }
+
+    def 'should send per-task notification when selector matches'() {
+        given:
+        def mockSender = Mock(SlackSender)
+        def mockBuilder = Mock(SlackMessageBuilder)
+        def trace = Mock(TraceRecord)
+        trace.get('process') >> 'STAR_ALIGN'
+        trace.get('exit') >> '0'
+        trace.get('realtime') >> nextflow.util.Duration.of('2h')
+
+        def config = new SlackConfig([
+            enabled: true,
+            webhook: 'https://hooks.slack.com/services/TEST/TEST/TEST',
+            onStart: [enabled: false],
+            onTaskComplete: [enabled: true, throttleInterval: '0s', 'withName:STAR_ALIGN': [enabled: true]]
+        ])
+
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(mockBuilder)
+        observer.onFlowCreate(Mock(Session) { getConfig() >> [:] })
+
+        when:
+        observer.onProcessComplete(null, trace)
+
+        then:
+        1 * mockBuilder.buildTaskCompleteMessage(trace, null) >> '{}'
+        1 * mockSender.sendMessage('{}')
+    }
+
+    def 'should throttle per-task notifications'() {
+        given:
+        def mockSender = Mock(SlackSender)
+        def mockBuilder = Mock(SlackMessageBuilder)
+        def trace = Mock(TraceRecord)
+        trace.get('process') >> 'STAR_ALIGN'
+        trace.get('exit') >> '0'
+        trace.get('realtime') >> nextflow.util.Duration.of('2h')
+
+        def config = new SlackConfig([
+            enabled: true,
+            webhook: 'https://hooks.slack.com/services/TEST/TEST/TEST',
+            onStart: [enabled: false],
+            onTaskComplete: [enabled: true, throttleInterval: '1h', 'withName:STAR_ALIGN': [enabled: true]]
+        ])
+
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(mockBuilder)
+        observer.onFlowCreate(Mock(Session) { getConfig() >> [:] })
+        observer.lastTaskNotificationTime.set(System.currentTimeMillis())
+
+        when:
+        observer.onProcessComplete(null, trace)
+
+        then:
+        0 * mockBuilder.buildTaskCompleteMessage(_, _)
+        0 * mockSender.sendMessage(_)
+    }
+
+    def 'should send first failure notification without selector'() {
+        given:
+        def mockSender = Mock(SlackSender)
+        def mockBuilder = Mock(SlackMessageBuilder)
+        def trace = Mock(TraceRecord)
+        trace.get('process') >> 'UNKNOWN'
+        trace.get('exit') >> '1'
+        trace.get('realtime') >> nextflow.util.Duration.of('5m')
+
+        def config = new SlackConfig([
+            enabled: true,
+            webhook: 'https://hooks.slack.com/services/TEST/TEST/TEST',
+            onStart: [enabled: false],
+            onTaskComplete: [enabled: true, onFirstFailure: true, throttleInterval: '0s']
+        ])
+
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(mockBuilder)
+        observer.onFlowCreate(Mock(Session) { getConfig() >> [:] })
+
+        when:
+        observer.onProcessComplete(null, trace)
+
+        then:
+        1 * mockBuilder.buildTaskCompleteMessage(trace, null) >> '{}'
+        1 * mockSender.sendMessage('{}')
+    }
 }

@@ -113,6 +113,12 @@ class SlackObserver implements TraceObserver {
             sendProgressUpdate()
             log.debug "Slack plugin: Progress updates enabled (min interval: ${config.onProgress.interval})"
         }
+
+        if (config.onTaskComplete?.isActive()) {
+            taskNotificationsEnabled = true
+            taskThrottleIntervalMs = config.onTaskComplete.getThrottleIntervalMillis()
+            log.debug "Slack plugin: Per-task notifications enabled (throttle: ${config.onTaskComplete.throttleInterval})"
+        }
     }
 
     @Override
@@ -124,7 +130,11 @@ class SlackObserver implements TraceObserver {
     @Override
     void onProcessComplete(TaskHandler handler, TraceRecord trace) {
         completedTasks.incrementAndGet()
+        if (TaskNotificationMatcher.isTaskFailure(trace)) {
+            failedTasks.incrementAndGet()
+        }
         scheduleProgressUpdateIfNeeded()
+        maybeSendTaskCompleteNotification(handler, trace)
     }
 
     @Override
@@ -428,6 +438,31 @@ class SlackObserver implements TraceObserver {
                 pendingUpdateTimer.cancel()
                 pendingUpdateTimer = null
             }
+        }
+    }
+
+    private void maybeSendTaskCompleteNotification(TaskHandler handler, TraceRecord trace) {
+        if (!taskNotificationsEnabled || !isConfigured() || !trace) return
+
+        def taskConfig = config.onTaskComplete
+        if (!TaskNotificationMatcher.shouldNotify(taskConfig, handler, trace, firstTaskFailureNotified)) return
+
+        long now = System.currentTimeMillis()
+        if (lastTaskNotificationTime.get() > 0 && (now - lastTaskNotificationTime.get()) < taskThrottleIntervalMs) {
+            log.debug "Slack plugin: Skipping per-task notification (throttled)"
+            return
+        }
+
+        try {
+            def threadTs = getThreadTsIfEnabled()
+            sender.sendMessage(messageBuilder.buildTaskCompleteMessage(trace, threadTs))
+            lastTaskNotificationTime.set(now)
+            if (taskConfig.onFirstFailure && TaskNotificationMatcher.isTaskFailure(trace)) {
+                firstTaskFailureNotified = true
+            }
+            log.debug "Slack plugin: Sent per-task completion notification for ${trace.get('process')}"
+        } catch (Exception e) {
+            log.debug "Slack plugin: Failed to send per-task notification: ${e.message}"
         }
     }
 }

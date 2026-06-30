@@ -18,7 +18,7 @@ class OnTaskCompleteConfig {
         this.enabled = config.enabled != null ? config.enabled as boolean : false
         this.onFirstFailure = config.onFirstFailure != null ? config.onFirstFailure as boolean : false
         this.throttleInterval = config.throttleInterval as String ?: config.interval as String ?: '30s'
-        def rules = []
+        List<TaskSelectorRule> rules = []
         config.each { key, value ->
             if (key instanceof String && value instanceof Map && (key.startsWith('withName:') || key.startsWith('withLabel:'))) {
                 rules << TaskSelectorRule.fromSelectorKey(key, value as Map)
