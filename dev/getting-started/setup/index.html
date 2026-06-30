@@ -871,7 +871,7 @@
 <li>Name your app (e.g., "Nextflow Notifications"), select your workspace, and click <strong>"Create App"</strong></li>
 </ol>
 <h2 id="2-configure-slack-credentials">2. Configure Slack Credentials<a class="headerlink" href="#2-configure-slack-credentials" title="Permanent link">&para;</a></h2>
-<p>nf-slack supports two authentication methods. <strong>Bot User is recommended</strong> — it supports threading, emoji reactions, and file uploads.</p>
+<p>nf-slack supports two authentication methods. <strong>Bot User is recommended</strong> — it supports threading, emoji reactions, and file uploads. Webhook support is deprecated and will be removed before v1.0.0.</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Bot User (Recommended)</label><label for="__tabbed_1_2">Webhook</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
@@ -905,6 +905,10 @@
 </span></code></pre></div>
 </div>
 <div class="tabbed-block">
+<div class="admonition danger">
+<p class="admonition-title">Deprecated — will be removed before v1.0.0</p>
+<p>Webhook support is deprecated and will be removed in a future release. Please migrate to the <strong>Bot User</strong> configuration to continue receiving notifications and gain access to threading, emoji reactions, and file uploads.</p>
+</div>
 <p><strong>Enable webhooks:</strong></p>
 <ol>
 <li>Navigate to <strong>"Incoming Webhooks"</strong> in the sidebar</li>
@@ -958,7 +962,7 @@
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="o">}</span>
 </span></code></pre></div>
 <p>Then add the Slack configuration block:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Bot User</label><label for="__tabbed_3_2">Webhook</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Bot User</label><label for="__tabbed_3_2">Webhook (Deprecated)</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="language-groovy highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
@@ -970,6 +974,10 @@
 </span></code></pre></div>
 </div>
 <div class="tabbed-block">
+<div class="admonition danger">
+<p class="admonition-title">Deprecated</p>
+<p>Webhook support will be removed before v1.0.0. Switch to the <strong>Bot User</strong> configuration above.</p>
+</div>
 <div class="language-groovy highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">slack</span><span class="w"> </span><span class="o">{</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="n">webhook</span><span class="w"> </span><span class="o">{</span>
 </span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">        </span><span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;$SLACK_WEBHOOK_URL&quot;</span>
