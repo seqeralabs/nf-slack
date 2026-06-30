@@ -59,6 +59,10 @@ class SlackObserver implements TraceObserver {
     private final AtomicLong lastUpdateTime = new AtomicLong(0)
     private Timer pendingUpdateTimer
     private boolean startReactionAdded = false
+    private boolean taskNotificationsEnabled
+    private long taskThrottleIntervalMs
+    private final AtomicLong lastTaskNotificationTime = new AtomicLong(0)
+    private boolean firstTaskFailureNotified = false
 
     /**
      * Called when the workflow is created
