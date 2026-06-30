@@ -252,10 +252,9 @@ slack {
     seqeraPlatform {
         enabled = true
         actionButtons {
-            mode = 'link'      // default: URL buttons open the Platform run page
-            cancel = true      // show Cancel while running
-            resume = true      // show Resume on failure
-            relaunch = true    // show Relaunch on failure/completion
+            cancel = true      // links to POST /workflow/:id/cancel API path
+            resume = true      // reserved — no per-run URL yet
+            relaunch = true    // reserved — no per-run URL yet
         }
     }
 }
@@ -263,17 +262,15 @@ slack {
 
 ### Button behavior by workflow phase
 
-| Phase                    | Buttons                |
-| ------------------------ | ---------------------- |
-| Running (start/progress) | View, Cancel           |
-| Failed (error)           | View, Resume, Relaunch |
-| Completed                | View, Relaunch         |
+| Phase                    | Buttons      |
+| ------------------------ | ------------ |
+| Running (start/progress) | View, Cancel |
+| Failed (error)           | View         |
+| Completed                | View         |
 
-In **link mode** (default), Cancel/Resume/Relaunch open the same Platform run page where those actions are available in the UI. One-click API execution from Slack requires an external interactivity handler.
-
-### Interactive mode (advanced)
-
-Set `actionButtons.mode = 'interactive'` to emit Slack buttons with `action_id` values (`seqera_platform_view`, `seqera_platform_cancel`, `seqera_platform_resume`, `seqera_platform_relaunch`) and the workflow run ID in `value`. A separate HTTP endpoint (with Slack signing secret verification) must call Seqera Platform APIs — this cannot run inside the Nextflow plugin during `nextflow run`.
+- **View** opens the Platform run page (`watchUrl` from nf-tower).
+- **Cancel** links to `{tower.endpoint}/workflow/{runId}/cancel` ([Platform API](https://docs.seqera.io/platform-api/cancel-workflow)). The API endpoint is derived from `tower.endpoint` in your Nextflow config.
+- **Resume** and **Relaunch** are not shown yet — they require `POST /workflow/launch` with a prepared body rather than a per-run URL.
 
 ## Custom Messages from Code
 

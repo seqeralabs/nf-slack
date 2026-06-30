@@ -22,8 +22,7 @@ import groovy.transform.CompileStatic
  * Configuration for Seqera Platform deep link integration.
  *
  * When Seqera Platform (Tower) is configured, adds contextual action buttons
- * to Slack notifications that link to the workflow run (or emit interactive
- * action IDs for external handlers).
+ * to Slack notifications that link to the workflow run page and Platform API paths.
  *
  * @author Adam Talbot <adam.talbot@seqera.io>
  */

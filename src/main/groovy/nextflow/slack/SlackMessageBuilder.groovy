@@ -137,26 +137,23 @@ class SlackMessageBuilder {
         if (!buttonConfig) return null
 
         def elements = [] as List<Map>
-        elements << createViewButton(context, buttonConfig)
+        elements << createLinkButton('🔗 View in Seqera Platform', context.watchUrl, 'primary')
 
         switch (phase) {
             case SeqeraMessagePhase.RUNNING:
                 if (buttonConfig.cancel) {
-                    elements << createCancelButton(context, buttonConfig)
+                    def cancelUrl = SeqeraPlatformUrlBuilder.cancelWorkflowUrl(
+                        context.apiEndpoint, context.workflowRunId)
+                    if (cancelUrl) {
+                        elements << createLinkButton('⏹ Cancel', cancelUrl, 'danger')
+                    }
                 }
                 break
             case SeqeraMessagePhase.FAILED:
-                if (buttonConfig.resume) {
-                    elements << createResumeButton(context, buttonConfig)
-                }
-                if (buttonConfig.relaunch) {
-                    elements << createRelaunchButton(context, buttonConfig)
-                }
+                // Resume requires POST /workflow/launch with a prepared body — no per-run URL yet.
                 break
             case SeqeraMessagePhase.COMPLETED:
-                if (buttonConfig.relaunch) {
-                    elements << createRelaunchButton(context, buttonConfig)
-                }
+                // Relaunch requires POST /workflow/launch — no per-run URL yet.
                 break
         }
 
@@ -167,35 +164,8 @@ class SlackMessageBuilder {
         if (!config.seqeraPlatform?.enabled) return null
         def watchUrl = getTowerClientWatchUrl()
         log.debug "Seqera Platform: watchUrl=${watchUrl}"
-        return SeqeraWatchContext.fromWatchUrl(watchUrl)
-    }
-
-    private static Map createViewButton(SeqeraWatchContext context, SeqeraPlatformActionButtonsConfig buttonConfig) {
-        if (buttonConfig.isLinkMode()) {
-            return createLinkButton('🔗 View in Seqera Platform', context.watchUrl, 'primary')
-        }
-        return createInteractiveButton('🔗 View in Seqera Platform', 'seqera_platform_view', context.workflowRunId)
-    }
-
-    private static Map createCancelButton(SeqeraWatchContext context, SeqeraPlatformActionButtonsConfig buttonConfig) {
-        if (buttonConfig.isLinkMode()) {
-            return createLinkButton('⏹ Cancel', context.watchUrl, 'danger')
-        }
-        return createInteractiveButton('⏹ Cancel', 'seqera_platform_cancel', context.workflowRunId, 'danger')
-    }
-
-    private static Map createResumeButton(SeqeraWatchContext context, SeqeraPlatformActionButtonsConfig buttonConfig) {
-        if (buttonConfig.isLinkMode()) {
-            return createLinkButton('▶️ Resume', context.watchUrl)
-        }
-        return createInteractiveButton('▶️ Resume', 'seqera_platform_resume', context.workflowRunId)
-    }
-
-    private static Map createRelaunchButton(SeqeraWatchContext context, SeqeraPlatformActionButtonsConfig buttonConfig) {
-        if (buttonConfig.isLinkMode()) {
-            return createLinkButton('🔄 Relaunch', context.watchUrl)
-        }
-        return createInteractiveButton('🔄 Relaunch', 'seqera_platform_relaunch', context.workflowRunId)
+        def apiEndpoint = session.config?.navigate('tower.endpoint') as String
+        return SeqeraWatchContext.fromWatchUrl(watchUrl, apiEndpoint)
     }
 
     private static Map createLinkButton(String label, String url, String style = null) {
@@ -203,19 +173,6 @@ class SlackMessageBuilder {
             type: 'button',
             text: [type: 'plain_text', text: label, emoji: true],
             url: url
-        ] as Map
-        if (style) {
-            button.style = style
-        }
-        return button
-    }
-
-    private static Map createInteractiveButton(String label, String actionId, String value, String style = null) {
-        def button = [
-            type: 'button',
-            text: [type: 'plain_text', text: label, emoji: true],
-            action_id: actionId,
-            value: value ?: ''
         ] as Map
         if (style) {
             button.style = style

@@ -19,22 +19,28 @@ package nextflow.slack
 import groovy.transform.CompileStatic
 
 /**
- * Parsed Seqera Platform watch URL and workflow run identifier.
+ * Parsed Seqera Platform watch URL, workflow run identifier, and API base URL.
  */
 @CompileStatic
 class SeqeraWatchContext {
 
     final String watchUrl
     final String workflowRunId
+    final String apiEndpoint
 
-    SeqeraWatchContext(String watchUrl, String workflowRunId) {
+    SeqeraWatchContext(String watchUrl, String workflowRunId, String apiEndpoint) {
         this.watchUrl = watchUrl
         this.workflowRunId = workflowRunId
+        this.apiEndpoint = apiEndpoint
     }
 
-    static SeqeraWatchContext fromWatchUrl(String watchUrl) {
+    static SeqeraWatchContext fromWatchUrl(String watchUrl, String apiEndpoint = null) {
         if (!watchUrl) return null
         def workflowRunId = SeqeraPlatformUrlBuilder.extractWorkflowRunId(watchUrl)
-        return new SeqeraWatchContext(watchUrl, workflowRunId)
+        return new SeqeraWatchContext(
+            watchUrl,
+            workflowRunId,
+            SeqeraPlatformUrlBuilder.normalizeApiEndpoint(apiEndpoint)
+        )
     }
 }

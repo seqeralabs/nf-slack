@@ -19,10 +19,14 @@ package nextflow.slack
 import groovy.transform.CompileStatic
 
 /**
- * Helpers for parsing Seqera Platform watch URLs returned by TowerClient.
+ * Helpers for Seqera Platform watch URLs and workflow action API paths.
+ *
+ * @see <a href="https://docs.seqera.io/platform-api/cancel-workflow">Cancel workflow</a>
  */
 @CompileStatic
 class SeqeraPlatformUrlBuilder {
+
+    static final String DEFAULT_API_ENDPOINT = 'https://api.cloud.seqera.io'
 
     /**
      * Extract the workflow run ID from a Platform watch URL.
@@ -36,5 +40,21 @@ class SeqeraPlatformUrlBuilder {
         def idPart = watchUrl.substring(start + marker.length())
         def end = idPart.findIndexOf { it == '?' || it == '/' }
         return end >= 0 ? idPart.substring(0, end) : idPart
+    }
+
+    /**
+     * Normalize {@code tower.endpoint} to a base URL without a trailing slash.
+     */
+    static String normalizeApiEndpoint(String endpoint) {
+        def base = (endpoint ?: DEFAULT_API_ENDPOINT).trim()
+        return base.endsWith('/') ? base.substring(0, base.length() - 1) : base
+    }
+
+    /**
+     * URL for {@code POST /workflow/:workflowId/cancel}.
+     */
+    static String cancelWorkflowUrl(String apiEndpoint, String workflowRunId) {
+        if (!workflowRunId) return null
+        return "${normalizeApiEndpoint(apiEndpoint)}/workflow/${workflowRunId}/cancel"
     }
 }
