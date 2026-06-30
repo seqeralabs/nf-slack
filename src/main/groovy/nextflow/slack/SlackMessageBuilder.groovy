@@ -193,7 +193,7 @@ class SlackMessageBuilder {
 
     private String readPlatformWorkflowUrl() {
         try {
-            def metadata = session.workflowMetadata
+            Object metadata = session.workflowMetadata
             if (!metadata) return null
             def platform = metadata instanceof Map
                 ? (metadata as Map).get('platform')
