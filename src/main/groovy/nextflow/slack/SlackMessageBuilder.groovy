@@ -620,6 +620,7 @@ class SlackMessageBuilder {
             case 'failed':
                 return SeqeraMessagePhase.FAILED
             default:
+                // Custom statuses (e.g. paused) are treated as RUNNING for button selection.
                 return SeqeraMessagePhase.RUNNING
         }
     }

@@ -17,6 +17,7 @@
 package nextflow.slack
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 /**
  * Configuration for Seqera Platform action buttons in Slack messages.
@@ -25,6 +26,7 @@ import groovy.transform.CompileStatic
  * Interactive mode emits action_id buttons for an external Slack interactivity handler.
  */
 @CompileStatic
+@Slf4j
 class SeqeraPlatformActionButtonsConfig {
 
     static final String MODE_LINK = 'link'
@@ -37,7 +39,12 @@ class SeqeraPlatformActionButtonsConfig {
 
     SeqeraPlatformActionButtonsConfig(Map config) {
         config = config ?: [:]
-        this.mode = (config.mode as String ?: MODE_LINK).toLowerCase()
+        def configuredMode = (config.mode as String ?: MODE_LINK).toLowerCase()
+        if (configuredMode != MODE_LINK && configuredMode != MODE_INTERACTIVE) {
+            log.warn "Slack plugin: Unknown seqeraPlatform.actionButtons.mode '${configuredMode}'; falling back to '${MODE_LINK}'"
+            configuredMode = MODE_LINK
+        }
+        this.mode = configuredMode
         this.cancel = config.cancel != null ? config.cancel as boolean : true
         this.resume = config.resume != null ? config.resume as boolean : true
         this.relaunch = config.relaunch != null ? config.relaunch as boolean : true

@@ -117,4 +117,14 @@ class SeqeraPlatformActionButtonsTest extends Specification {
         config.isLinkMode()
         !config.isInteractiveMode()
     }
+
+    def 'should fall back to link mode for unknown mode values'() {
+        when:
+        def config = new SeqeraPlatformActionButtonsConfig([mode: 'url'])
+
+        then:
+        config.mode == 'link'
+        config.isLinkMode()
+        !config.isInteractiveMode()
+    }
 }
