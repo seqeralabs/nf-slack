@@ -709,6 +709,87 @@ class SlackMessageBuilderTest extends Specification {
         actionsBlock == null
     }
 
+    def 'should read TowerClient watchUrl from observers list (Nextflow 24.10)'() {
+        given:
+        def gcl = new GroovyClassLoader()
+        def towerClass = gcl.parseClass('''
+            package io.seqera.tower.plugin
+            class TowerClient {
+                private String watchUrl = 'https://cloud.seqera.io/orgs/myorg/workspaces/myws/watch/abc123'
+            }
+        ''')
+        def towerClient = towerClass.newInstance()
+        def session = new Session([:])
+        def observersField = Session.class.getDeclaredField('observers')
+        observersField.accessible = true
+        observersField.set(session, [towerClient])
+
+        def platformConfig = new SlackConfig([
+            webhook: 'https://hooks.slack.com/test',
+            seqeraPlatform: [enabled: true]
+        ])
+        def builder = new SlackMessageBuilder(platformConfig, session)
+
+        expect:
+        builder.getTowerClientWatchUrl() == 'https://cloud.seqera.io/orgs/myorg/workspaces/myws/watch/abc123'
+    }
+
+    def 'should read TowerObserver watchUrl from observersV1 list (Nextflow 25.x+)'() {
+        given:
+        def gcl = new GroovyClassLoader(this.class.classLoader)
+        def towerClass = gcl.parseClass('''
+            package io.seqera.tower.plugin
+            class TowerObserver {
+                private String watchUrl = 'https://cloud.seqera.io/orgs/myorg/workspaces/myws/watch/xyz789'
+            }
+        ''')
+        def towerObserver = towerClass.newInstance()
+        def sessionClass = gcl.parseClass('''
+            import nextflow.Session
+            class FakeSession extends Session {
+                java.util.List observersV1
+                FakeSession() { super([:]) }
+            }
+        ''')
+        def session = sessionClass.newInstance()
+        session.observersV1 = [towerObserver]
+
+        def platformConfig = new SlackConfig([
+            webhook: 'https://hooks.slack.com/test',
+            seqeraPlatform: [enabled: true]
+        ])
+        def builder = new SlackMessageBuilder(platformConfig, session as Session)
+
+        expect:
+        builder.getTowerClientWatchUrl() == 'https://cloud.seqera.io/orgs/myorg/workspaces/myws/watch/xyz789'
+    }
+
+    def 'should include Seqera Platform button in progress update when watchUrl is available'() {
+        given:
+        def platformConfig = new SlackConfig([
+            webhook: 'https://hooks.slack.com/test',
+            seqeraPlatform: [enabled: true]
+        ])
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.scriptName >> 'test-workflow.nf'
+        def towerSession = Mock(Session)
+        towerSession.config >> [:]
+        towerSession.workflowMetadata >> mockMetadata
+        towerSession.runName >> 'crazy_einstein'
+        towerSession.uniqueId >> UUID.fromString('00000000-0000-0000-0000-000000000000')
+        def builder = Spy(new SlackMessageBuilder(platformConfig, towerSession))
+        builder.getTowerClientWatchUrl() >> 'https://cloud.seqera.io/orgs/myorg/workspaces/myws/watch/abc123'
+
+        when:
+        def message = builder.buildProgressUpdateMessage(10, 5, 2, 0, 60000L, null)
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        def actionsBlock = json.blocks.find { it.type == 'actions' }
+        actionsBlock != null
+        actionsBlock.elements[0].url == 'https://cloud.seqera.io/orgs/myorg/workspaces/myws/watch/abc123'
+    }
+
     // --- Config-level includeFields tests ---
 
     def 'should filter start message fields with config-level includeFields'() {

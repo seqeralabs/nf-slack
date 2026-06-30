@@ -149,12 +149,14 @@ class SlackMessageBuilder {
         ]
     }
 
+    private static final List<String> TOWER_OBSERVER_CLASS_NAMES = [
+        'io.seqera.tower.plugin.TowerClient',
+        'io.seqera.tower.plugin.TowerObserver'
+    ]
+
     /**
-     * Get Seqera Platform watch URL from TowerClient if deep links are enabled.
+     * Get Seqera Platform watch URL if deep links are enabled.
      * Returns null if unavailable — callers should skip the button.
-     *
-     * The URL is read directly from TowerClient's watchUrl field, which is the
-     * fully-resolved URL returned by the Seqera Platform API.
      */
     private String getSeqeraPlatformUrl() {
         if (!config.seqeraPlatform?.enabled) return null
@@ -165,32 +167,78 @@ class SlackMessageBuilder {
     }
 
     /**
-     * Retrieve the watch URL from TowerClient via reflection.
+     * Retrieve the Seqera Platform watch URL.
      *
-     * TowerClient is in a separate plugin (nf-tower) so we cannot reference it
-     * directly. We find it by class name in the session's observer list, then
-     * read its private watchUrl field.
+     * Prefers workflow metadata populated by nf-tower during onFlowBegin. Falls
+     * back to reading the private {@code watchUrl} field from TowerClient or
+     * TowerObserver (Nextflow 25.10+) via reflection on {@code observersV1} and
+     * {@code observersV2}.
      */
     // Package-private for testability (Spock Spy cannot stub private methods)
     String getTowerClientWatchUrl() {
         try {
-            def observersField = session.class.getDeclaredField('observersV2')
-            observersField.accessible = true
-            def observers = observersField.get(session) as List
+            def workflowUrl = readPlatformWorkflowUrl()
+            if (workflowUrl) return workflowUrl
 
-            def towerClient = observers?.find {
-                it.class.name == 'io.seqera.tower.plugin.TowerClient'
-            }
-            if (!towerClient) return null
+            def towerObserver = findTowerObserver()
+            if (!towerObserver) return null
 
-            def watchUrlField = towerClient.class.getDeclaredField('watchUrl')
-            watchUrlField.accessible = true
-            return watchUrlField.get(towerClient) as String
+            return readStringProperty(towerObserver, 'watchUrl')
         }
         catch (Exception e) {
             log.debug "Could not retrieve Seqera Platform watch URL: ${e.message}"
             return null
         }
+    }
+
+    private String readPlatformWorkflowUrl() {
+        try {
+            def metadata = session.workflowMetadata
+            if (!metadata) return null
+            def platform = metadata instanceof Map
+                ? (metadata as Map).get('platform')
+                : org.codehaus.groovy.runtime.InvokerHelper.getPropertySafe(metadata, 'platform')
+            return readStringProperty(platform, 'workflowUrl')
+        }
+        catch (Exception ignored) {
+            return null
+        }
+    }
+
+    private static String readStringProperty(Object target, String propertyName) {
+        if (!target) return null
+        try {
+            if (target instanceof Map) {
+                return (target as Map).get(propertyName) as String
+            }
+            def field = target.class.getDeclaredField(propertyName)
+            field.accessible = true
+            return field.get(target) as String
+        }
+        catch (Exception ignored) {
+            return null
+        }
+    }
+
+    /**
+     * Find TowerClient or TowerObserver in Nextflow 25.10+ session observer lists.
+     */
+    private Object findTowerObserver() {
+        for (String fieldName : ['observersV1', 'observersV2']) {
+            try {
+                def observersField = session.class.getDeclaredField(fieldName)
+                observersField.accessible = true
+                def observers = observersField.get(session) as List
+
+                def towerObserver = observers?.find {
+                    TOWER_OBSERVER_CLASS_NAMES.contains(it.class.name)
+                }
+                if (towerObserver) return towerObserver
+            }
+            catch (NoSuchFieldException ignored) {
+            }
+        }
+        return null
     }
 
     /**
@@ -546,6 +594,11 @@ class SlackMessageBuilder {
             blocks << createContextFooter(status, timestamp, workflowName)
         }
 
+        def seqeraUrl = getSeqeraPlatformUrl()
+        if (seqeraUrl) {
+            blocks << createSeqeraPlatformButton(seqeraUrl)
+        }
+
         return createMessagePayload(blocks, threadTs)
     }
 
@@ -630,6 +683,11 @@ class SlackMessageBuilder {
         }
         fields.add(createMarkdownField('Elapsed', elapsed))
         blocks.add(createFieldsSection(fields))
+
+        def seqeraUrl = getSeqeraPlatformUrl()
+        if (seqeraUrl) {
+            blocks.add(createSeqeraPlatformButton(seqeraUrl))
+        }
 
         return createMessagePayload(blocks, threadTs)
     }

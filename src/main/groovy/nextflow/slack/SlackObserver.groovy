@@ -136,9 +136,8 @@ class SlackObserver implements TraceObserver {
     /**
      * Called when the workflow execution begins (after setup, before processes run).
      *
-     * V1 observers (like us) are called before V2 observers (like TowerClient),
-     * so the Seqera Platform watch URL isn't available yet. We schedule an async
-     * update to add the deep link button once TowerClient has completed setup.
+     * TowerClient/TowerObserver sets its watchUrl during onFlowBegin.
+     * We schedule an async update to add the deep link button once the URL is available.
      */
     @Override
     void onFlowBegin() {
@@ -152,27 +151,39 @@ class SlackObserver implements TraceObserver {
 
     /**
      * Schedule an async update to add the Seqera Platform button to the start message.
-     * Waits briefly for TowerClient (a V2 observer) to set its watchUrl during onFlowBegin.
+     * Polls until the watch URL is available or max attempts is reached.
      */
+    private static final long SEQERA_BUTTON_POLL_INTERVAL_MS = 2000L
+    private static final int SEQERA_BUTTON_MAX_ATTEMPTS = 15
+
     private void scheduleSeqeraPlatformButtonUpdate() {
         if (!config.seqeraPlatform?.enabled) return
         if (!(sender instanceof BotSlackSender)) return
         def messageTs = (sender as BotSlackSender).getThreadTs()
         if (!messageTs) return
 
+        scheduleSeqeraPlatformButtonUpdateAttempt(messageTs, 0)
+    }
+
+    private void scheduleSeqeraPlatformButtonUpdateAttempt(String messageTs, int attempt) {
+        long delay = attempt == 0 ? 1000L : SEQERA_BUTTON_POLL_INTERVAL_MS
         new Timer('slack-seqera-button', true).schedule(new TimerTask() {
             @Override
             void run() {
                 try {
-                    def startMessage = messageBuilder.buildWorkflowStartMessage()
-                    sender.updateMessage(startMessage, messageTs)
-                    log.debug "Slack plugin: Updated start message with Seqera Platform button"
+                    if (messageBuilder.getTowerClientWatchUrl()) {
+                        def startMessage = messageBuilder.buildWorkflowStartMessage()
+                        sender.updateMessage(startMessage, messageTs)
+                        log.debug "Slack plugin: Updated start message with Seqera Platform button"
+                    } else if (attempt + 1 < SEQERA_BUTTON_MAX_ATTEMPTS) {
+                        scheduleSeqeraPlatformButtonUpdateAttempt(messageTs, attempt + 1)
+                    }
                 }
                 catch (Exception e) {
                     log.debug "Slack plugin: Failed to update start message with Seqera Platform button: ${e.message}"
                 }
             }
-        }, 3000L)
+        }, delay)
     }
 
     /**
