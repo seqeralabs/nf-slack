@@ -1,5 +1,5 @@
 /*
- * Copyright 2025, Seqera Labs
+ * Copyright 2025-2026, Seqera Labs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,17 @@ class SlackClientTest extends Specification {
 
         then:
         noExceptionThrown()
+    }
+
+    def 'should warn webhook users about unresolved display-name mentions'() {
+        given:
+        def sender = Spy(WebhookSlackSender, constructorArgs: ['https://hooks.slack.com/services/TEST/TEST/TEST'])
+
+        when:
+        sender.sendMessage('{"text":"Hi <@Jane>"}')
+
+        then:
+        1 * sender.warnIfUnresolvedMentions('{"text":"Hi <@Jane>"}')
     }
 
     def 'should handle file upload gracefully with warning'() {

@@ -214,6 +214,28 @@ slack {
 
 Progress messages are posted as replies in the pipeline's thread.
 
+## Mentioning Users
+
+<!-- prettier-ignore -->
+!!! note "Bot User only"
+    Display-name @mentions require a Bot User with the `users:read` scope. Webhooks cannot resolve mentions.
+
+Mention Slack users by display name instead of internal user IDs:
+
+```groovy
+slack {
+    bot {
+        token = System.getenv('SLACK_BOT_TOKEN')
+        channel = 'general'
+    }
+    onStart {
+        message = [text: ':wave: Hi <@Jane>!']
+    }
+}
+```
+
+The plugin resolves `<@DisplayName>` to Slack's `<@U1234567890>` format before sending. Matching uses username, display name, then real name (case-insensitive). If multiple users match, the mention is left unresolved and a warning is logged.
+
 ## File Uploads
 
 <!-- prettier-ignore -->
