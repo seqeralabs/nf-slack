@@ -32,4 +32,4 @@ it. Standard commands live in the `Makefile` (`make assemble`, `make test`,
   correctly.
 - **Versions**: the VM has Java 21 and a recent Nextflow on `PATH`, which work
   for development. CI is the source of truth for the supported matrix (Java
-  17/21, Nextflow 25.04/25.10) — see `.github/workflows/ci.yml`.
+  17/21, Nextflow 25.10/26.04) — see `.github/workflows/ci.yml`.
