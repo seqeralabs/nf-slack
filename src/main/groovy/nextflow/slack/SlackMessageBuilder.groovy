@@ -311,7 +311,7 @@ class SlackMessageBuilder {
             fields << createMarkdownField('Duration', duration.toString())
         }
         if (shouldIncludeField(includeFields, 'status')) {
-            fields << createMarkdownField('Status', '✅ Success')
+            fields << createMarkdownField('Status', getStatusText('completed'))
         }
 
         // Add resource usage if configured (via includeResourceUsage or includeFields)
@@ -373,7 +373,7 @@ class SlackMessageBuilder {
             fields << createMarkdownField('Duration', duration.toString())
         }
         if (shouldIncludeField(includeFields, 'status')) {
-            fields << createMarkdownField('Status', '❌ Failed')
+            fields << createMarkdownField('Status', getStatusText('failed'))
         }
 
         if (shouldIncludeField(includeFields, 'failedProcess') && errorRecord) {
@@ -487,7 +487,7 @@ class SlackMessageBuilder {
                 fields << createMarkdownField('Duration', duration.toString())
             }
             if (includeFields.contains('status')) {
-                fields << createMarkdownField('Status', getStatusEmoji(status))
+                fields << createMarkdownField('Status', getStatusText(status))
             }
             if (includeFields.contains('failedProcess') && errorRecord) {
                 def processName = errorRecord.get('process')
@@ -566,16 +566,16 @@ class SlackMessageBuilder {
     }
 
     /**
-     * Get status emoji
+     * Get status text for the Status field (emoji-free; header carries the emoji).
      */
-    private static String getStatusEmoji(String status) {
+    private static String getStatusText(String status) {
         switch (status) {
             case 'started':
-                return '🚀 Running'
+                return 'Running'
             case 'completed':
-                return '✅ Success'
+                return 'Success'
             case 'failed':
-                return '❌ Failed'
+                return 'Failed'
             default:
                 return 'Unknown'
         }

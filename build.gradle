@@ -5,7 +5,7 @@ plugins {
 version = '0.5.1'
 
 nextflowPlugin {
-    nextflowVersion = '24.10.0'
+    nextflowVersion = '25.10.0'
 
     provider = 'Seqera'
     description = 'Get Slack notifications from your Nextflow workflows'

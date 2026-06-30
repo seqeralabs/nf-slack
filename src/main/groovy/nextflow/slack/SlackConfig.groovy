@@ -193,6 +193,9 @@ class SlackConfig {
 
         def slackConfig = new SlackConfig(config)
         log.info "Slack plugin: Enabled with ${botToken ? 'Bot' : 'Webhook'} notifications"
+        if (webhook && !botToken) {
+            log.warn "Slack plugin: Webhook support is deprecated and will be removed before v1.0.0. Please migrate to bot token configuration — see https://seqeralabs.github.io/nf-slack/getting-started/setup/"
+        }
         return slackConfig
     }
 

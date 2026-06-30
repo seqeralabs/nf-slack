@@ -879,4 +879,96 @@ class SlackMessageBuilderTest extends Specification {
         !fields.find { it.text.contains('Duration') }
         !fields.find { it.text.contains('Status') }
     }
+
+    def 'status field should be text-only in default complete message'() {
+        given:
+        def metadata = Mock(WorkflowMetadata)
+        metadata.scriptName >> 'test-workflow.nf'
+        metadata.duration >> Duration.of('1h')
+        metadata.stats >> null
+        session.workflowMetadata >> metadata
+
+        when:
+        def message = messageBuilder.buildWorkflowCompleteMessage()
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        def headerBlock = json.blocks.find { it.type == 'section' && it.text?.text?.contains('Pipeline completed successfully') }
+        headerBlock.text.text.contains('✅')
+        statusFieldValue(json) == 'Success'
+        !statusFieldValue(json).contains('✅')
+    }
+
+    def 'status field should be text-only in default error message'() {
+        given:
+        def errorSession = Mock(Session)
+        def metadata = Mock(WorkflowMetadata)
+        metadata.scriptName >> 'test-workflow.nf'
+        metadata.duration >> Duration.of('30m')
+        metadata.errorMessage >> 'Process failed'
+        errorSession.workflowMetadata >> metadata
+        errorSession.runName >> 'test-run'
+        def builder = new SlackMessageBuilder(config, errorSession)
+
+        when:
+        def message = builder.buildWorkflowErrorMessage(null)
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        def headerBlock = json.blocks.find { it.type == 'section' && it.text?.text?.contains('Pipeline failed') }
+        headerBlock.text.text.contains('❌')
+        statusFieldValue(json) == 'Failed'
+        !statusFieldValue(json).contains('❌')
+    }
+
+    def 'status field should be text-only in map-based custom messages'() {
+        given:
+        def metadata = Mock(WorkflowMetadata)
+        metadata.scriptName >> 'test-workflow.nf'
+        metadata.duration >> Duration.of('1h')
+        session.workflowMetadata >> metadata
+
+        def startConfig = new SlackConfig([
+            enabled: true,
+            webhook: 'https://hooks.slack.com/services/TEST/TEST/TEST',
+            onStart: [
+                enabled: true,
+                message: [text: '🚀 *Starting*', includeFields: ['status']]
+            ]
+        ])
+        def completeConfig = new SlackConfig([
+            enabled: true,
+            webhook: 'https://hooks.slack.com/services/TEST/TEST/TEST',
+            onComplete: [
+                enabled: true,
+                message: [text: '✅ *Done*', includeFields: ['status']]
+            ]
+        ])
+        def errorConfig = new SlackConfig([
+            enabled: true,
+            webhook: 'https://hooks.slack.com/services/TEST/TEST/TEST',
+            onError: [
+                enabled: true,
+                message: [text: '❌ *Boom*', includeFields: ['status']]
+            ]
+        ])
+        def errorSession = Mock(Session)
+        def errorMetadata = Mock(WorkflowMetadata)
+        errorMetadata.scriptName >> 'test-workflow.nf'
+        errorMetadata.duration >> Duration.of('30m')
+        errorMetadata.errorMessage >> 'failed'
+        errorSession.workflowMetadata >> errorMetadata
+        errorSession.runName >> 'test-run'
+
+        expect:
+        statusFieldValue(new JsonSlurper().parseText(new SlackMessageBuilder(startConfig, session).buildWorkflowStartMessage())) == 'Running'
+        statusFieldValue(new JsonSlurper().parseText(new SlackMessageBuilder(completeConfig, session).buildWorkflowCompleteMessage())) == 'Success'
+        statusFieldValue(new JsonSlurper().parseText(new SlackMessageBuilder(errorConfig, errorSession).buildWorkflowErrorMessage(null))) == 'Failed'
+    }
+
+    private static String statusFieldValue(json) {
+        def fieldsBlock = json.blocks.find { it.type == 'section' && it.fields }
+        def statusField = fieldsBlock?.fields?.find { it.text.startsWith('*Status*') }
+        return statusField?.text?.replace('*Status*\n', '') ?: ''
+    }
 }

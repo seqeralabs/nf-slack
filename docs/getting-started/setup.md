@@ -4,7 +4,7 @@ Get Slack notifications working with your Nextflow pipeline in minutes.
 
 ## Prerequisites
 
-- Nextflow v25.04.0 or later
+- Nextflow v25.10.0 or later
 - A Slack workspace where you have permission to add apps
 
 ## 1. Create a Slack App
@@ -15,7 +15,7 @@ Get Slack notifications working with your Nextflow pipeline in minutes.
 
 ## 2. Configure Slack Credentials
 
-nf-slack supports two authentication methods. **Bot User is recommended** — it supports threading, emoji reactions, and file uploads.
+nf-slack supports two authentication methods. **Bot User is recommended** — it supports threading, emoji reactions, and file uploads. Webhook support is deprecated and will be removed before v1.0.0.
 
 === "Bot User (Recommended)"
 
@@ -49,6 +49,9 @@ nf-slack supports two authentication methods. **Bot User is recommended** — it
     ```
 
 === "Webhook"
+
+    !!! danger "Deprecated — will be removed before v1.0.0"
+        Webhook support is deprecated and will be removed in a future release. Please migrate to the **Bot User** configuration to continue receiving notifications and gain access to threading, emoji reactions, and file uploads.
 
     **Enable webhooks:**
 
@@ -118,7 +121,10 @@ Then add the Slack configuration block:
     }
     ```
 
-=== "Webhook"
+=== "Webhook (Deprecated)"
+
+    !!! danger "Deprecated"
+        Webhook support will be removed before v1.0.0. Switch to the **Bot User** configuration above.
 
     ```groovy
     slack {

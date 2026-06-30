@@ -8,7 +8,7 @@ Thank you for your interest in contributing to nf-slack! This document provides 
 
 - Java 11 or higher
 - Gradle (wrapper included)
-- Nextflow 25.04.0 or higher
+- Nextflow 25.10.0 or higher
 - A Slack workspace with admin access for testing
 
 ### Development Setup
