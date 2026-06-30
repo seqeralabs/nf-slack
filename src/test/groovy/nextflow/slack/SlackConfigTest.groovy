@@ -497,4 +497,32 @@ class SlackConfigTest extends Specification {
         config.seqeraPlatform != null
         config.seqeraPlatform.enabled == false
     }
+
+    def 'should parse seqeraPlatform actionButtons config'() {
+        given:
+        def session = Mock(Session) {
+            config >> [slack: [
+                webhook: [url: 'https://hooks.slack.com/test'],
+                seqeraPlatform: [
+                    enabled: true,
+                    actionButtons: [
+                        mode: 'interactive',
+                        cancel: false,
+                        resume: true,
+                        relaunch: false
+                    ]
+                ]
+            ]]
+        }
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config.seqeraPlatform.actionButtons.mode == 'interactive'
+        !config.seqeraPlatform.actionButtons.cancel
+        config.seqeraPlatform.actionButtons.resume
+        !config.seqeraPlatform.actionButtons.relaunch
+        config.seqeraPlatform.actionButtons.isInteractiveMode()
+    }
 }
