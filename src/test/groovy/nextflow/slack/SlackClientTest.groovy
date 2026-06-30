@@ -52,6 +52,17 @@ class SlackClientTest extends Specification {
         noExceptionThrown()
     }
 
+    def 'should warn webhook users about unresolved display-name mentions'() {
+        given:
+        def sender = new WebhookSlackSender('https://hooks.slack.com/services/TEST/TEST/TEST')
+
+        when:
+        sender.sendMessage('{"text":"Hi <@Jane>"}')
+
+        then:
+        noExceptionThrown()
+    }
+
     def 'should handle file upload gracefully with warning'() {
         given:
         def sender = new WebhookSlackSender('https://hooks.slack.com/services/TEST/TEST/TEST')
