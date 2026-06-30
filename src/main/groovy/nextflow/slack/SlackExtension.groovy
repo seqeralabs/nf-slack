@@ -56,20 +56,20 @@ class SlackExtension extends PluginExtensionPoint {
      */
     @Function
     void slackMessage(String text) {
+        // Get the observer instance from factory
+        def observer = SlackFactory.observerInstance
+
+        if (!observer) {
+            log.debug "Slack plugin: Observer not initialized, skipping message"
+            return
+        }
+
+        if (!observer.sender || !observer.messageBuilder) {
+            log.debug "Slack plugin: Not configured, skipping message"
+            return
+        }
+
         try {
-            // Get the observer instance from factory
-            def observer = SlackFactory.observerInstance
-
-            if (!observer) {
-                log.debug "Slack plugin: Observer not initialized, skipping message"
-                return
-            }
-
-            if (!observer.sender || !observer.messageBuilder) {
-                log.debug "Slack plugin: Not configured, skipping message"
-                return
-            }
-
             // Get thread timestamp if threading is enabled
             def threadTs = null
             if (observer.config?.useThreads && observer.sender instanceof BotSlackSender) {
@@ -83,8 +83,11 @@ class SlackExtension extends PluginExtensionPoint {
             log.debug "Slack plugin: Sent custom text message"
 
         } catch (Exception e) {
-            log.error "Slack plugin: Error sending message: ${e.message}", e
-            // Don't propagate exception - never fail the workflow
+            def msg = "Slack plugin: Error sending message: ${e.message}"
+            log.error msg, e
+            if (observer.config?.failOnError) {
+                throw new RuntimeException(msg, e)
+            }
         }
     }
 
@@ -106,26 +109,26 @@ class SlackExtension extends PluginExtensionPoint {
      */
     @Function
     void slackMessage(Map options) {
+        // Validate required parameters
+        if (!options.message) {
+            log.error "Slack plugin: 'message' parameter is required for rich messages"
+            return
+        }
+
+        // Get the observer instance from factory
+        def observer = SlackFactory.observerInstance
+
+        if (!observer) {
+            log.debug "Slack plugin: Observer not initialized, skipping message"
+            return
+        }
+
+        if (!observer.sender || !observer.messageBuilder) {
+            log.debug "Slack plugin: Not configured, skipping message"
+            return
+        }
+
         try {
-            // Validate required parameters
-            if (!options.message) {
-                log.error "Slack plugin: 'message' parameter is required for rich messages"
-                return
-            }
-
-            // Get the observer instance from factory
-            def observer = SlackFactory.observerInstance
-
-            if (!observer) {
-                log.debug "Slack plugin: Observer not initialized, skipping message"
-                return
-            }
-
-            if (!observer.sender || !observer.messageBuilder) {
-                log.debug "Slack plugin: Not configured, skipping message"
-                return
-            }
-
             // Get thread timestamp if threading is enabled
             def threadTs = null
             if (observer.config?.useThreads && observer.sender instanceof BotSlackSender) {
@@ -139,8 +142,11 @@ class SlackExtension extends PluginExtensionPoint {
             log.debug "Slack plugin: Sent custom rich message"
 
         } catch (Exception e) {
-            log.error "Slack plugin: Error sending rich message: ${e.message}", e
-            // Don't propagate exception - never fail the workflow
+            def msg = "Slack plugin: Error sending rich message: ${e.message}"
+            log.error msg, e
+            if (observer.config?.failOnError) {
+                throw new RuntimeException(msg, e)
+            }
         }
     }
 
@@ -176,26 +182,26 @@ class SlackExtension extends PluginExtensionPoint {
      */
     @Function
     void slackFileUpload(Map options) {
+        // Validate required parameters
+        if (!options.file) {
+            log.error "Slack plugin: 'file' parameter is required for file upload"
+            return
+        }
+
+        // Get the observer instance from factory
+        def observer = SlackFactory.observerInstance
+
+        if (!observer) {
+            log.debug "Slack plugin: Observer not initialized, skipping file upload"
+            return
+        }
+
+        if (!observer.sender) {
+            log.debug "Slack plugin: Not configured, skipping file upload"
+            return
+        }
+
         try {
-            // Validate required parameters
-            if (!options.file) {
-                log.error "Slack plugin: 'file' parameter is required for file upload"
-                return
-            }
-
-            // Get the observer instance from factory
-            def observer = SlackFactory.observerInstance
-
-            if (!observer) {
-                log.debug "Slack plugin: Observer not initialized, skipping file upload"
-                return
-            }
-
-            if (!observer.sender) {
-                log.debug "Slack plugin: Not configured, skipping file upload"
-                return
-            }
-
             // Resolve file path
             def file = options.file
             Path path
@@ -223,8 +229,11 @@ class SlackExtension extends PluginExtensionPoint {
             log.debug "Slack plugin: Uploaded file ${path.fileName}"
 
         } catch (Exception e) {
-            log.error "Slack plugin: Error uploading file: ${e.message}", e
-            // Don't propagate exception - never fail the workflow
+            def msg = "Slack plugin: Error uploading file: ${e.message}"
+            log.error msg, e
+            if (observer.config?.failOnError) {
+                throw new RuntimeException(msg, e)
+            }
         }
     }
 }

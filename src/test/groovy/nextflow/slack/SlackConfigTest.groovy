@@ -497,4 +497,63 @@ class SlackConfigTest extends Specification {
         config.seqeraPlatform != null
         config.seqeraPlatform.enabled == false
     }
+
+    def 'should default failOnError to false'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [
+            slack: [
+                webhook: [
+                    url: 'https://hooks.slack.com/services/TEST/TEST/TEST'
+                ]
+            ]
+        ]
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config != null
+        config.failOnError == false
+    }
+
+    def 'should parse failOnError when set to true'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [
+            slack: [
+                webhook: [
+                    url: 'https://hooks.slack.com/services/TEST/TEST/TEST'
+                ],
+                failOnError: true
+            ]
+        ]
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config != null
+        config.failOnError == true
+    }
+
+    def 'should parse failOnError when set to false explicitly'() {
+        given:
+        def session = Mock(Session)
+        session.config >> [
+            slack: [
+                webhook: [
+                    url: 'https://hooks.slack.com/services/TEST/TEST/TEST'
+                ],
+                failOnError: false
+            ]
+        ]
+
+        when:
+        def config = SlackConfig.from(session)
+
+        then:
+        config != null
+        config.failOnError == false
+    }
 }

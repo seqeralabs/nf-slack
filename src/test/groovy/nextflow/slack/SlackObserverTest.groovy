@@ -912,4 +912,141 @@ class SlackObserverTest extends Specification {
         1 * mockSender.removeReaction('rocket', '1234567890.123456')
         noExceptionThrown()
     }
+
+    def 'should throw exception on notification failure when failOnError is true'() {
+        given:
+        def mockSender = Mock(SlackSender)
+        mockSender.sendMessage(_) >> { throw new RuntimeException("Slack API error") }
+
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C123456'],
+            failOnError: true,
+            validateOnStartup: false,
+            onError: [enabled: true]
+        ])
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        when:
+        observer.onFlowError(null, Mock(TraceRecord))
+
+        then:
+        thrown(RuntimeException)
+    }
+
+    def 'should log and continue on notification failure when failOnError is false'() {
+        given:
+        def mockSender = Mock(SlackSender)
+        mockSender.sendMessage(_) >> { throw new RuntimeException("Slack API error") }
+
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C123456'],
+            failOnError: false,
+            validateOnStartup: false,
+            onError: [enabled: true]
+        ])
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        when:
+        observer.onFlowError(null, Mock(TraceRecord))
+
+        then:
+        noExceptionThrown()
+    }
+
+    def 'should throw exception on complete notification failure when failOnError is true'() {
+        given:
+        def mockSender = Mock(SlackSender)
+        mockSender.sendMessage(_) >> { throw new RuntimeException("Slack API error") }
+        def mockSession = Mock(Session)
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.success >> true
+        mockSession.workflowMetadata >> mockMetadata
+
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C123456'],
+            failOnError: true,
+            validateOnStartup: false,
+            onComplete: [enabled: true]
+        ])
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setSession(mockSession)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        when:
+        observer.onFlowComplete()
+
+        then:
+        thrown(RuntimeException)
+    }
+
+    def 'should throw exception on start notification failure when failOnError is true'() {
+        given:
+        def mockSender = Mock(SlackSender)
+        mockSender.validate() >> true
+        mockSender.sendMessage(_) >> { throw new RuntimeException("Slack API error") }
+        def mockSession = Mock(Session)
+        mockSession.config >> [:]
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.scriptName >> 'test.nf'
+        mockSession.workflowMetadata >> mockMetadata
+        mockSession.runName >> 'test-run'
+
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C123456'],
+            failOnError: true,
+            validateOnStartup: false,
+            onStart: [enabled: true]
+        ])
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        when:
+        observer.onFlowCreate(mockSession)
+
+        then:
+        thrown(RuntimeException)
+    }
+
+    def 'should throw exception on file upload failure when failOnError is true'() {
+        given:
+        def mockSender = Mock(SlackSender)
+        mockSender.uploadFile(_, _) >> { throw new RuntimeException("Upload failed") }
+        def mockSession = Mock(Session)
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.success >> true
+        mockSession.workflowMetadata >> mockMetadata
+
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C123456'],
+            failOnError: true,
+            validateOnStartup: false,
+            onComplete: [enabled: true, files: ['results/report.html']]
+        ])
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setSession(mockSession)
+        observer.setMessageBuilder(Mock(SlackMessageBuilder))
+
+        when:
+        observer.onFlowComplete()
+
+        then:
+        thrown(RuntimeException)
+    }
 }

@@ -34,7 +34,6 @@ import groovy.util.logging.Slf4j
 class WebhookSlackSender implements SlackSender {
 
     private final String webhookUrl
-    private final Set<String> loggedErrors = Collections.synchronizedSet(new HashSet<String>())
 
     /**
      * Create a new WebhookSlackSender with the given webhook URL
@@ -44,15 +43,18 @@ class WebhookSlackSender implements SlackSender {
     }
 
     /**
-     * Send a message to Slack webhook
+     * Send a message to Slack webhook.
+     * Throws a RuntimeException if the message cannot be delivered.
      *
      * @param message JSON message payload
+     * @throws RuntimeException if the webhook call fails
      */
     @Override
     void sendMessage(String message) {
+        HttpURLConnection connection = null
         try {
             def url = new URL(webhookUrl)
-            def connection = url.openConnection() as HttpURLConnection
+            connection = url.openConnection() as HttpURLConnection
             connection.requestMethod = 'POST'
             connection.doOutput = true
             connection.setRequestProperty('Content-type', 'application/json')
@@ -65,18 +67,14 @@ class WebhookSlackSender implements SlackSender {
             def responseCode = connection.responseCode
             if (responseCode != 200) {
                 def errorBody = connection.errorStream?.text ?: ""
-                def errorMsg = "Slack webhook HTTP ${responseCode}: ${errorBody}".toString()
-                if (loggedErrors.add(errorMsg)) {
-                    log.error errorMsg
-                }
+                throw new RuntimeException("Slack webhook HTTP ${responseCode}: ${errorBody}")
             }
-
-            connection.disconnect()
+        } catch (RuntimeException e) {
+            throw e
         } catch (Exception e) {
-            def errorMsg = "Slack plugin: Error sending message: ${e.message}".toString()
-            if (loggedErrors.add(errorMsg)) {
-                log.error errorMsg
-            }
+            throw new RuntimeException("Slack plugin: Error sending webhook message: ${e.message}", e)
+        } finally {
+            connection?.disconnect()
         }
     }
 

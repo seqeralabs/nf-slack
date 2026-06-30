@@ -351,6 +351,22 @@ slack {
 
 This checks the token/webhook and channel access at pipeline start, failing fast if there's a configuration problem.
 
+## Fail on Notification Errors
+
+By default, Slack notification failures are logged and the pipeline continues. Set `failOnError = true` to abort the pipeline when any notification operation fails (messages, file uploads, reactions, or extension calls):
+
+```groovy
+slack {
+    bot {
+        token = System.getenv('SLACK_BOT_TOKEN')
+        channel = 'general'
+    }
+    failOnError = true
+}
+```
+
+Reaction failures continue to log at `DEBUG` when `failOnError` is `false` (the default).
+
 ## What's Next
 
 - [Examples](../examples/gallery.md) — Copy-paste configurations for common scenarios

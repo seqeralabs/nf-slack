@@ -23,6 +23,7 @@ Complete API reference for nf-slack plugin configuration options and functions.
 | `onComplete`        | Closure | See [`slack.onComplete`](#slackoncomplete) | No       | Configuration for workflow completion notifications                |
 | `onError`           | Closure | See [`slack.onError`](#slackonerror)       | No       | Configuration for workflow error notifications                     |
 | `validateOnStartup` | Boolean | `true`                                     | No       | Validate Slack connection credentials on pipeline startup          |
+| `failOnError`       | Boolean | `false`                                    | No       | Abort the pipeline when a Slack notification operation fails       |
 
 \*Either `webhook` or `bot` is required. If neither is configured, the plugin will automatically disable itself.
 
