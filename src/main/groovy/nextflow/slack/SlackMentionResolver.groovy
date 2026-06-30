@@ -37,9 +37,19 @@ class SlackMentionResolver {
 
     private final String botToken
     private List<Map> users
+    protected boolean usersListUnavailable
 
     SlackMentionResolver(String botToken) {
-        this.botToken = botToken
+        this.botToken = botToken?.trim()
+    }
+
+    /**
+     * Verify the bot token can call users.list (users:read scope).
+     * Used during connection validation when messages may contain @mentions.
+     */
+    boolean verifyUsersReadAccess() {
+        def response = callUsersList([limit: '1'])
+        return response != null
     }
 
     static boolean hasResolvableMentions(String text) {
@@ -101,12 +111,20 @@ class SlackMentionResolver {
             return "<@${query}>"
         }
 
+        def loadedUsers = loadUsers()
+        if (loadedUsers.isEmpty()) {
+            if (!usersListUnavailable) {
+                log.warn "Slack plugin: Could not resolve @mention '<@${query}>' — no matching Slack user found"
+            }
+            return "<@${query}>"
+        }
+
         for (String field : ['name', 'display_name', 'real_name']) {
             def matches = [] as List<String>
-            for (Map user : loadUsers()) {
+            for (Map user : loadedUsers) {
                 def value = userField(user, field)
                 if (value && value.trim().toLowerCase() == normalized) {
-                    matches << (user.id as String)
+                    matches << (user.get('id') as String)
                 }
             }
             if (matches.size() == 1) {
@@ -124,10 +142,10 @@ class SlackMentionResolver {
 
     private static String userField(Map user, String field) {
         if (field == 'name') {
-            return user.name as String
+            return user.get('name') as String
         }
-        def profile = user.profile as Map
-        return profile ? profile[field] as String : null
+        def profile = user.get('profile') as Map
+        return profile ? profile.get(field) as String : null
     }
 
     private void resolveStrings(Object value) {
@@ -167,17 +185,21 @@ class SlackMentionResolver {
         String cursor = null
 
         while (true) {
-            def query = cursor ? "?cursor=${URLEncoder.encode(cursor, 'UTF-8')}&limit=200" : '?limit=200'
-            def response = slackGet("${USERS_LIST_URL}${query}")
+            def params = [limit: '200'] as Map<String, String>
+            if (cursor) {
+                params.cursor = cursor
+            }
+
+            def response = callUsersList(params)
             if (!response) {
                 if (result.isEmpty()) {
-                    log.warn 'Slack plugin: Could not load Slack users for @mention resolution (requires users:read scope)'
+                    usersListUnavailable = true
                 }
                 break
             }
 
             for (Map member : (response.members as List<Map> ?: [])) {
-                if (!member.deleted && !member.is_bot) {
+                if (!isTruthy(member.get('deleted')) && !isTruthy(member.get('is_bot'))) {
                     result << member
                 }
             }
@@ -191,26 +213,64 @@ class SlackMentionResolver {
         return result
     }
 
-    private Map slackGet(String apiUrl) {
+    private static boolean isTruthy(Object value) {
+        return value == Boolean.TRUE || (value instanceof String && (value as String).equalsIgnoreCase('true'))
+    }
+
+    private Map callUsersList(Map<String, String> params) {
+        if (!botToken) {
+            log.warn 'Slack plugin: Cannot resolve @mentions — bot token is not configured'
+            return null
+        }
+
         HttpURLConnection connection = null
         try {
-            connection = new URL(apiUrl).openConnection() as HttpURLConnection
-            connection.requestMethod = 'GET'
+            connection = new URL(USERS_LIST_URL).openConnection() as HttpURLConnection
+            connection.requestMethod = 'POST'
+            connection.doOutput = true
             connection.setRequestProperty('Authorization', "Bearer ${botToken}")
+            connection.setRequestProperty('Content-Type', 'application/x-www-form-urlencoded; charset=utf-8')
 
-            if (connection.responseCode != 200) {
+            def body = params.collect { key, value ->
+                "${URLEncoder.encode(key, 'UTF-8')}=${URLEncoder.encode(value, 'UTF-8')}"
+            }.join('&')
+
+            connection.outputStream.withCloseable { out ->
+                out.write(body.getBytes('UTF-8'))
+            }
+
+            def responseStream = connection.responseCode == 200 ? connection.inputStream : connection.errorStream
+            if (!responseStream) {
+                log.warn "Slack plugin: users.list failed — HTTP ${connection.responseCode}"
                 return null
             }
 
-            def response = new JsonSlurper().parseText(connection.inputStream.text) as Map
-            return response.ok ? response : null
+            def response = new JsonSlurper().parseText(responseStream.getText('UTF-8')) as Map
+            if (!response.ok) {
+                logUsersListError(response.error as String)
+                return null
+            }
+
+            return response
         }
         catch (Exception e) {
-            log.debug "Slack plugin: Slack API GET ${apiUrl} failed: ${e.message}"
+            log.warn "Slack plugin: users.list request failed: ${e.message}"
             return null
         }
         finally {
             connection?.disconnect()
+        }
+    }
+
+    private void logUsersListError(String error) {
+        if (error == 'missing_scope') {
+            log.warn 'Slack plugin: Cannot resolve @mentions — add users:read to Bot Token Scopes in your Slack app, then reinstall the app to workspace'
+        }
+        else if (error == 'not_authed' || error == 'invalid_auth') {
+            log.warn "Slack plugin: Cannot resolve @mentions — bot token is invalid (${error})"
+        }
+        else {
+            log.warn "Slack plugin: users.list failed (${error ?: 'unknown error'}) — @mentions will not be resolved"
         }
     }
 }

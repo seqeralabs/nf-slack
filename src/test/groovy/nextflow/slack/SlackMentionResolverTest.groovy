@@ -165,6 +165,7 @@ class SlackMentionResolverTest extends Specification {
         def resolver = new SlackMentionResolver('xoxb-test-token') {
             @Override
             protected List<Map> fetchUsers() {
+                usersListUnavailable = true
                 return []
             }
         }
