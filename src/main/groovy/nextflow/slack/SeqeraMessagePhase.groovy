@@ -17,16 +17,13 @@
 package nextflow.slack
 
 import groovy.transform.CompileStatic
-import nextflow.plugin.BasePlugin
-import org.pf4j.PluginWrapper
 
 /**
- * The plugin entry point
+ * Workflow phase used to select contextual Seqera Platform action buttons.
  */
 @CompileStatic
-class SlackPlugin extends BasePlugin {
-
-    SlackPlugin(PluginWrapper wrapper) {
-        super(wrapper)
-    }
+enum SeqeraMessagePhase {
+    RUNNING,
+    COMPLETED,
+    FAILED
 }

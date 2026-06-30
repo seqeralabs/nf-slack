@@ -175,9 +175,21 @@ Configuration for workflow error notifications.
 
 ### `slack.seqeraPlatform`
 
-| Property  | Type      | Default | Description                                               |
-| --------- | --------- | ------- | --------------------------------------------------------- |
-| `enabled` | `Boolean` | `true`  | Enable Seqera Platform deep link buttons in notifications |
+| Property        | Type      | Default | Description                                             |
+| --------------- | --------- | ------- | ------------------------------------------------------- |
+| `enabled`       | `Boolean` | `true`  | Enable Seqera Platform action buttons in notifications  |
+| `actionButtons` | `Map`     | `{}`    | Cancel/Resume/Relaunch button configuration (see below) |
+
+#### `slack.seqeraPlatform.actionButtons`
+
+| Property   | Type      | Default  | Description                                                       |
+| ---------- | --------- | -------- | ----------------------------------------------------------------- |
+| `mode`     | `String`  | `'link'` | `'link'` for URL buttons, `'interactive'` for `action_id` buttons |
+| `cancel`   | `Boolean` | `true`   | Show Cancel on running/start/progress messages                    |
+| `resume`   | `Boolean` | `true`   | Show Resume on failure messages                                   |
+| `relaunch` | `Boolean` | `true`   | Show Relaunch on failure and completion messages                  |
+
+Interactive mode requires an external Slack interactivity endpoint that verifies the signing secret and calls Seqera Platform APIs. The plugin only emits button payloads.
 
 ---
 

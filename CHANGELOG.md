@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Seqera Platform action buttons**: Contextual Cancel, Resume, and Relaunch buttons alongside View in Seqera Platform. Link mode (default) opens the Platform run page; interactive mode emits `action_id` values for external Slack interactivity handlers ([#65](https://github.com/seqeralabs/nf-slack/issues/65))
+
 ## [0.5.1] - 2026-02-19
 
 ### Fixed

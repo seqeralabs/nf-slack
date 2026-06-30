@@ -1,5 +1,5 @@
 /*
- * Copyright 2025, Seqera Labs
+ * Copyright 2025-2026, Seqera Labs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,9 @@ import groovy.transform.CompileStatic
 /**
  * Configuration for Seqera Platform deep link integration.
  *
- * When Seqera Platform (Tower) is configured, adds a "View in Seqera Platform"
- * button to Slack notifications that links directly to the workflow run.
+ * When Seqera Platform (Tower) is configured, adds contextual action buttons
+ * to Slack notifications that link to the workflow run (or emit interactive
+ * action IDs for external handlers).
  *
  * @author Adam Talbot <adam.talbot@seqera.io>
  */
@@ -34,7 +35,14 @@ class SeqeraPlatformConfig {
      */
     final boolean enabled
 
+    /**
+     * Action button configuration (View / Cancel / Resume / Relaunch)
+     */
+    final SeqeraPlatformActionButtonsConfig actionButtons
+
     SeqeraPlatformConfig(Map config) {
-        this.enabled = config?.enabled != null ? config.enabled as boolean : true
+        config = config ?: [:]
+        this.enabled = config.enabled != null ? config.enabled as boolean : true
+        this.actionButtons = new SeqeraPlatformActionButtonsConfig(config.actionButtons as Map)
     }
 }

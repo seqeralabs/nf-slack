@@ -1,5 +1,5 @@
 /*
- * Copyright 2025, Seqera Labs
+ * Copyright 2025-2026, Seqera Labs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,24 +116,111 @@ class SlackMessageBuilder {
     }
 
     /**
-     * Create a Seqera Platform button action block
+     * Append contextual Seqera Platform action buttons when a watch URL is available.
      */
-    private static Map createSeqeraPlatformButton(String url) {
-        return [
-            type: 'actions',
-            elements: [
-                [
-                    type: 'button',
-                    text: [
-                        type: 'plain_text',
-                        text: '🔗 View in Seqera Platform',
-                        emoji: true
-                    ],
-                    url: url,
-                    style: 'primary'
-                ]
-            ]
-        ]
+    private void appendSeqeraPlatformActions(List blocks, SeqeraMessagePhase phase) {
+        def context = getSeqeraWatchContext()
+        if (!context) return
+
+        def actions = createSeqeraPlatformActions(context, phase)
+        if (actions) {
+            blocks << actions
+        }
+    }
+
+    /**
+     * Build Seqera Platform action block for the given workflow phase.
+     * Package-private for unit tests.
+     */
+    Map createSeqeraPlatformActions(SeqeraWatchContext context, SeqeraMessagePhase phase) {
+        def buttonConfig = config.seqeraPlatform?.actionButtons
+        if (!buttonConfig) return null
+
+        def elements = [] as List<Map>
+        elements << createViewButton(context, buttonConfig)
+
+        switch (phase) {
+            case SeqeraMessagePhase.RUNNING:
+                if (buttonConfig.cancel) {
+                    elements << createCancelButton(context, buttonConfig)
+                }
+                break
+            case SeqeraMessagePhase.FAILED:
+                if (buttonConfig.resume) {
+                    elements << createResumeButton(context, buttonConfig)
+                }
+                if (buttonConfig.relaunch) {
+                    elements << createRelaunchButton(context, buttonConfig)
+                }
+                break
+            case SeqeraMessagePhase.COMPLETED:
+                if (buttonConfig.relaunch) {
+                    elements << createRelaunchButton(context, buttonConfig)
+                }
+                break
+        }
+
+        return elements ? [type: 'actions', elements: elements] : null
+    }
+
+    private SeqeraWatchContext getSeqeraWatchContext() {
+        if (!config.seqeraPlatform?.enabled) return null
+        def watchUrl = getTowerClientWatchUrl()
+        log.debug "Seqera Platform: watchUrl=${watchUrl}"
+        return SeqeraWatchContext.fromWatchUrl(watchUrl)
+    }
+
+    private static Map createViewButton(SeqeraWatchContext context, SeqeraPlatformActionButtonsConfig buttonConfig) {
+        if (buttonConfig.isLinkMode()) {
+            return createLinkButton('🔗 View in Seqera Platform', context.watchUrl, 'primary')
+        }
+        return createInteractiveButton('🔗 View in Seqera Platform', 'seqera_platform_view', context.workflowRunId)
+    }
+
+    private static Map createCancelButton(SeqeraWatchContext context, SeqeraPlatformActionButtonsConfig buttonConfig) {
+        if (buttonConfig.isLinkMode()) {
+            return createLinkButton('⏹ Cancel', context.watchUrl, 'danger')
+        }
+        return createInteractiveButton('⏹ Cancel', 'seqera_platform_cancel', context.workflowRunId, 'danger')
+    }
+
+    private static Map createResumeButton(SeqeraWatchContext context, SeqeraPlatformActionButtonsConfig buttonConfig) {
+        if (buttonConfig.isLinkMode()) {
+            return createLinkButton('▶️ Resume', context.watchUrl)
+        }
+        return createInteractiveButton('▶️ Resume', 'seqera_platform_resume', context.workflowRunId)
+    }
+
+    private static Map createRelaunchButton(SeqeraWatchContext context, SeqeraPlatformActionButtonsConfig buttonConfig) {
+        if (buttonConfig.isLinkMode()) {
+            return createLinkButton('🔄 Relaunch', context.watchUrl)
+        }
+        return createInteractiveButton('🔄 Relaunch', 'seqera_platform_relaunch', context.workflowRunId)
+    }
+
+    private static Map createLinkButton(String label, String url, String style = null) {
+        def button = [
+            type: 'button',
+            text: [type: 'plain_text', text: label, emoji: true],
+            url: url
+        ] as Map
+        if (style) {
+            button.style = style
+        }
+        return button
+    }
+
+    private static Map createInteractiveButton(String label, String actionId, String value, String style = null) {
+        def button = [
+            type: 'button',
+            text: [type: 'plain_text', text: label, emoji: true],
+            action_id: actionId,
+            value: value ?: ''
+        ] as Map
+        if (style) {
+            button.style = style
+        }
+        return button
     }
 
     /**
@@ -147,21 +234,6 @@ class SlackMessageBuilder {
                 text: "*Command Line*\n```${commandLine}```"
             ]
         ]
-    }
-
-    /**
-     * Get Seqera Platform watch URL from TowerClient if deep links are enabled.
-     * Returns null if unavailable — callers should skip the button.
-     *
-     * The URL is read directly from TowerClient's watchUrl field, which is the
-     * fully-resolved URL returned by the Seqera Platform API.
-     */
-    private String getSeqeraPlatformUrl() {
-        if (!config.seqeraPlatform?.enabled) return null
-
-        def watchUrl = getTowerClientWatchUrl()
-        log.debug "Seqera Platform: watchUrl=${watchUrl}"
-        return watchUrl
     }
 
     /**
@@ -272,11 +344,7 @@ class SlackMessageBuilder {
             blocks << createContextFooter('started', timestamp, workflowName)
         }
 
-        // Seqera Platform deep link button
-        def seqeraUrl = getSeqeraPlatformUrl()
-        if (seqeraUrl) {
-            blocks << createSeqeraPlatformButton(seqeraUrl)
-        }
+        appendSeqeraPlatformActions(blocks, SeqeraMessagePhase.RUNNING)
 
         return createMessagePayload(blocks, threadTs)
     }
@@ -333,11 +401,7 @@ class SlackMessageBuilder {
             blocks << createContextFooter('completed', timestamp, workflowName)
         }
 
-        // Seqera Platform deep link button
-        def seqeraUrl = getSeqeraPlatformUrl()
-        if (seqeraUrl) {
-            blocks << createSeqeraPlatformButton(seqeraUrl)
-        }
+        appendSeqeraPlatformActions(blocks, SeqeraMessagePhase.COMPLETED)
 
         return createMessagePayload(blocks, threadTs)
     }
@@ -409,11 +473,7 @@ class SlackMessageBuilder {
             blocks << createContextFooter('failed', timestamp, workflowName)
         }
 
-        // Seqera Platform deep link button
-        def seqeraUrl = getSeqeraPlatformUrl()
-        if (seqeraUrl) {
-            blocks << createSeqeraPlatformButton(seqeraUrl)
-        }
+        appendSeqeraPlatformActions(blocks, SeqeraMessagePhase.FAILED)
 
         return createMessagePayload(blocks, threadTs)
     }
@@ -546,7 +606,23 @@ class SlackMessageBuilder {
             blocks << createContextFooter(status, timestamp, workflowName)
         }
 
+        appendSeqeraPlatformActions(blocks, seqeraPhaseForStatus(status))
+
         return createMessagePayload(blocks, threadTs)
+    }
+
+    private static SeqeraMessagePhase seqeraPhaseForStatus(String status) {
+        switch (status) {
+            case 'started':
+                return SeqeraMessagePhase.RUNNING
+            case 'completed':
+                return SeqeraMessagePhase.COMPLETED
+            case 'failed':
+                return SeqeraMessagePhase.FAILED
+            default:
+                // Custom statuses (e.g. paused) are treated as RUNNING for button selection.
+                return SeqeraMessagePhase.RUNNING
+        }
     }
 
     /**
@@ -630,6 +706,8 @@ class SlackMessageBuilder {
         }
         fields.add(createMarkdownField('Elapsed', elapsed))
         blocks.add(createFieldsSection(fields))
+
+        appendSeqeraPlatformActions(blocks, SeqeraMessagePhase.RUNNING)
 
         return createMessagePayload(blocks, threadTs)
     }

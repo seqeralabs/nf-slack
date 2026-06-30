@@ -17,16 +17,24 @@
 package nextflow.slack
 
 import groovy.transform.CompileStatic
-import nextflow.plugin.BasePlugin
-import org.pf4j.PluginWrapper
 
 /**
- * The plugin entry point
+ * Parsed Seqera Platform watch URL and workflow run identifier.
  */
 @CompileStatic
-class SlackPlugin extends BasePlugin {
+class SeqeraWatchContext {
 
-    SlackPlugin(PluginWrapper wrapper) {
-        super(wrapper)
+    final String watchUrl
+    final String workflowRunId
+
+    SeqeraWatchContext(String watchUrl, String workflowRunId) {
+        this.watchUrl = watchUrl
+        this.workflowRunId = workflowRunId
+    }
+
+    static SeqeraWatchContext fromWatchUrl(String watchUrl) {
+        if (!watchUrl) return null
+        def workflowRunId = SeqeraPlatformUrlBuilder.extractWorkflowRunId(watchUrl)
+        return new SeqeraWatchContext(watchUrl, workflowRunId)
     }
 }

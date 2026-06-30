@@ -17,16 +17,24 @@
 package nextflow.slack
 
 import groovy.transform.CompileStatic
-import nextflow.plugin.BasePlugin
-import org.pf4j.PluginWrapper
 
 /**
- * The plugin entry point
+ * Helpers for parsing Seqera Platform watch URLs returned by TowerClient.
  */
 @CompileStatic
-class SlackPlugin extends BasePlugin {
+class SeqeraPlatformUrlBuilder {
 
-    SlackPlugin(PluginWrapper wrapper) {
-        super(wrapper)
+    /**
+     * Extract the workflow run ID from a Platform watch URL.
+     * Example: https://cloud.seqera.io/orgs/foo/workspaces/bar/watch/abc123 -> abc123
+     */
+    static String extractWorkflowRunId(String watchUrl) {
+        if (!watchUrl) return null
+        def marker = '/watch/'
+        def start = watchUrl.indexOf(marker)
+        if (start < 0) return null
+        def idPart = watchUrl.substring(start + marker.length())
+        def end = idPart.findIndexOf { it == '?' || it == '/' }
+        return end >= 0 ? idPart.substring(0, end) : idPart
     }
 }

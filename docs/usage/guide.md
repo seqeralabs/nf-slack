@@ -241,7 +241,7 @@ File paths are relative to the pipeline launch directory.
 
 ## Seqera Platform Integration
 
-If you run pipelines through [Seqera Platform](https://seqera.io/platform/), nf-slack can automatically add deep links to the Platform run page:
+If you run pipelines through [Seqera Platform](https://seqera.io/platform/), nf-slack can automatically add contextual action buttons to Slack notifications:
 
 ```groovy
 slack {
@@ -251,9 +251,29 @@ slack {
     }
     seqeraPlatform {
         enabled = true
+        actionButtons {
+            mode = 'link'      // default: URL buttons open the Platform run page
+            cancel = true      // show Cancel while running
+            resume = true      // show Resume on failure
+            relaunch = true    // show Relaunch on failure/completion
+        }
     }
 }
 ```
+
+### Button behavior by workflow phase
+
+| Phase                    | Buttons                |
+| ------------------------ | ---------------------- |
+| Running (start/progress) | View, Cancel           |
+| Failed (error)           | View, Resume, Relaunch |
+| Completed                | View, Relaunch         |
+
+In **link mode** (default), Cancel/Resume/Relaunch open the same Platform run page where those actions are available in the UI. One-click API execution from Slack requires an external interactivity handler.
+
+### Interactive mode (advanced)
+
+Set `actionButtons.mode = 'interactive'` to emit Slack buttons with `action_id` values (`seqera_platform_view`, `seqera_platform_cancel`, `seqera_platform_resume`, `seqera_platform_relaunch`) and the workflow run ID in `value`. A separate HTTP endpoint (with Slack signing secret verification) must call Seqera Platform APIs — this cannot run inside the Nextflow plugin during `nextflow run`.
 
 ## Custom Messages from Code
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025, Seqera Labs
+ * Copyright 2025-2026, Seqera Labs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -622,7 +622,7 @@ class SlackMessageBuilderTest extends Specification {
         text.contains('5')
     }
 
-    def 'should include Seqera Platform button when watchUrl is available'() {
+    def 'should include Seqera Platform buttons when watchUrl is available'() {
         given:
         def platformConfig = new SlackConfig([
             webhook: 'https://hooks.slack.com/test',
@@ -645,8 +645,90 @@ class SlackMessageBuilderTest extends Specification {
         then:
         def actionsBlock = json.blocks.find { it.type == 'actions' }
         actionsBlock != null
-        actionsBlock.elements[0].type == 'button'
+        actionsBlock.elements*.type == ['button', 'button']
         actionsBlock.elements[0].url == 'https://cloud.seqera.io/orgs/myorg/workspaces/myws/watch/abc123'
+        actionsBlock.elements[0].text.text == '🔗 View in Seqera Platform'
+        actionsBlock.elements[1].text.text == '⏹ Cancel'
+    }
+
+    def 'should include Resume and Relaunch buttons on workflow error'() {
+        given:
+        def platformConfig = new SlackConfig([
+            webhook: 'https://hooks.slack.com/test',
+            seqeraPlatform: [enabled: true]
+        ])
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.scriptName >> 'test-workflow.nf'
+        mockMetadata.duration >> nextflow.util.Duration.of('1m')
+        mockMetadata.errorMessage >> 'boom'
+        def towerSession = Mock(Session)
+        towerSession.config >> [:]
+        towerSession.workflowMetadata >> mockMetadata
+        towerSession.runName >> 'crazy_einstein'
+        towerSession.uniqueId >> UUID.fromString('00000000-0000-0000-0000-000000000000')
+        def builder = Spy(new SlackMessageBuilder(platformConfig, towerSession))
+        builder.getTowerClientWatchUrl() >> 'https://cloud.seqera.io/orgs/myorg/workspaces/myws/watch/abc123'
+
+        when:
+        def message = builder.buildWorkflowErrorMessage(null)
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        def actionsBlock = json.blocks.find { it.type == 'actions' }
+        actionsBlock.elements*.text.text == ['🔗 View in Seqera Platform', '▶️ Resume', '🔄 Relaunch']
+    }
+
+    def 'should include Seqera Platform buttons in progress update when watchUrl is available'() {
+        given:
+        def platformConfig = new SlackConfig([
+            webhook: 'https://hooks.slack.com/test',
+            seqeraPlatform: [enabled: true]
+        ])
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.scriptName >> 'test-workflow.nf'
+        def towerSession = Mock(Session)
+        towerSession.config >> [:]
+        towerSession.workflowMetadata >> mockMetadata
+        towerSession.runName >> 'crazy_einstein'
+        towerSession.uniqueId >> UUID.fromString('00000000-0000-0000-0000-000000000000')
+        def builder = Spy(new SlackMessageBuilder(platformConfig, towerSession))
+        builder.getTowerClientWatchUrl() >> 'https://cloud.seqera.io/orgs/myorg/workspaces/myws/watch/abc123'
+
+        when:
+        def message = builder.buildProgressUpdateMessage(10, 5, 2, 0, 60000L, null)
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        def actionsBlock = json.blocks.find { it.type == 'actions' }
+        actionsBlock != null
+        actionsBlock.elements*.text.text == ['🔗 View in Seqera Platform', '⏹ Cancel']
+    }
+
+    def 'should include View and Relaunch buttons on workflow complete message'() {
+        given:
+        def platformConfig = new SlackConfig([
+            webhook: 'https://hooks.slack.com/test',
+            seqeraPlatform: [enabled: true]
+        ])
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.scriptName >> 'test-workflow.nf'
+        mockMetadata.duration >> nextflow.util.Duration.of('1h')
+        mockMetadata.stats >> null
+        def towerSession = Mock(Session)
+        towerSession.config >> [:]
+        towerSession.workflowMetadata >> mockMetadata
+        towerSession.runName >> 'crazy_einstein'
+        towerSession.uniqueId >> UUID.fromString('00000000-0000-0000-0000-000000000000')
+        def builder = Spy(new SlackMessageBuilder(platformConfig, towerSession))
+        builder.getTowerClientWatchUrl() >> 'https://cloud.seqera.io/orgs/myorg/workspaces/myws/watch/abc123'
+
+        when:
+        def message = builder.buildWorkflowCompleteMessage()
+        def json = new JsonSlurper().parseText(message)
+
+        then:
+        def actionsBlock = json.blocks.find { it.type == 'actions' }
+        actionsBlock.elements*.text.text == ['🔗 View in Seqera Platform', '🔄 Relaunch']
     }
 
     def 'should not include Seqera Platform button when no TowerClient present'() {
