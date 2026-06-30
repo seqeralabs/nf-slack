@@ -514,7 +514,8 @@ class SlackObserverTest extends Specification {
           def mockSender = Mock(BotSlackSender)
           mockSender.getThreadTs() >> '1234567890.123456'
           def mockBuilder = Mock(SlackMessageBuilder)
-          mockBuilder.buildWorkflowStartMessage(_) >> '{}'
+          // buildWorkflowStartMessage takes (threadTs, channelOverride) - 2 args
+          mockBuilder.buildWorkflowStartMessage(_, _) >> '{}'
           def observer = new SlackObserver()
           observer.setConfig(config)
           observer.setSender(mockSender)
@@ -539,7 +540,8 @@ class SlackObserverTest extends Specification {
           ])
           def mockSender = Mock(BotSlackSender)
           def mockBuilder = Mock(SlackMessageBuilder)
-          mockBuilder.buildWorkflowStartMessage(_) >> '{}'
+          // buildWorkflowStartMessage takes (threadTs, channelOverride) - 2 args
+          mockBuilder.buildWorkflowStartMessage(_, _) >> '{}'
           def observer = new SlackObserver()
           observer.setConfig(config)
           observer.setSender(mockSender)
@@ -808,8 +810,8 @@ class SlackObserverTest extends Specification {
 
         then:
         // Should NOT call any message builder methods
-        0 * mockMessageBuilder.buildWorkflowErrorMessage(_, _)
-        0 * mockMessageBuilder.buildWorkflowCompleteMessage(_)
+        0 * mockMessageBuilder.buildWorkflowErrorMessage(_, _, _)
+        0 * mockMessageBuilder.buildWorkflowCompleteMessage(_, _)
         0 * mockSender.sendMessage(_)
         // Should remove reactions
         1 * mockSender.removeReaction('rocket', '1234567890.123456')
@@ -855,8 +857,8 @@ class SlackObserverTest extends Specification {
 
         then:
         // Should call buildWorkflowCompleteMessage, not buildWorkflowErrorMessage
-        1 * mockMessageBuilder.buildWorkflowCompleteMessage(_)
-        0 * mockMessageBuilder.buildWorkflowErrorMessage(_, _)
+        1 * mockMessageBuilder.buildWorkflowCompleteMessage(_, _)
+        0 * mockMessageBuilder.buildWorkflowErrorMessage(_, _, _)
         1 * mockSender.sendMessage(_)
         noExceptionThrown()
     }
@@ -905,11 +907,99 @@ class SlackObserverTest extends Specification {
 
         then:
         // Should not send any message since onError is disabled
-        0 * mockMessageBuilder.buildWorkflowErrorMessage(_, _)
-        0 * mockMessageBuilder.buildWorkflowCompleteMessage(_)
+        0 * mockMessageBuilder.buildWorkflowErrorMessage(_, _, _)
+        0 * mockMessageBuilder.buildWorkflowCompleteMessage(_, _)
         0 * mockSender.sendMessage(_)
         // Should still remove reactions
         1 * mockSender.removeReaction('rocket', '1234567890.123456')
         noExceptionThrown()
+    }
+
+    def 'should pass channel override to buildWorkflowStartMessage'() {
+        given:
+        def capturedChannel = null
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C123456'],
+            onStart: [enabled: true, channel: 'C-START-CHANNEL'],
+            validateOnStartup: false
+        ])
+        def mockSender = Mock(BotSlackSender)
+        def mockBuilder = Mock(SlackMessageBuilder)
+        mockBuilder.buildWorkflowStartMessage(_, _) >> { String threadTs, String ch ->
+            capturedChannel = ch
+            return '{}'
+        }
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(mockBuilder)
+
+        when:
+        observer.onFlowCreate(Mock(Session) { getConfig() >> [:] })
+
+        then:
+        capturedChannel == 'C-START-CHANNEL'
+    }
+
+    def 'should pass channel override to buildWorkflowCompleteMessage'() {
+        given:
+        def capturedChannel = null
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C123456'],
+            onStart: [enabled: false],
+            onComplete: [enabled: true, channel: 'C-COMPLETE-CHANNEL'],
+            validateOnStartup: false
+        ])
+        def mockSession = Mock(Session)
+        def mockMetadata = Mock(WorkflowMetadata)
+        mockMetadata.success >> true
+        mockSession.workflowMetadata >> mockMetadata
+        def mockSender = Mock(BotSlackSender)
+        def mockBuilder = Mock(SlackMessageBuilder)
+        mockBuilder.buildWorkflowCompleteMessage(_, _) >> { String threadTs, String ch ->
+            capturedChannel = ch
+            return '{}'
+        }
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setSession(mockSession)
+        observer.setMessageBuilder(mockBuilder)
+
+        when:
+        observer.onFlowComplete()
+
+        then:
+        capturedChannel == 'C-COMPLETE-CHANNEL'
+    }
+
+    def 'should pass channel override to buildWorkflowErrorMessage'() {
+        given:
+        def capturedChannel = null
+        def config = new SlackConfig([
+            enabled: true,
+            bot: [token: 'xoxb-test-token', channel: 'C123456'],
+            onStart: [enabled: false],
+            onError: [enabled: true, channel: 'C-ERROR-CHANNEL'],
+            validateOnStartup: false
+        ])
+        def mockSender = Mock(BotSlackSender)
+        def mockBuilder = Mock(SlackMessageBuilder)
+        mockBuilder.buildWorkflowErrorMessage(_, _, _) >> { TraceRecord trace, String threadTs, String ch ->
+            capturedChannel = ch
+            return '{}'
+        }
+        def observer = new SlackObserver()
+        observer.setConfig(config)
+        observer.setSender(mockSender)
+        observer.setMessageBuilder(mockBuilder)
+
+        when:
+        observer.onFlowError(null, Mock(TraceRecord))
+
+        then:
+        capturedChannel == 'C-ERROR-CHANNEL'
     }
 }

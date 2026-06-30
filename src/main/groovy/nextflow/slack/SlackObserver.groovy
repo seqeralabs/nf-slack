@@ -33,6 +33,7 @@ import nextflow.file.FileHelper
  *
  * Features:
  * - Automatic notifications for workflow start, complete, and error
+ * - Per-event channel routing (different channels for start/complete/error)
  * - Configurable via nextflow.config
  * - Graceful error handling that never fails the workflow
  *
@@ -98,7 +99,7 @@ class SlackObserver implements TraceObserver {
 
         // Send workflow started notification if enabled
         if (config.onStart.enabled) {
-            def message = messageBuilder.buildWorkflowStartMessage()
+            def message = messageBuilder.buildWorkflowStartMessage(null, config.onStart.channel)
             sender.sendMessage(message)
             log.debug "Slack plugin: Sent workflow start notification"
         }
@@ -193,8 +194,9 @@ class SlackObserver implements TraceObserver {
         if (isSuccess) {
             // Send completion message if enabled
             if (config.onComplete.enabled) {
-                def threadTs = getThreadTsIfEnabled()
-                def message = messageBuilder.buildWorkflowCompleteMessage(threadTs)
+                // Only use threading if the complete message goes to the same channel as the start message
+                def threadTs = shouldUseThread(config.onComplete.channel) ? getThreadTsIfEnabled() : null
+                def message = messageBuilder.buildWorkflowCompleteMessage(threadTs, config.onComplete.channel)
                 sender.sendMessage(message)
                 log.debug "Slack plugin: Sent workflow complete notification"
 
@@ -229,9 +231,9 @@ class SlackObserver implements TraceObserver {
         if (!isConfigured()) return
 
         if (config.onError.enabled) {
-            // Get thread timestamp if threading is enabled and we're using bot sender
-            def threadTs = getThreadTsIfEnabled()
-            def message = messageBuilder.buildWorkflowErrorMessage(trace, threadTs)
+            // Only use threading if the error message goes to the same channel as the start message
+            def threadTs = shouldUseThread(config.onError.channel) ? getThreadTsIfEnabled() : null
+            def message = messageBuilder.buildWorkflowErrorMessage(trace, threadTs, config.onError.channel)
             sender.sendMessage(message)
             log.debug "Slack plugin: Sent workflow error notification"
 
@@ -303,6 +305,16 @@ class SlackObserver implements TraceObserver {
         catch (Exception e) {
             log.debug "Slack plugin: Failed to remove reaction: ${e.message}"
         }
+    }
+
+    /**
+     * Determine if threading should be used for an event.
+     * Threading is disabled when the event channel differs from the bot (start) channel,
+     * since replies would go to a different conversation.
+     */
+    private boolean shouldUseThread(String eventChannel) {
+        if (!eventChannel) return true
+        return eventChannel == config.botChannel
     }
 
     /**

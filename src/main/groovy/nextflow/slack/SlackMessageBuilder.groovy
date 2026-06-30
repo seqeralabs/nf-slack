@@ -255,13 +255,13 @@ class SlackMessageBuilder {
     /**
      * Build message for workflow started event
      */
-    String buildWorkflowStartMessage(String threadTs = null) {
+    String buildWorkflowStartMessage(String threadTs = null, String channelOverride = null) {
         def workflowName = session.workflowMetadata?.scriptName ?: 'Unknown workflow'
         def timestamp = OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 
         // Check if using custom message configuration
         if (config.onStart.message instanceof Map) {
-            return buildCustomMessage(config.onStart.message as Map, workflowName, timestamp, 'started', null, threadTs)
+            return buildCustomMessage(config.onStart.message as Map, workflowName, timestamp, 'started', null, threadTs, channelOverride)
         }
 
         def blocks = buildStartContentBlocks()
@@ -278,13 +278,13 @@ class SlackMessageBuilder {
             blocks << createSeqeraPlatformButton(seqeraUrl)
         }
 
-        return createMessagePayload(blocks, threadTs)
+        return createMessagePayload(blocks, threadTs, channelOverride)
     }
 
     /**
      * Build message for workflow completed successfully
      */
-    String buildWorkflowCompleteMessage(String threadTs = null) {
+    String buildWorkflowCompleteMessage(String threadTs = null, String channelOverride = null) {
         def workflowName = session.workflowMetadata?.scriptName ?: 'Unknown workflow'
         def runName = session.runName ?: 'Unknown run'
         def duration = session.workflowMetadata?.duration ?: Duration.of(0)
@@ -292,7 +292,7 @@ class SlackMessageBuilder {
 
         // Check if using custom message configuration
         if (config.onComplete.message instanceof Map) {
-            return buildCustomMessage(config.onComplete.message as Map, workflowName, timestamp, 'completed', null, threadTs)
+            return buildCustomMessage(config.onComplete.message as Map, workflowName, timestamp, 'completed', null, threadTs, channelOverride)
         }
 
         def blocks = []
@@ -339,13 +339,13 @@ class SlackMessageBuilder {
             blocks << createSeqeraPlatformButton(seqeraUrl)
         }
 
-        return createMessagePayload(blocks, threadTs)
+        return createMessagePayload(blocks, threadTs, channelOverride)
     }
 
     /**
      * Build message for workflow error
      */
-    String buildWorkflowErrorMessage(TraceRecord errorRecord, String threadTs = null) {
+    String buildWorkflowErrorMessage(TraceRecord errorRecord, String threadTs = null, String channelOverride = null) {
         def workflowName = session.workflowMetadata?.scriptName ?: 'Unknown workflow'
         def runName = session.runName ?: 'Unknown run'
         def duration = session.workflowMetadata?.duration ?: Duration.of(0)
@@ -354,7 +354,7 @@ class SlackMessageBuilder {
 
         // Check if using custom message configuration
         if (config.onError.message instanceof Map) {
-            return buildCustomMessage(config.onError.message as Map, workflowName, timestamp, 'failed', errorRecord, threadTs)
+            return buildCustomMessage(config.onError.message as Map, workflowName, timestamp, 'failed', errorRecord, threadTs, channelOverride)
         }
 
         def blocks = []
@@ -415,7 +415,7 @@ class SlackMessageBuilder {
             blocks << createSeqeraPlatformButton(seqeraUrl)
         }
 
-        return createMessagePayload(blocks, threadTs)
+        return createMessagePayload(blocks, threadTs, channelOverride)
     }
 
     /**
@@ -463,7 +463,7 @@ class SlackMessageBuilder {
     /**
      * Build a custom message using map configuration
      */
-    private String buildCustomMessage(Map customConfig, String workflowName, String timestamp, String status, TraceRecord errorRecord = null, String threadTs = null) {
+    private String buildCustomMessage(Map customConfig, String workflowName, String timestamp, String status, TraceRecord errorRecord = null, String threadTs = null, String channelOverride = null) {
         def runName = session.runName ?: 'Unknown run'
         def duration = session.workflowMetadata?.duration ?: Duration.of(0)
         def errorMessage = session.workflowMetadata?.errorMessage ?: 'Unknown error'
@@ -546,7 +546,7 @@ class SlackMessageBuilder {
             blocks << createContextFooter(status, timestamp, workflowName)
         }
 
-        return createMessagePayload(blocks, threadTs)
+        return createMessagePayload(blocks, threadTs, channelOverride)
     }
 
     /**
@@ -596,10 +596,11 @@ class SlackMessageBuilder {
     /**
      * Create final message payload with channel and optional thread_ts
      */
-    private String createMessagePayload(List blocks, String threadTs = null) {
+    private String createMessagePayload(List blocks, String threadTs = null, String channelOverride = null) {
         def message = [blocks: blocks] as Map
-        if (config.botChannel) {
-            message.channel = config.botChannel
+        def channel = channelOverride ?: config.botChannel
+        if (channel) {
+            message.channel = channel
         }
         if (threadTs) {
             message.thread_ts = threadTs

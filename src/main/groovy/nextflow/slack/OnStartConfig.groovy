@@ -63,6 +63,11 @@ class OnStartConfig {
     final List<String> includeFields
 
     /**
+     * Optional channel override for start notifications (bot token only)
+     */
+    final String channel
+
+    /**
      * Create OnStartConfig from configuration map
      *
      * @param config Configuration map from slack.onStart scope
@@ -73,6 +78,7 @@ class OnStartConfig {
         this.includeCommandLine = config?.includeCommandLine != null ? config.includeCommandLine as boolean : true
         this.showFooter = config?.showFooter != null ? config.showFooter as boolean : true
         this.includeFields = config?.includeFields != null ? (config.includeFields as List<String>) : []
+        this.channel = config?.channel as String
     }
 
     @Override

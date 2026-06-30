@@ -173,10 +173,23 @@ class SlackConfig {
         // Set values in config map for constructor
         if (webhook) config.webhook = webhook
         if (botToken) {
+            // Validate token format
+            if (!botToken.startsWith('xoxb-') && !botToken.startsWith('xoxp-')) {
+                throw new IllegalArgumentException("Slack plugin: Bot token must start with 'xoxb-' or 'xoxp-'")
+            }
+            if (botToken.startsWith('xoxp-')) {
+                log.warn "Slack plugin: You are using a User Token (xoxp-). It is recommended to use a Bot Token (xoxb-) for better security and granular permissions."
+            }
+
             // Validate channel is present
             if (!botChannel) {
                 log.warn "Slack plugin: Bot channel is required when using bot token — plugin will be disabled"
                 return null
+            }
+            // Basic alphanumeric check for channel ID (allow hyphens/underscores for names)
+            // Also allow # for channel names
+            if (!botChannel.matches(/^[#a-zA-Z0-9\-_]+$/)) {
+                throw new IllegalArgumentException("Slack plugin: Invalid channel ID format: ${botChannel}")
             }
 
             def botConfig = config.bot as Map
@@ -188,6 +201,20 @@ class SlackConfig {
             botConfig.channel = botChannel
             if (useThreads != null) {
                 botConfig.useThreads = useThreads
+            }
+        }
+
+        // Validate per-event channel formats if specified
+        def onStartConfig = config.onStart as Map
+        def onCompleteConfig = config.onComplete as Map
+        def onErrorConfig = config.onError as Map
+        [onStart: onStartConfig, onComplete: onCompleteConfig, onError: onErrorConfig].each { name, cfg ->
+            def ch = cfg?.channel as String
+            if (ch && !ch.matches(/^[#a-zA-Z0-9\-_]+$/)) {
+                throw new IllegalArgumentException("Slack plugin: Invalid channel format in ${name}: ${ch}")
+            }
+            if (ch && !botToken) {
+                log.warn "Slack plugin: Per-event channel in '${name}' requires bot token - will be ignored with webhook"
             }
         }
 

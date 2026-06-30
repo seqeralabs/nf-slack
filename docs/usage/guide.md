@@ -167,6 +167,30 @@ slack {
 
 The start notification becomes the parent message. Complete, error, and any custom messages sent via `slackMessage()` appear as replies in the thread.
 
+### Route Events to Different Channels
+
+By default, all notifications go to the configured `bot.channel`. You can override this per event type to send different notifications to different channels:
+
+```groovy
+slack {
+    bot {
+        token = System.getenv('SLACK_BOT_TOKEN')
+        channel = '#general'     // default channel for all events
+    }
+    onStart {
+        channel = '#deployments' // override for start notifications
+    }
+    onComplete {
+        channel = '#results'     // override for completion notifications
+    }
+    onError {
+        channel = '#alerts'      // override for error notifications
+    }
+}
+```
+
+Per-event channels require a bot token. When a per-event channel differs from the global `bot.channel`, threading is automatically disabled for that event (since replies would go to a different conversation).
+
 ## Emoji Reactions
 
 <!-- prettier-ignore -->

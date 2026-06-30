@@ -75,6 +75,11 @@ class OnCompleteConfig {
     final List<String> includeFields
 
     /**
+     * Optional channel override for completion notifications (bot token only)
+     */
+    final String channel
+
+    /**
      * Create OnCompleteConfig from configuration map
      *
      * @param config Configuration map from slack.onComplete scope
@@ -87,6 +92,7 @@ class OnCompleteConfig {
         this.showFooter = config?.showFooter != null ? config.showFooter as boolean : true
         this.files = config?.files != null ? (config.files as List<String>) : []
         this.includeFields = config?.includeFields != null ? (config.includeFields as List<String>) : []
+        this.channel = config?.channel as String
     }
 
     @Override
