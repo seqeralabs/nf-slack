@@ -311,7 +311,7 @@ class SlackMessageBuilder {
             fields << createMarkdownField('Duration', duration.toString())
         }
         if (shouldIncludeField(includeFields, 'status')) {
-            fields << createMarkdownField('Status', '✅ Success')
+            fields << createMarkdownField('Status', 'Success')
         }
 
         // Add resource usage if configured (via includeResourceUsage or includeFields)
@@ -573,7 +573,7 @@ class SlackMessageBuilder {
             case 'started':
                 return '🚀 Running'
             case 'completed':
-                return '✅ Success'
+                return 'Success'
             case 'failed':
                 return '❌ Failed'
             default:
