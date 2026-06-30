@@ -70,32 +70,6 @@ class BotSlackSender implements SlackSender {
     }
 
     /**
-     * Check users:read access when configured messages contain display-name @mentions.
-     */
-    void validateMentionConfig(SlackConfig config) {
-        for (String text : collectMentionTexts(config)) {
-            if (SlackMentionResolver.hasResolvableMentions(text)) {
-                mentionResolver.verifyUsersReadAccess()
-                return
-            }
-        }
-    }
-
-    private static List<String> collectMentionTexts(SlackConfig config) {
-        def texts = [] as List<String>
-        if (config.onStart?.message instanceof String) {
-            texts << (config.onStart.message as String)
-        }
-        if (config.onComplete?.message instanceof String) {
-            texts << (config.onComplete.message as String)
-        }
-        if (config.onError?.message instanceof String) {
-            texts << (config.onError.message as String)
-        }
-        return texts
-    }
-
-    /**
      * Send a message to Slack via Web API
      *
      * @param message JSON message payload (must be compatible with chat.postMessage)

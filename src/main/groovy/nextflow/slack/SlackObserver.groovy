@@ -96,10 +96,6 @@ class SlackObserver implements TraceObserver {
             }
         }
 
-        if (sender instanceof BotSlackSender) {
-            (sender as BotSlackSender).validateMentionConfig(config)
-        }
-
         // Send workflow started notification if enabled
         if (config.onStart.enabled) {
             def message = messageBuilder.buildWorkflowStartMessage()

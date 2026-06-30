@@ -50,24 +50,6 @@ class SlackMentionResolver {
         this.botToken = botToken?.trim()
     }
 
-    /**
-     * Verify the bot token can call users.list (users:read scope).
-     * Used during connection validation when messages may contain @mentions.
-     */
-    boolean verifyUsersReadAccess() {
-        if (users != null) {
-            return !usersListUnavailable
-        }
-
-        def response = callUsersList([limit: '1'])
-        if (!response) {
-            users = [] as List<Map>
-            usersListUnavailable = true
-            return false
-        }
-        return true
-    }
-
     static boolean hasResolvableMentions(String text) {
         if (!text) {
             return false
@@ -129,10 +111,7 @@ class SlackMentionResolver {
 
         def loadedUsers = loadUsers()
         if (loadedUsers.isEmpty()) {
-            if (usersListUnavailable) {
-                logUsersListUnavailableHint()
-            }
-            else {
+            if (!usersListUnavailable) {
                 log.warn "Slack plugin: Could not resolve @mention '<@${query}>' — no matching Slack user found in this workspace"
             }
             return "<@${query}>"
@@ -216,6 +195,7 @@ class SlackMentionResolver {
             if (!response) {
                 if (result.isEmpty()) {
                     usersListUnavailable = true
+                    users = result
                 }
                 break
             }
@@ -305,13 +285,5 @@ class SlackMentionResolver {
         else {
             log.warn "Slack plugin: users.list failed (${error ?: 'unknown error'}) — @mentions will not be resolved. ${USERS_READ_SCOPE_HELP}"
         }
-    }
-
-    private void logUsersListUnavailableHint() {
-        if (usersListErrorLogged) {
-            return
-        }
-        log.warn "Slack plugin: Cannot load workspace users for @mention resolution. ${USERS_READ_SCOPE_HELP}"
-        usersListErrorLogged = true
     }
 }
