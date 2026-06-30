@@ -150,9 +150,12 @@ class SlackObserver implements TraceObserver {
         scheduleSeqeraPlatformButtonUpdate()
     }
 
+    private static final long SEQERA_BUTTON_POLL_INTERVAL_MS = 2000L
+    private static final int SEQERA_BUTTON_MAX_ATTEMPTS = 15
+
     /**
      * Schedule an async update to add the Seqera Platform button to the start message.
-     * Waits briefly for TowerClient (a V2 observer) to set its watchUrl during onFlowBegin.
+     * Polls until the watch URL is available or max attempts is reached.
      */
     private void scheduleSeqeraPlatformButtonUpdate() {
         if (!config.seqeraPlatform?.enabled) return
@@ -160,19 +163,28 @@ class SlackObserver implements TraceObserver {
         def messageTs = (sender as BotSlackSender).getThreadTs()
         if (!messageTs) return
 
+        scheduleSeqeraPlatformButtonUpdateAttempt(messageTs, 0)
+    }
+
+    private void scheduleSeqeraPlatformButtonUpdateAttempt(String messageTs, int attempt) {
+        long delay = attempt == 0 ? 1000L : SEQERA_BUTTON_POLL_INTERVAL_MS
         new Timer('slack-seqera-button', true).schedule(new TimerTask() {
             @Override
             void run() {
                 try {
-                    def startMessage = messageBuilder.buildWorkflowStartMessage()
-                    sender.updateMessage(startMessage, messageTs)
-                    log.debug "Slack plugin: Updated start message with Seqera Platform button"
+                    if (messageBuilder.getTowerClientWatchUrl()) {
+                        def startMessage = messageBuilder.buildWorkflowStartMessage()
+                        sender.updateMessage(startMessage, messageTs)
+                        log.debug "Slack plugin: Updated start message with Seqera Platform button"
+                    } else if (attempt + 1 < SEQERA_BUTTON_MAX_ATTEMPTS) {
+                        scheduleSeqeraPlatformButtonUpdateAttempt(messageTs, attempt + 1)
+                    }
                 }
                 catch (Exception e) {
                     log.debug "Slack plugin: Failed to update start message with Seqera Platform button: ${e.message}"
                 }
             }
-        }, 3000L)
+        }, delay)
     }
 
     /**

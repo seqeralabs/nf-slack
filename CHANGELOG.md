@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Per-task notifications**: Send Slack messages when individual tasks complete, with Nextflow-style `withName`/`withLabel` selectors, per-selector `minDuration`, `onFirstFailure`, throttling, and thread replies when threading is enabled ([#34](https://github.com/seqeralabs/nf-slack/issues/34))
+
 ## [0.5.1] - 2026-02-19
 
 ### Fixed
