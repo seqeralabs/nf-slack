@@ -4,7 +4,7 @@ Get Slack notifications working with your Nextflow pipeline in minutes.
 
 ## Prerequisites
 
-- Nextflow v25.04.0 or later
+- Nextflow v25.10.0 or later
 - A Slack workspace where you have permission to add apps
 
 ## 1. Create a Slack App
