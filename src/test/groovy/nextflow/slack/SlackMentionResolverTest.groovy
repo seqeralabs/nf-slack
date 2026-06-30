@@ -225,4 +225,25 @@ class SlackMentionResolverTest extends Specification {
         then:
         fetchCount == 1
     }
+
+    def 'should handle users.list response with ok false'() {
+        given:
+        def resolver = new SlackMentionResolver('xoxb-test-token') {
+            @Override
+            protected Map fetchUsersPage(String cursor) {
+                return [ok: false, error: 'invalid_auth']
+            }
+
+            @Override
+            protected List<Map> fetchUsergroups() {
+                return []
+            }
+        }
+
+        when:
+        def result = resolver.resolveInText('Hi <@jane.doe>')
+
+        then:
+        result == 'Hi <@jane.doe>'
+    }
 }

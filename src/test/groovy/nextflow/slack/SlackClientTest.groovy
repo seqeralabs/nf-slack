@@ -54,13 +54,13 @@ class SlackClientTest extends Specification {
 
     def 'should warn webhook users about unresolved display-name mentions'() {
         given:
-        def sender = new WebhookSlackSender('https://hooks.slack.com/services/TEST/TEST/TEST')
+        def sender = Spy(WebhookSlackSender, constructorArgs: ['https://hooks.slack.com/services/TEST/TEST/TEST'])
 
         when:
         sender.sendMessage('{"text":"Hi <@Jane>"}')
 
         then:
-        noExceptionThrown()
+        1 * sender.warnIfUnresolvedMentions('{"text":"Hi <@Jane>"}')
     }
 
     def 'should handle file upload gracefully with warning'() {

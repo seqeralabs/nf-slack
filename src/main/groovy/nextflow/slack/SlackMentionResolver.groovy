@@ -45,8 +45,10 @@ class SlackMentionResolver {
         ~/<!subteam\^(?!S[A-Z0-9]+(?:\|[^>]+)?>)([^>|]+)(?:\|[^>]+)?>/
 
     private final String botToken
-    private List<Map> cachedUsers
-    private List<Map> cachedUsergroups
+    private volatile List<Map> cachedUsers
+    private volatile List<Map> cachedUsergroups
+    private final Object usersCacheLock = new Object()
+    private final Object usergroupsCacheLock = new Object()
     private final Set<String> loggedWarnings = Collections.synchronizedSet(new HashSet<String>())
 
     SlackMentionResolver(String botToken) {
@@ -245,14 +247,24 @@ class SlackMentionResolver {
         if (cachedUsers != null) {
             return
         }
-        cachedUsers = fetchAllUsers()
+        synchronized (usersCacheLock) {
+            if (cachedUsers != null) {
+                return
+            }
+            cachedUsers = fetchAllUsers()
+        }
     }
 
     private void ensureUsergroupsLoaded() {
         if (cachedUsergroups != null) {
             return
         }
-        cachedUsergroups = fetchUsergroups()
+        synchronized (usergroupsCacheLock) {
+            if (cachedUsergroups != null) {
+                return
+            }
+            cachedUsergroups = fetchUsergroups()
+        }
     }
 
     private List<Map> fetchAllUsers() {

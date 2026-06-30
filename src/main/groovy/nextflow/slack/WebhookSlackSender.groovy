@@ -107,7 +107,7 @@ class WebhookSlackSender implements SlackSender {
         log.warn "Slack plugin: File upload is not supported with webhooks. Please configure a bot token to upload files."
     }
 
-    private void warnIfUnresolvedMentions(String message) {
+    protected void warnIfUnresolvedMentions(String message) {
         if (!SlackMentionResolver.hasResolvableMentions(message)) {
             return
         }
