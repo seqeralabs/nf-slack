@@ -709,7 +709,7 @@ class SlackMessageBuilderTest extends Specification {
         actionsBlock == null
     }
 
-    def 'should read TowerClient watchUrl from observers list (Nextflow 24.10)'() {
+    def 'should read TowerClient watchUrl from observers list'() {
         given:
         def gcl = new GroovyClassLoader(this.class.classLoader)
         def towerClass = gcl.parseClass('''
@@ -739,7 +739,7 @@ class SlackMessageBuilderTest extends Specification {
         builder.getTowerClientWatchUrl() == 'https://cloud.seqera.io/orgs/myorg/workspaces/myws/watch/abc123'
     }
 
-    def 'should read TowerClient watchUrl from observersV1 list (Nextflow 25.10+)'() {
+    def 'should read TowerClient watchUrl from observersV1 list'() {
         given:
         def gcl = new GroovyClassLoader(this.class.classLoader)
         def towerClass = gcl.parseClass('''
@@ -769,7 +769,7 @@ class SlackMessageBuilderTest extends Specification {
         builder.getTowerClientWatchUrl() == 'https://cloud.seqera.io/orgs/myorg/workspaces/myws/watch/abc123'
     }
 
-    def 'should read TowerObserver watchUrl from observersV1 list (Nextflow 25.10+)'() {
+    def 'should read TowerObserver watchUrl from observersV1 list'() {
         given:
         def gcl = new GroovyClassLoader(this.class.classLoader)
         def towerClass = gcl.parseClass('''

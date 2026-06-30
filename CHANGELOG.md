@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Seqera Platform deep-link button now resolves `watchUrl` from the `observers` list used by Nextflow 24.10, in addition to `observersV1` and `observersV2` ([#73](https://github.com/seqeralabs/nf-slack/pull/73))
+- Seqera Platform deep-link button now resolves the watch URL from `workflowMetadata.platform.workflowUrl` and from TowerClient/TowerObserver across all session observer lists (`observers`, `observersV1`, `observersV2`); polls until the URL is available before updating the start message; and includes the button on progress and completion messages ([#73](https://github.com/seqeralabs/nf-slack/pull/73))
 
 ## [0.5.1] - 2026-02-19
 

@@ -230,7 +230,9 @@ class SlackMessageBuilder {
     }
 
     /**
-     * Find TowerClient or TowerObserver in any Nextflow session observer list.
+     * Find TowerClient or TowerObserver in any session observer list field.
+     * nf-tower may register in {@code observers}, {@code observersV1}, or
+     * {@code observersV2} depending on run context, not Nextflow version.
      */
     private Object findTowerObserver() {
         for (String fieldName : ['observers', 'observersV1', 'observersV2']) {
