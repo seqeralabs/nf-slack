@@ -295,7 +295,7 @@ class SlackObserver implements TraceObserver {
             }
         }
         catch (Exception e) {
-            handleNotificationError("add reaction '${emoji}'", e)
+            handleNotificationError("add reaction '${emoji}'", e, true)
         }
     }
 
@@ -315,7 +315,7 @@ class SlackObserver implements TraceObserver {
             }
         }
         catch (Exception e) {
-            handleNotificationError("remove reaction '${emoji}'", e)
+            handleNotificationError("remove reaction '${emoji}'", e, true)
         }
     }
 
@@ -338,11 +338,16 @@ class SlackObserver implements TraceObserver {
      * @param e The exception that caused the failure
      * @throws RuntimeException if failOnError is true
      */
-    private void handleNotificationError(String description, Exception e) {
+    private void handleNotificationError(String description, Exception e, boolean debugWhenNotFatal = false) {
         def msg = "Slack plugin: Failed to ${description}: ${e.message}"
-        log.warn msg
         if (config?.failOnError) {
+            log.warn msg
             throw new RuntimeException(msg, e)
+        }
+        if (debugWhenNotFatal) {
+            log.debug msg
+        } else {
+            log.warn msg
         }
     }
 

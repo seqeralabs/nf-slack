@@ -34,22 +34,22 @@ class SlackClientTest extends Specification {
         sender != null
     }
 
-    def 'should handle null webhook URL gracefully'() {
+    def 'should throw when webhook URL is null'() {
         when:
         def sender = new WebhookSlackSender(null)
         sender.sendMessage('{"text":"test"}')
 
         then:
-        noExceptionThrown()
+        thrown(RuntimeException)
     }
 
-    def 'should handle invalid JSON gracefully'() {
+    def 'should throw when webhook delivery fails'() {
         when:
         def sender = new WebhookSlackSender('https://hooks.slack.com/services/TEST/TEST/TEST')
         sender.sendMessage('not valid json')
 
         then:
-        noExceptionThrown()
+        thrown(RuntimeException)
     }
 
     def 'should handle file upload gracefully with warning'() {

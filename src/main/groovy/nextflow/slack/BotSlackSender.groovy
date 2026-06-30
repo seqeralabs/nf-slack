@@ -491,12 +491,19 @@ class BotSlackSender implements SlackSender {
                         log.debug "Slack plugin: Reaction '${emoji}' ${action} skipped: ${response.error}"
                     } else {
                         def hint = response.error == 'missing_scope' ? ' (add reactions:write scope to your Slack app)' : ''
-                        log.warn "Slack plugin: Failed to ${action} reaction '${emoji}': ${response.error}${hint}"
+                        throw new RuntimeException("Slack plugin: Failed to ${action} reaction '${emoji}': ${response.error}${hint}")
                     }
                 }
             } else {
-                log.debug "Slack plugin: Failed to ${action} reaction - HTTP ${responseCode}"
+                def errorBody = connection.errorStream?.text ?: 'No error details'
+                throw new RuntimeException("Slack plugin: Failed to ${action} reaction - HTTP ${responseCode}: ${errorBody}")
             }
+        }
+        catch (RuntimeException e) {
+            throw e
+        }
+        catch (Exception e) {
+            throw new RuntimeException("Slack plugin: Error ${action} reaction '${emoji}': ${e.message}", e)
         } finally {
             connection?.disconnect()
         }

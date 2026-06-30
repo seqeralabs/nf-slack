@@ -281,4 +281,107 @@ class SlackExtensionTest extends Specification {
         cleanup:
         tempFile.delete()
     }
+
+    def 'should throw when slackMessage fails and failOnError is true'() {
+        given:
+        def mockBotSender = Mock(BotSlackSender)
+        def mockObserver = Mock(SlackObserver)
+        def mockMessageBuilder = Mock(SlackMessageBuilder)
+        def mockSession = Mock(Session)
+        mockSession.config >> [slack: [bot: [token: 'xoxb-test', channel: 'C123'], failOnError: true, validateOnStartup: false]]
+        def config = SlackConfig.from(mockSession)
+
+        mockObserver.sender >> mockBotSender
+        mockObserver.messageBuilder >> mockMessageBuilder
+        mockObserver.config >> config
+
+        SlackFactory.observerInstance = mockObserver
+        def extension = new SlackExtension()
+
+        when:
+        extension.slackMessage('Test message')
+
+        then:
+        1 * mockMessageBuilder.buildSimpleMessage('Test message', _) >> '{"text":"Test message"}'
+        1 * mockBotSender.sendMessage(_) >> { throw new IOException('network error') }
+        thrown(RuntimeException)
+    }
+
+    def 'should continue when slackMessage fails and failOnError is false'() {
+        given:
+        def mockBotSender = Mock(BotSlackSender)
+        def mockObserver = Mock(SlackObserver)
+        def mockMessageBuilder = Mock(SlackMessageBuilder)
+        def mockSession = Mock(Session)
+        mockSession.config >> [slack: [bot: [token: 'xoxb-test', channel: 'C123'], failOnError: false, validateOnStartup: false]]
+        def config = SlackConfig.from(mockSession)
+
+        mockObserver.sender >> mockBotSender
+        mockObserver.messageBuilder >> mockMessageBuilder
+        mockObserver.config >> config
+
+        SlackFactory.observerInstance = mockObserver
+        def extension = new SlackExtension()
+
+        when:
+        extension.slackMessage('Test message')
+
+        then:
+        1 * mockMessageBuilder.buildSimpleMessage('Test message', _) >> '{"text":"Test message"}'
+        1 * mockBotSender.sendMessage(_) >> { throw new IOException('network error') }
+        noExceptionThrown()
+    }
+
+    def 'should throw when rich slackMessage fails and failOnError is true'() {
+        given:
+        def mockBotSender = Mock(BotSlackSender)
+        def mockObserver = Mock(SlackObserver)
+        def mockMessageBuilder = Mock(SlackMessageBuilder)
+        def options = [message: 'Rich message']
+        def mockSession = Mock(Session)
+        mockSession.config >> [slack: [bot: [token: 'xoxb-test', channel: 'C123'], failOnError: true, validateOnStartup: false]]
+        def config = SlackConfig.from(mockSession)
+
+        mockObserver.sender >> mockBotSender
+        mockObserver.messageBuilder >> mockMessageBuilder
+        mockObserver.config >> config
+
+        SlackFactory.observerInstance = mockObserver
+        def extension = new SlackExtension()
+
+        when:
+        extension.slackMessage(options)
+
+        then:
+        1 * mockMessageBuilder.buildRichMessage(options, _) >> '{"blocks":[]}'
+        1 * mockBotSender.sendMessage(_) >> { throw new IOException('network error') }
+        thrown(RuntimeException)
+    }
+
+    def 'should throw when slackFileUpload fails and failOnError is true'() {
+        given:
+        def mockBotSender = Mock(BotSlackSender)
+        def mockObserver = Mock(SlackObserver)
+        def mockSession = Mock(Session)
+        mockSession.config >> [slack: [bot: [token: 'xoxb-test', channel: 'C123'], failOnError: true, validateOnStartup: false]]
+        def config = SlackConfig.from(mockSession)
+
+        mockObserver.sender >> mockBotSender
+        mockObserver.config >> config
+
+        SlackFactory.observerInstance = mockObserver
+        def extension = new SlackExtension()
+        def tempFile = File.createTempFile('test-fail', '.txt')
+        tempFile.text = 'test content'
+
+        when:
+        extension.slackFileUpload(tempFile.absolutePath)
+
+        then:
+        1 * mockBotSender.uploadFile(_, _) >> { throw new IOException('upload failed') }
+        thrown(RuntimeException)
+
+        cleanup:
+        tempFile.delete()
+    }
 }

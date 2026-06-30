@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `slack.failOnError` option to abort the pipeline when Slack notification operations fail ([#54](https://github.com/seqeralabs/nf-slack/pull/54))
+
 ## [0.5.1] - 2026-02-19
 
 ### Fixed
