@@ -38,60 +38,49 @@ class SlackMentionResolverTest extends Specification {
         ]
     ]
 
-    private static final List<Map> SAMPLE_USERGROUPS = [
-        [id: 'S111', name: 'Bioinformatics', handle: 'bioinformatics'],
-        [id: 'S222', name: 'Platform', handle: 'platform-team']
-    ]
-
-    private SlackMentionResolver createResolver(List<Map> users = SAMPLE_USERS, List<Map> usergroups = SAMPLE_USERGROUPS) {
+    private SlackMentionResolver createResolver(List<Map> users = SAMPLE_USERS) {
         new SlackMentionResolver('xoxb-test-token') {
             @Override
-            protected Map apiGet(String apiUrl) {
-                if (apiUrl.startsWith('https://slack.com/api/users.list')) {
-                    return [
-                        ok: true,
-                        members: users,
-                        response_metadata: [next_cursor: '']
-                    ]
-                }
-                if (apiUrl == 'https://slack.com/api/usergroups.list') {
-                    return [ok: true, usergroups: usergroups]
-                }
-                return null
+            protected List<Map> fetchUsers() {
+                return users
             }
         }
     }
 
     def 'should resolve display name mention to user id'() {
-        given:
-        def resolver = createResolver()
-
         expect:
-        resolver.resolveInText(':wave: Hi <@Jane>!') == ':wave: Hi <@U111>!'
+        createResolver().resolveInText(':wave: Hi <@Jane>!') == ':wave: Hi <@U111>!'
     }
 
     def 'should resolve username mention to user id'() {
-        given:
-        def resolver = createResolver()
-
         expect:
-        resolver.resolveInText('Ping <@jane.doe>') == 'Ping <@U111>'
+        createResolver().resolveInText('Ping <@jane.doe>') == 'Ping <@U111>'
     }
 
     def 'should resolve real name mention to user id'() {
-        given:
-        def resolver = createResolver()
-
         expect:
-        resolver.resolveInText('Notify <@Jane Doe>') == 'Notify <@U111>'
+        createResolver().resolveInText('Notify <@Jane Doe>') == 'Notify <@U111>'
     }
 
     def 'should leave existing user id mentions unchanged'() {
+        expect:
+        createResolver().resolveInText('Hi <@U999ABC> and <@U999ABC|Jane>') == 'Hi <@U999ABC> and <@U999ABC|Jane>'
+    }
+
+    def 'should resolve display names starting with U'() {
         given:
-        def resolver = createResolver()
+        def users = SAMPLE_USERS + [
+            [
+                id: 'U333',
+                name: 'ulysses',
+                deleted: false,
+                is_bot: false,
+                profile: [display_name: 'Ulysses', real_name: 'Ulysses Grant']
+            ]
+        ]
 
         expect:
-        resolver.resolveInText('Hi <@U999ABC> and <@U999ABC|Jane>') == 'Hi <@U999ABC> and <@U999ABC|Jane>'
+        createResolver(users).resolveInText('Hi <@Ulysses>') == 'Hi <@U333>'
     }
 
     def 'should leave mention unresolved when multiple users match'() {
@@ -105,47 +94,18 @@ class SlackMentionResolverTest extends Specification {
                 profile: [display_name: 'Jane', real_name: 'Jane Other']
             ]
         ]
-        def resolver = createResolver(ambiguousUsers)
 
         expect:
-        resolver.resolveInText('Hi <@Jane>') == 'Hi <@Jane>'
+        createResolver(ambiguousUsers).resolveInText('Hi <@Jane>') == 'Hi <@Jane>'
     }
 
     def 'should leave mention unresolved when no user matches'() {
-        given:
-        def resolver = createResolver()
-
         expect:
-        resolver.resolveInText('Hi <@Nobody>') == 'Hi <@Nobody>'
-    }
-
-    def 'should resolve subteam mention by name'() {
-        given:
-        def resolver = createResolver()
-
-        expect:
-        resolver.resolveInText('Notify <!subteam^Bioinformatics>') == 'Notify <!subteam^S111>'
-    }
-
-    def 'should resolve subteam mention by handle'() {
-        given:
-        def resolver = createResolver()
-
-        expect:
-        resolver.resolveInText('Notify <!subteam^platform-team>') == 'Notify <!subteam^S222>'
-    }
-
-    def 'should leave existing subteam id mentions unchanged'() {
-        given:
-        def resolver = createResolver()
-
-        expect:
-        resolver.resolveInText('<!subteam^S999|@bio>') == '<!subteam^S999|@bio>'
+        createResolver().resolveInText('Hi <@Nobody>') == 'Hi <@Nobody>'
     }
 
     def 'should resolve mentions inside JSON block payloads'() {
         given:
-        def resolver = createResolver()
         def payload = '''{
             "channel": "C123",
             "blocks": [
@@ -157,7 +117,7 @@ class SlackMentionResolverTest extends Specification {
         }'''
 
         when:
-        def resolved = resolver.resolveInJson(payload)
+        def resolved = createResolver().resolveInJson(payload)
         def json = new JsonSlurper().parseText(resolved)
 
         then:
@@ -168,47 +128,48 @@ class SlackMentionResolverTest extends Specification {
         expect:
         SlackMentionResolver.hasResolvableMentions('Hi <@Jane>') == true
         SlackMentionResolver.hasResolvableMentions('Hi <@U123ABC>') == false
-        SlackMentionResolver.hasResolvableMentions('Hi <!subteam^Bioinformatics>') == true
-        SlackMentionResolver.hasResolvableMentions('Hi <!subteam^S123ABC>') == false
+        SlackMentionResolver.hasResolvableMentions('plain text') == false
     }
 
     def 'should skip deleted and bot users'() {
         given:
-        def users = [
-            [
-                id: 'UBOT',
-                name: 'bot.user',
-                deleted: false,
-                is_bot: true,
-                profile: [display_name: 'Bot User', real_name: 'Bot User']
-            ],
-            [
-                id: 'UGONE',
-                name: 'gone.user',
-                deleted: true,
-                is_bot: false,
-                profile: [display_name: 'Gone User', real_name: 'Gone User']
-            ]
-        ]
-        def resolver = createResolver(users, [])
+        def resolver = new SlackMentionResolver('xoxb-test-token') {
+            @Override
+            protected List<Map> fetchUsers() {
+                def users = [
+                    [
+                        id: 'UBOTUSER',
+                        name: 'bot.user',
+                        deleted: false,
+                        is_bot: true,
+                        profile: [display_name: 'Bot User', real_name: 'Bot User']
+                    ],
+                    [
+                        id: 'UGONEUSER',
+                        name: 'gone.user',
+                        deleted: true,
+                        is_bot: false,
+                        profile: [display_name: 'Gone User', real_name: 'Gone User']
+                    ]
+                ]
+                return users.findAll { !it.deleted && !it.is_bot } as List<Map>
+            }
+        }
 
         expect:
         resolver.resolveInText('Hi <@Bot User> and <@Gone User>') == 'Hi <@Bot User> and <@Gone User>'
     }
 
-    def 'should handle users.list response with ok false'() {
+    def 'should leave mention unresolved when users.list fails'() {
         given:
         def resolver = new SlackMentionResolver('xoxb-test-token') {
             @Override
-            protected Map apiGet(String apiUrl) {
-                return [ok: false, error: 'invalid_auth']
+            protected List<Map> fetchUsers() {
+                return []
             }
         }
 
-        when:
-        def result = resolver.resolveInText('Hi <@jane.doe>')
-
-        then:
-        result == 'Hi <@jane.doe>'
+        expect:
+        resolver.resolveInText('Hi <@jane.doe>') == 'Hi <@jane.doe>'
     }
 }

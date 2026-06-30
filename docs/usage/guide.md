@@ -236,8 +236,6 @@ slack {
 
 The plugin resolves `<@DisplayName>` to Slack's `<@U1234567890>` format before sending. Matching uses username, display name, then real name (case-insensitive). If multiple users match, the mention is left unresolved and a warning is logged.
 
-User group mentions work the same way: `<!subteam^Bioinformatics>` is resolved to `<!subteam^S1234567890>` (requires `usergroups:read` scope).
-
 ## File Uploads
 
 <!-- prettier-ignore -->
