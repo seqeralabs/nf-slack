@@ -35,9 +35,16 @@ class SlackMentionResolver {
     /** Slack user IDs are uppercase alphanumeric after U; display names may contain lowercase. */
     private static final java.util.regex.Pattern SLACK_USER_ID = ~/^[UW][A-Z0-9]{4,}(\|.+)?$/
 
+    private static final String USERS_READ_SCOPE_HELP =
+        'Display-name @mentions require the users:read bot scope. ' +
+        'In your Slack app (https://api.slack.com/apps): OAuth & Permissions → Bot Token Scopes → add users:read → ' +
+        'Reinstall to Workspace → update SLACK_BOT_TOKEN with the new token. ' +
+        'See docs/getting-started/setup.md'
+
     private final String botToken
     private List<Map> users
     protected boolean usersListUnavailable
+    private boolean usersListErrorLogged
 
     SlackMentionResolver(String botToken) {
         this.botToken = botToken?.trim()
@@ -113,8 +120,11 @@ class SlackMentionResolver {
 
         def loadedUsers = loadUsers()
         if (loadedUsers.isEmpty()) {
-            if (!usersListUnavailable) {
-                log.warn "Slack plugin: Could not resolve @mention '<@${query}>' — no matching Slack user found"
+            if (usersListUnavailable) {
+                logUsersListUnavailableHint()
+            }
+            else {
+                log.warn "Slack plugin: Could not resolve @mention '<@${query}>' — no matching Slack user found in this workspace"
             }
             return "<@${query}>"
         }
@@ -219,7 +229,7 @@ class SlackMentionResolver {
 
     private Map callUsersList(Map<String, String> params) {
         if (!botToken) {
-            log.warn 'Slack plugin: Cannot resolve @mentions — bot token is not configured'
+            log.warn "Slack plugin: Cannot resolve @mentions — bot token is not configured. Set slack.bot.token or SLACK_BOT_TOKEN."
             return null
         }
 
@@ -241,7 +251,7 @@ class SlackMentionResolver {
 
             def responseStream = connection.responseCode == 200 ? connection.inputStream : connection.errorStream
             if (!responseStream) {
-                log.warn "Slack plugin: users.list failed — HTTP ${connection.responseCode}"
+                logUsersListError("http_${connection.responseCode}")
                 return null
             }
 
@@ -254,7 +264,7 @@ class SlackMentionResolver {
             return response
         }
         catch (Exception e) {
-            log.warn "Slack plugin: users.list request failed: ${e.message}"
+            logUsersListError("request_failed: ${e.message}")
             return null
         }
         finally {
@@ -263,14 +273,27 @@ class SlackMentionResolver {
     }
 
     private void logUsersListError(String error) {
+        usersListErrorLogged = true
+
         if (error == 'missing_scope') {
-            log.warn 'Slack plugin: Cannot resolve @mentions — add users:read to Bot Token Scopes in your Slack app, then reinstall the app to workspace'
+            log.warn "Slack plugin: Cannot resolve @mentions — bot token is missing the users:read permission. ${USERS_READ_SCOPE_HELP}"
         }
         else if (error == 'not_authed' || error == 'invalid_auth') {
-            log.warn "Slack plugin: Cannot resolve @mentions — bot token is invalid (${error})"
+            log.warn "Slack plugin: Cannot resolve @mentions — bot token is invalid (${error}). Check SLACK_BOT_TOKEN and reinstall the app if you recently changed scopes."
+        }
+        else if (error == 'request_failed' || error?.startsWith('http_') || error?.startsWith('request_failed:')) {
+            log.warn "Slack plugin: Cannot load workspace users for @mention resolution (${error}). If you use display-name mentions, ensure the bot has users:read. ${USERS_READ_SCOPE_HELP}"
         }
         else {
-            log.warn "Slack plugin: users.list failed (${error ?: 'unknown error'}) — @mentions will not be resolved"
+            log.warn "Slack plugin: users.list failed (${error ?: 'unknown error'}) — @mentions will not be resolved. ${USERS_READ_SCOPE_HELP}"
         }
+    }
+
+    private void logUsersListUnavailableHint() {
+        if (usersListErrorLogged) {
+            return
+        }
+        log.warn "Slack plugin: Cannot load workspace users for @mention resolution. ${USERS_READ_SCOPE_HELP}"
+        usersListErrorLogged = true
     }
 }
