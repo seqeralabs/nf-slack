@@ -55,8 +55,17 @@ class SlackMentionResolver {
      * Used during connection validation when messages may contain @mentions.
      */
     boolean verifyUsersReadAccess() {
+        if (users != null) {
+            return !usersListUnavailable
+        }
+
         def response = callUsersList([limit: '1'])
-        return response != null
+        if (!response) {
+            users = [] as List<Map>
+            usersListUnavailable = true
+            return false
+        }
+        return true
     }
 
     static boolean hasResolvableMentions(String text) {
@@ -191,6 +200,9 @@ class SlackMentionResolver {
     }
 
     protected List<Map> fetchUsers() {
+        if (usersListUnavailable) {
+            return users ?: ([] as List<Map>)
+        }
         def result = [] as List<Map>
         String cursor = null
 
@@ -229,7 +241,10 @@ class SlackMentionResolver {
 
     private Map callUsersList(Map<String, String> params) {
         if (!botToken) {
-            log.warn "Slack plugin: Cannot resolve @mentions — bot token is not configured. Set slack.bot.token or SLACK_BOT_TOKEN."
+            if (!usersListErrorLogged) {
+                log.warn "Slack plugin: Cannot resolve @mentions — bot token is not configured. Set slack.bot.token or SLACK_BOT_TOKEN."
+                usersListErrorLogged = true
+            }
             return null
         }
 
@@ -273,6 +288,9 @@ class SlackMentionResolver {
     }
 
     private void logUsersListError(String error) {
+        if (usersListErrorLogged) {
+            return
+        }
         usersListErrorLogged = true
 
         if (error == 'missing_scope') {
